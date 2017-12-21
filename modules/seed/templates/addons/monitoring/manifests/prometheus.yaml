@@ -1,0 +1,217 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: kube-system
+data:
+  prometheus.yaml: |
+    global:
+     evaluation_interval: 30s
+     scrape_interval: 30s
+     external_labels:
+       cluster: ${cluster_name}
+    rule_files:
+    - /etc/prometheus/rules/*.yml
+    alerting:
+      alertmanagers:
+      - kubernetes_sd_configs:
+        - role: service
+          namespaces:
+            names:
+            - kube-system
+        scheme: http
+        relabel_configs:
+        - source_labels:
+          - __meta_kubernetes_service_name
+          regex: alertmanager-client
+          action: keep
+        
+    scrape_configs: ${prometheus_config}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-rules
+  namespace: kube-system
+data: ${prometheus_rules}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: prometheus-basic-auth
+  namespace: kube-system
+data:
+  auth: ${basic_auth_b64}
+type: Opaque
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: prometheus-tls
+  namespace: kube-system
+data:
+  tls.crt: ${prometheus_crt_b64}
+  tls.key: ${prometheus_key_b64}
+type: kubernetes.io/tls
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    ingress.kubernetes.io/auth-realm: Authentication Required
+    ingress.kubernetes.io/auth-secret: prometheus-basic-auth
+    ingress.kubernetes.io/auth-type: basic
+  name: prometheus
+  namespace: kube-system
+spec:
+  tls:
+  - secretName: prometheus-tls
+    hosts:
+    - prometheus.${ingress}
+  rules:
+  - host: prometheus.${ingress}
+    http:
+      paths:
+      - backend:
+          serviceName: prometheus-web
+          servicePort: 8080
+        path: /
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-web
+  namespace: kube-system
+  labels:
+    app: prometheus
+    role: monitoring
+spec:
+  ports:
+  - name: web
+    port: 8080
+    protocol: TCP
+    targetPort: web
+  selector:
+    app: prometheus
+    role: monitoring
+  sessionAffinity: None
+  type: ClusterIP
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: prometheus
+  namespace: kube-system
+  labels:
+    app: prometheus
+    role: monitoring
+spec:
+  updateStrategy:
+    type: RollingUpdate
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+      role: monitoring
+  serviceName: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+        role: monitoring
+    spec:
+      containers:
+      - name: prometheus
+        image: quay.io/prometheus/prometheus:v2.0.0
+        imagePullPolicy: IfNotPresent
+        args:
+        - --config.file=/etc/prometheus/config/prometheus.yaml
+        - --storage.tsdb.path=/var/prometheus/data
+        - --storage.tsdb.no-lockfile
+        - --storage.tsdb.retention=180h
+        - --web.route-prefix=/
+        - --web.enable-lifecycle
+        - --web.external-url=https://prometheus.${ingress}
+        # Since v2.0.0-beta.3 prometheus runs as nobody user (fsGroup 65534/runAsUser 0)
+        # data volume needs to be mounted with the same permissions,
+        # otherwise we will have Permission denied problems
+        securityContext:
+          runAsUser: 0
+        livenessProbe:
+          failureThreshold: 10
+          httpGet:
+            path: /status
+            port: web
+            scheme: HTTP
+          initialDelaySeconds: 300
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 3
+        ports:
+        - containerPort: 9090
+          name: web
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 6
+          httpGet:
+            path: /status
+            port: web
+            scheme: HTTP
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 3
+        resources:
+          limits:
+            memory: 2400Mi
+          requests:
+            memory: 500Mi
+        volumeMounts:
+        - mountPath: /etc/prometheus/config
+          name: config
+          readOnly: true
+        - mountPath: /etc/prometheus/rules
+          name: rules
+          readOnly: true
+        - mountPath: /var/prometheus/data
+          name: prometheus-db
+          subPath: prometheus
+      - name: prometheus-config-reloader
+        image: quay.io/coreos/configmap-reload:v0.0.1
+        imagePullPolicy: IfNotPresent
+        args:
+        - -webhook-url=http://localhost:9090/-/reload
+        - -volume-dir=/etc/prometheus/config
+        - -volume-dir=/etc/prometheus/rules
+        resources:
+          limits:
+            cpu: 5m
+            memory: 10Mi
+        volumeMounts:
+        - mountPath: /etc/prometheus/config
+          name: config
+          readOnly: true
+        - mountPath: /etc/prometheus/rules
+          name: rules
+      terminationGracePeriodSeconds: 300
+      volumes:
+      - name: config
+        configMap:
+          defaultMode: 420
+          name: prometheus-config
+      - name: rules
+        configMap:
+          defaultMode: 420
+          name: prometheus-rules
+  volumeClaimTemplates:
+  - metadata:
+      name: prometheus-db
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: ${prometheus_volume_size}
+

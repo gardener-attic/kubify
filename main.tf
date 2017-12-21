@@ -100,6 +100,7 @@ module "seed" {
   ingress_base_domain = "${module.cluster.ingress_base_domain}"
   api_dns_name = "${module.cluster.api}"
 
+  tls_dir    = "${module.cluster.tls_dir}"
   tls_kubelet = "${module.cluster.tls_kubelet}"
   tls_apiserver = "${module.cluster.tls_apiserver}"
   tls_etcd = "${module.cluster.tls_etcd}"
