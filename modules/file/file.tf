@@ -20,6 +20,12 @@ variable "path" {
 variable "default" {
   default = ""
 }
+variable "prefix" {
+  default = ""
+}
+variable "suffix" {
+  default = ""
+}
 
 module "content" {
   source = "../variable"
@@ -27,8 +33,12 @@ module "content" {
   default = "${var.default}"
 }
 
+locals {
+  content = "${module.content.value == "" ? "" : "${var.prefix}${module.content.value}${var.suffix}"}"
+}
+
 output "content" {
-  value = "${module.content.value}"
+  value = "${local.content}"
 }
 output "b64" {
   value = "${module.content.b64}"
