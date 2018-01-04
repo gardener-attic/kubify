@@ -1,0 +1,31 @@
+#!/bin/bash
+
+DIR="$(dirname "$0")"
+echo finalizing cluster setup
+
+source "$(dirname "$0")"/source_me
+
+TMP="/tmp/pods$$" 
+MSG="waiting for bootstrap control plane to be deleted..."
+while true; do
+  if ks get pods >"$TMP"; then
+    if ! grep bootstrap <"$TMP" >/dev/null; then
+      break
+    fi
+  else
+    echo "api server no reachable"
+  fi
+  if [ -n "$MSG" ]; then
+    echo "$MSG"
+    MSG=
+  fi
+  sleep 10
+done
+rm -f "$TMP"
+if [ -z "$MSG" ]; then
+  echo "bootstrap control plane deleted"
+fi
+
+"$DIR/completeetcd.sh"
+
+echo "cluster setup done"

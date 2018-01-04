@@ -1,0 +1,4 @@
+.terraform/
+gen/
+tmp/
+*.sw[opq]

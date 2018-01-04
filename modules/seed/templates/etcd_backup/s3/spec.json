@@ -1,0 +1,14 @@
+{ 
+  "spec": {
+    "backup": {
+      "backupIntervalInSecond": 600,
+      "maxBackups": 5,
+      "storageType": "S3",
+      "s3": {
+        "s3Bucket": "${bucket}",
+        "awsSecret": "${secret}",
+        "prefix": "${prefix}"
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+     kubernetes.io/ingress.class: "nginx"
+  name: frontend
+  namespace: guestbook
+spec:
+  rules:
+  - host: guestbook.${ingress}
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: frontend
+          servicePort: 80
+

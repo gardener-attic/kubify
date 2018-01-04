@@ -1,0 +1,45 @@
+#!/bin/bash
+DEV=${1:-/dev/vdb}
+TARGET=${2:-/var/etcd}
+FSTYPE=ext4
+
+if [ ! -b $DEV ]; then
+  echo "volume device $DEV not found or no block device"
+  exit 1
+fi
+if [ ! -b ${DEV}2 ]; then
+  echo "file system device ${DEV}2 not found"
+  if [ -b ${DEV}1 ]; then
+    echo "OOPS - invalid partitioning of ${DEV} found"
+    if [ -f /etc/kubernetes/init_bootkube.done ]; then
+      echo "kubernetes already bootstrapped and ${DEV}1 found"
+      echo "no repair poissible"
+      exit 0
+    fi
+    echo "${DEV} already partinioned with one partition, but kubernetes not bootstrapped"
+    echo "trying to repartition ${DEV}"
+    while umount ${DEV}1; do
+      echo ${DEV}1 unmounted
+    done
+    echo -e "d\nw\nq\n" | fdisk $DEV
+    echo "partion deleted"
+  fi
+
+  echo "preparing volume"
+  echo -e "n\np\n\n\n+2G\n\nn\np\n\n\n\nw\nw\nq\n" | fdisk $DEV
+  mkfs -t ext4 -v ${DEV}1
+  mkfs -t ext4 -v ${DEV}2
+  echo "block device ready"
+else
+  echo "file system device found"
+fi
+
+for i in "$TARGET" "${@:2}"; do
+  if [ -d "$i" ]; then
+    echo "$i folder found"
+  else
+    mkdir -p "$i"
+    chown root:root "$i"
+    echo "$i folder created"
+  fi
+done

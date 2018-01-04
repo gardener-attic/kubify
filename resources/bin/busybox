@@ -1,0 +1,6 @@
+#!/bin/bash -e
+
+source "$(dirname "$0")"/source_me
+
+kubectl delete pod busybox || true
+kubectl run -it busybox --image busybox --restart=Never /bin/sh

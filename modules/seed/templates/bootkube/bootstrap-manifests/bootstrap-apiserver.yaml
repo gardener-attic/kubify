@@ -1,0 +1,70 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bootstrap-kube-apiserver
+  namespace: kube-system
+spec:
+  containers:
+  - name: kube-apiserver
+    image: ${kubernetes_hyperkube}:${kubernetes_version}${kubernetes_hyperkube_patch}
+    command:
+    - /usr/bin/flock
+    - /var/lock/api-server.lock
+    - /hyperkube
+    - apiserver
+    - --admission-control=NamespaceLifecycle,LimitRanger,ServiceAccount,PersistentVolumeLabel,DefaultStorageClass,ResourceQuota,DefaultTolerationSeconds
+    - --advertise-address=$(POD_IP)
+    - --allow-privileged=true
+    - --authorization-mode=RBAC
+    - --bind-address=0.0.0.0
+    - --client-ca-file=/etc/kubernetes/secrets/ca.crt
+    - --etcd-cafile=/etc/kubernetes/secrets/etcd-client-ca.crt
+    - --etcd-certfile=/etc/kubernetes/secrets/etcd-client.crt
+    - --etcd-keyfile=/etc/kubernetes/secrets/etcd-client.key
+    - --etcd-quorum-read=true
+    - --etcd-servers=https://${etcd_service_ip}:2379,https://127.0.0.1:12379
+    - --insecure-port=0
+    - --kubelet-client-certificate=/etc/kubernetes/secrets/apiserver.crt
+    - --kubelet-client-key=/etc/kubernetes/secrets/apiserver.key
+    - --secure-port=443
+    - --service-account-key-file=/etc/kubernetes/secrets/service-account.pub
+    - --service-cluster-ip-range=${service_cidr}
+    - --cloud-provider=${cloud_provider}
+    - --cloud-config=/etc/kubernetes/cloud.conf
+    - --storage-backend=etcd3
+    - --tls-ca-file=/etc/kubernetes/secrets/ca.crt
+    - --tls-cert-file=/etc/kubernetes/secrets/apiserver.crt
+    - --tls-private-key-file=/etc/kubernetes/secrets/apiserver.key
+    - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
+    env:
+    - name: POD_IP
+      valueFrom:
+        fieldRef:
+          fieldPath: status.podIP
+    volumeMounts:
+    - mountPath: /etc/ssl/certs
+      name: ssl-certs-host
+      readOnly: true
+    - mountPath: /etc/kubernetes/secrets
+      name: secrets
+      readOnly: true
+    - mountPath: /etc/kubernetes/cloud.conf
+      name: cloud-conf
+      readOnly: true
+    - mountPath: /var/lock
+      name: var-lock
+      readOnly: false
+  hostNetwork: true
+  volumes:
+  - name: cloud-conf
+    hostPath:
+      path: /etc/kubernetes/cloud.conf
+  - name: secrets
+    hostPath:
+      path: /etc/kubernetes/bootstrap-secrets
+  - name: ssl-certs-host
+    hostPath:
+      path: ${ssl_certs_dir}
+  - name: var-lock
+    hostPath:
+      path: /var/lock

@@ -1,0 +1,3 @@
+    - mountPath: /var/etcd-backupdir
+      name: etcdbackup
+      readOnly: false

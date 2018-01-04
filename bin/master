@@ -1,0 +1,977 @@
+#!/bin/bash -e
+#
+# Copyright 2017 The Gardener Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+set -o pipefail
+
+MODULE=shoot
+
+ROOT="$(dirname "$0")/.."
+
+rlink=readlink
+[ -n "$(which greadlink)"  ] && rlink=$(which greadlink)
+
+while [ ! -f "$ROOT/terraform.tfvars" ]; do
+  ROOT="$ROOT/.."
+
+  if [ "$(${rlink} -f "$ROOT")" == / ]; then
+    echo "no configured cluster found" >&2
+    exit 1
+  fi
+done
+
+SEED="$ROOT/.."
+CLIENT=kubelet
+while [ ! -f "$SEED/terraform.tfvars" ]; do
+  SEED="$SEED/.."
+
+  if [ "$(${rlink} -f "$SEED")" == / ]; then
+    SEED=
+    MODULE=variant
+    break
+  fi
+done
+
+ASSETS="$ROOT/gen/assets"
+
+requireCluster()
+{
+  if [ ! -s "$ROOT/terraform.tfstate" ]; then
+    echo "please create cluster first" >&2
+    exit 1
+  fi
+}
+
+
+Error()
+{
+  echo "$*" >&2
+  exit 1
+}
+
+##############################################################
+# terraform commands
+##############################################################
+
+# prepare terraform project
+doPrepare()
+{
+  cd "$ROOT"
+  if [ k8s/variables.tf -nt k8s/variants/cluster.tf -o k8s/variants/create.sh -nt k8s/variants/cluster.tf ]; then
+    echo "regenerating cluster interface -> please update the template project"
+    k8s/variants/create.sh
+  fi
+  if [ "$MODULE" == shoot ]; then
+    # not yet supported for shoot projects
+    return
+  fi
+  if [ "$1" == -s ]; then
+    SILENT=X
+    shift
+  else
+    SILENT=
+  fi
+  if [ -h "variant" ]; then
+    VARIANT="$(basename "$(${rlink} -f variant)")"
+    if [ \( -d terraform -a ! -h terraform \) -o "$(basename "$(${rlink} variant)")" != "$VARIANT" ]; then
+      MODE=copy
+   fi
+  else
+    if [ -n "$1" ]; then
+      MODE=copy
+    fi
+  fi
+  if [ "$MODE" != copy ]; then
+    if [ ! -h terraform ]; then
+      ln -s k8s terraform
+    fi
+    if [ -z "$SILENT" ]; then
+      Error "copy mode not enabled"
+    else
+      return 0
+    fi
+  fi
+  if [ -z "$VARIANT" -a -z "$1" ]; then
+    Error "variant name missing"
+  fi
+  if [ -n "$VARIANT" -a -n "$1" -a "$1" != "$VARIANT" ]; then
+    Error "variant mismatch, cluster is configuted for $VARIANT"
+  fi
+  if [ -z "$VARIANT" ]; then
+    VARIANT="$1"
+  fi
+  if [ ! -d "k8s/variants/$VARIANT" ]; then
+    Error "variant '$VARIANT' not found"
+  fi
+
+  if [ -d terraform -a ! -h terraform ]; then
+    echo "updating terraform project for $VARIANT"
+  else
+    echo "creating terraform project for $VARIANT"
+  fi
+  rm -f variant
+  rm -rf terraform
+  ln -s terraform/variants/current variant
+  cp -r k8s terraform
+  rm terraform/variants/current
+  ln -s "$VARIANT" terraform/variants/current
+}
+
+doTF()
+{
+  doPrepare -s
+  SUF=
+  case "$1" in
+    get|plan|apply|init|refresh|destroy|validate) SUF=$MODULE
+  esac
+  terraform "$@" $SUF
+}
+
+doPlan()
+{
+  local filter
+  local migrate
+  local config
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -s) filter=X
+          shift;;
+      -m) migrate=X
+          shift;;
+      -c) config="-target=module.instance.data.archive_file.bootkube"
+          shift;;
+      *)  break;;
+    esac
+  done
+  doPrepare -s
+  if [ -s terraform.tfstate ]; then
+    if [ -z "$migrate" ]; then
+      doMigrate
+    fi
+    terraform get $MODULE >/dev/null
+  else
+    terraform init "$MODULE"
+  fi
+  if [ -n "$filter" ]; then
+    echo "****************** overview ******************"
+    terraform plan $config "$@" $MODULE | { grep "^\("$'\e'\\\["[[:digit:]]*m\)*[[:space:]]*"$'\e'\\\[3.m; echo -e "\e[0m"; }
+  else
+    echo terraform plan $config "$@" $MODULE
+    terraform plan $config "$@" $MODULE
+  fi
+}
+
+_doPlan()
+{
+  cd "$ROOT"
+  terraform plan "$@" $MODULE
+}
+
+doApply()
+{
+  local config
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -c) config="-target=module.instance.data.archive_file.bootkube"
+          shift;;
+      *)  break;;
+    esac
+  done
+  doPrepare -s
+  if [ -s terraform.tfstate ]; then
+    doMigrate
+    terraform get $MODULE >/dev/null
+  else
+    terraform init "$MODULE"
+  fi
+  terraform apply $config "$@" $MODULE
+}
+
+_doApply()
+{
+  cd "$ROOT"
+  terraform apply "$@" $MODULE
+}
+
+_listResources()
+{
+  terraform state list $1 | while read r; do
+    if [ "${r#$1}" != "$r" ]; then
+       echo "$r"
+    fi
+  done
+}
+
+#
+# Migration of terraform state
+#
+
+doMMove()
+{
+  local MM
+  local src="$1"
+  local dst="$2"
+  if [ "$1" == -m ]; then
+    MM=X
+    src="$2"
+    dst="$3.$(sed -e 's/^\(.*\.\)*\([^.]*\.[^.]*\)$/\2/' <<<"$2")"
+    shift
+  fi
+  local r="$(_listResources $src)"
+  if [ -z "$r" ]; then
+    _notifyMig v
+    echo "resource '$src' already moved"
+  else
+    for i in $r; do
+      p="${i##$src}"
+      if [ "$i" != "$p" ]; then
+        _notifyMig
+        echo "moving resource '$i' to '$dst$p'"
+        if [ -z "$dryrun" ]; then
+          terraform state mv "$i" "$dst$p"
+        fi
+      fi
+    done
+  fi
+}
+
+doMRm()
+{
+  local src="$1"
+  local r="$(_listResources $src)"
+  if [ -z "$r" ]; then
+    _notifyMig v
+    echo "resource '$src' already removed"
+  else
+    for i in $r; do
+      p="${i##$src}"
+      if [ "$i" != "$p" ]; then
+        _notifyMig
+        echo "removing resource '$i'"
+        if [ -z "$dryrun" ]; then
+          terraform state rm "$i"
+        fi
+      fi
+    done
+  fi
+}
+
+_doMig()
+{
+  if [ -n "$active" ]; then
+    "$@"
+  fi
+}
+
+_notifyMig()
+{
+  if [ -n "$vmsg" ]; then
+    echo "$vmsg"
+    vmsg=
+  fi
+  if [ "$1" != v ]; then
+    if [ -n "$emsg" ]; then
+      echo "$emsg"
+      emsg=
+    fi
+  fi
+}
+
+
+doMigrate()
+{
+  requireCluster
+  local dryrun
+  local cmsg
+  if [ "$1" == -v ]; then
+    dryrun=X
+    shift
+  fi
+  local file="$(${rlink} -f "${1:-$ROOT/$MODULE/migrate.mig}")"
+  cd "$ROOT"
+  local active
+  local cur
+  if [ -f "structure-version" ]; then
+    cur="$(cat structure-version)"
+  fi
+  if [ -z "$cur" ]; then
+    cur="$(terraform output structure-version 2>/dev/null)" && true
+  fi
+  if [ -z "$cur" ]; then
+    cur=0
+    active=X
+  else
+    cmsg="current version is $cur"
+  fi
+  local emsg
+  local vmsg
+  local vers=0
+  if [ -f "$file" ]; then
+    while read a b c; do
+      if [ -n "$a" ]; then
+        case "$a" in
+           \#*) true;;
+           stop)    if [ $cur -lt $b ]; then
+                      echo "migration to version $b not possible for version $cur" >&2
+                      if [ -n "$c" ]; then
+                        Error "latest commit for version $b is $c"
+                      else
+                        Error "use git to figure out latest posible commit prior to version $b" >&2
+                      fi
+                    fi;;
+           version) vers="$b"
+                    vmsg=
+                    emsg=
+                    if [ $cur -le $vers ]; then
+                      if [ -n "$cmsg" ]; then
+                        echo "$cmsg"
+                        cmsg=
+                      fi
+                      vmsg="*** migrating version $b..."
+                      active=X
+                    else
+                      active=
+                    fi;;
+
+           echo) emsg="$b $c";;
+           mv) _doMig doMMove $b $c;;
+           rm) _doMig doMRm $b $c;;
+           *)  echo "invalid migration step $a" >&2
+               exit 1;;
+        esac
+      fi
+    done <"$file"
+    if [ -n "$vers" -a -z "$dryrun" ]; then
+      echo "$(( vers + 1 ))" >structure-version
+    fi
+  fi
+}
+
+##############################################################
+# kubernetes commands
+##############################################################
+
+#
+# generic kubectl
+#
+doK()
+{
+  requireCluster
+  #echo config = "$ASSETS/auth/kubeconfig" >&2
+  kubectl --kubeconfig "$ASSETS/auth/kubeconfig" "$@"
+}
+
+doKS()
+{
+  doK -n kube-system "$@"
+}
+
+#
+# deploy folder and file content
+#
+doKDeploy()
+{
+  local verb=apply
+  if [ "$1" == -d ]; then
+    verb=delete
+    shift
+  fi
+  _doDeploy "$@"
+}
+
+_doDeploy()
+{
+  for i; do
+    if [ -d "$i" ]; then
+      _doDeploy "$i"/*
+    else
+      doK $verb -f "$i"
+    fi
+  done
+}
+
+#
+# update current resources
+#
+doUpdate()
+{
+  requireCluster
+  local verb=apply
+  if [ $# == 0 ]; then
+     cd "$ROOT"
+    _doDeploy gen/bootkube/manifests gen/addons
+  else
+    _doDeploy "$@"
+  fi
+}
+
+#
+# kubectl for shoot resources in seed cluster
+#
+doSeed()
+{
+  if [ -n "$SEED" ]; then
+    $SEED/k8s/bin/k -n shoot0 "$@"
+  else
+    echo "no seed/shoot pair" >&2
+    exit 1
+  fi
+}
+
+
+#
+# generic rest api call
+#
+doCurl()
+{
+  requireCluster
+  opts=( )
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -*) opts+=( "$1" )
+          shift;;
+      *)  break;;
+    esac
+  done
+  URL="$(yaml2json <"$ASSETS/auth/kubeconfig" | jq -r ".clusters[0].cluster.server")"
+  echo curl --cacert "$ASSETS/tls/ca.crt" --cert  "$ASSETS/tls/$CLIENT.crt" --key "$ASSETS/tls/$CLIENT.key" "${opts[@]}" $URL/$@ >&2
+
+  curl --cacert "$ASSETS/tls/ca.crt" --cert  "$ASSETS/tls/$CLIENT.crt" --key "$ASSETS/tls/$CLIENT.key" "${opts[@]}" $URL/$@
+}
+
+##############################################################
+# high level commands
+##############################################################
+
+#
+# roll vms
+#
+rollActive()
+{
+   [ -f state.auto.tfvars ] && grep '"pending":"true"' <state.auto.tfvars >/dev/null
+}
+
+getPodNodes()
+{
+  doKS get pods -o json | jq -r '.items[] | select(.metadata.name| test("'$1'-.*")) | .status.hostIP' | sort | uniq -c
+}
+
+getPodsOnNode()
+{
+  doKS get pods -o json | jq -r '.items[] | select(.metadata.name| test("'$1'-.*")) | select(.status.hostIP == "'$2'") | .metadata.name'
+}
+
+getCandidate()
+{
+  getPodNodes "$1" | {
+    cand=
+    ncount=0
+    pcount=0
+    while read c n; do
+      if [ $c -gt 1 ]; then
+        cand="$n"
+      fi
+      pcount=$((pcount + $c))
+      ncount=$((ncount + 1))
+    done
+    if [ -n "$cand" ]; then
+      getPodsOnNode $1 $cand  | {
+        a=
+        while read a; do
+          if [ -n "$a" ]; then
+            break
+          fi
+        done
+        echo $ncount $pcount $a
+      }
+    else
+      echo $ncount $pcount
+    fi
+  }
+}
+
+
+infoPod()
+{
+  getCandidate $1 | (
+    read n p c
+    printPodInfo "$1" "$2" "$n" "$p" "$c"
+  )
+}
+
+# $1: name
+# $2: expected nodes
+# $3: found nodes
+# $4: found pods
+# $5: candidate pods
+printPodInfo()
+{
+  if [ "$3" -lt $2 ]; then
+    if [ -z "$5" ]; then
+      echo "$1: only $4 pods found ($3 nodes found, $2 required)"
+    else
+      echo "$1: reschedule required ($3 nodes found, $2 required, candidate is $5)"
+    fi
+  else
+    echo "$1: distributed over $3 nodes"
+  fi
+}
+
+reschedulePod()
+{
+  getCandidate "$1" | {
+    read count pcount cand
+    if [ $count -lt $2 ]; then
+      if [ -z "$cand" ]; then
+        if [ $pcount -lt $2 ]; then
+          echo "$1: required are $2 nodes, but only $pcount pods found (on $count nodes)"
+        else
+          echo "$1: required are $2 nodes, but no candiate found"
+        fi
+      else
+        echo "rescheduling $1..."
+        while [ $count -lt $2 ]; do
+          echo "  required are $2 nodes -> reschedule pod $cand"
+          n=$(( $count + 1 ))
+          doKS delete pod $cand
+          while [ $(getCandidate $1 | cut -sf 1 -d " ") -lt $n ]; do
+            sleep 10
+          done
+          cand="$(getCandidate $1 | cut -sf 3 -d " ")"
+        done
+        echo "$1 rescheduled"
+      fi
+    else
+      echo "no rescheduling required for $1"
+    fi
+  }
+}
+
+getExpectedNodeCount()
+{
+  local M_CNT
+  local W_CNT
+  if [ -n "$SEED" ]; then
+    M_CNT=0
+  else
+    M_CNT="$(terraform output master_count)"
+  fi
+  W_CNT="$(terraform output worker_count)"
+  expr "$M_CNT" + "$W_CNT"
+}
+
+getExpectedMasterCount()
+{
+  local M_CNT
+  if [ -n "$SEED" ]; then
+    M_CNT=0
+  else
+    M_CNT="$(terraform output master_count)"
+  fi
+  echo "$M_CNT"
+}
+
+getReadyNodes()
+{
+  doKS get nodes -o json | jq -r '[.items[] | select(([.status.conditions[] | select(.type == "Ready") | select(.status == "True")] | length) > 0)] | length'
+#  doK get nodes | grep " Ready" | wc -l
+}
+
+waitForAllNodes()
+{
+  local last
+  local M
+  local N
+  last=0
+  M="$(getExpectedNodeCount)"
+  while true; do
+    N="$(getReadyNodes)"
+    if [ "$N" != "$M" ]; then
+      if [ "$N" != "$last" ]; then
+        echo -n "found $N ready node(s) (expected $M)"
+      else
+        echo -n .
+      fi
+      last="$N"
+      if [ "$1" == -c ]; then
+        echo
+        return 1
+      fi
+    else
+      if [ -n "$last" ]; then
+        echo
+      fi
+      echo "found $N ready node(s)"
+      return 0
+    fi
+    sleep 10
+  done
+}
+
+waitForMissingNodes()
+{
+  local last
+  local M
+  local N
+  last=0
+  M="$(getExpectedNodeCount)"
+  while true; do
+    N="$(getReadyNodes)"
+    if [ "$N" == "$M" ]; then
+      if [ "$N" != "$last" ]; then
+        echo -n "found $N ready node(s)"
+      else
+        echo -n .
+      fi
+      last="$N"
+    else
+      if [ -n "$last" ]; then
+        echo
+      fi
+      echo "found $N ready node(s) (expected $M)"
+      return 0
+    fi
+    sleep 10
+  done
+}
+
+
+doRoll()
+{
+  doPrepare -s
+  local single
+  if [ "$1" == -s ]; then
+    single=X
+  fi
+  MA="$(getExpectedMasterCount)"
+  M="$(getExpectedNodeCount)"
+  N="$(getReadyNodes)"
+  case "$1" in
+    info)
+      if rollActive; then
+        echo roll required
+      fi
+      echo "$M nodes ( $N ready)"
+      echo "$MA master node setup"
+      infoPod kube-scheduler $MA
+      infoPod kube-controller-manager $MA
+      exit 0;;
+    reschedule)
+      if [ "$M" -eq "$N" ]; then
+        reschedulePod kube-scheduler $MA
+        reschedulePod kube-controller-manager $MA
+      else
+        echo "$M nodes ( $N ready)"
+      fi
+      exit 0;;
+  esac
+
+  set -o pipefail
+  echo "Checking for updates"
+  _doPlan | grep "No changes. Infrastructure is up-to-date." > /dev/null && { echo 'Nothing to do!'; exit 0; }
+  waitForAllNodes -c || { [ "$1" == -f ] && "echo forced roll"; } || waitForAllNodes
+  echo "Starting update"
+  while true; do
+    _doApply
+    cat "$ROOT/rollinfo"
+    echo
+    if ! rollActive; then
+      echo 'Finished rolling cluster!'
+      exit 0
+    else
+      echo still pending changes
+      waitForMissingNodes
+      waitForAllNodes
+      reschedulePod kube-scheduler $MA
+      reschedulePod kube-controller-manager $MA
+      if [ -n "$single" ]; then
+        exit 0
+      fi
+    fi
+  done
+}
+
+#
+# recreate cluster
+#
+doRecreate()
+{
+  if [ -n "$SEED" ]; then
+    echo "no recreate for shoot clusters" >&2
+    exit 1
+  fi
+
+  doPrepare -s
+  if [ "$1" == "master" ]; then
+    count=0
+    while true; do
+      terraform taint -module=master.vms openstack_compute_instance_v2.storage.$count || break
+      terraform taint -module=master.vms openstack_blockstorage_volume_v2.nodes.$count
+      count=$((count+1))
+    done
+    echo found $count master instances
+    rm -f bootkube.auto.tfvars
+  fi
+  count=0
+  while true; do
+    terraform taint -module=worker.vms openstack_compute_instance_v2.nostorage.$count || break
+    count=$((count+1))
+  done
+  echo found $count worker instances
+  _doApply
+}
+
+##############################################################
+# VM commands
+##############################################################
+
+extractKey()
+{
+  terraform state show module.iaas.local_file.private_key  | while read a b c; do
+    if [ "$c" == "-----BEGIN RSA PRIVATE KEY-----" ]; then
+      p=X
+      echo "$c"
+    else
+      if [ -n "$p" ]; then
+        if [ "$a $b $c" == "-----END RSA PRIVATE KEY-----" ]; then
+          p=
+          echo "$a $b $c"
+        else
+          echo "$a"
+        fi
+      fi
+    fi
+  done
+}
+
+assureKey()
+{
+  if [ ! -f "$PEM" ]; then
+    mkdir -p gen
+    extractKey >"$PEM" || { rm "$PEM"; echo "no key found" >&1; exit 1; }
+  fi
+}
+
+getIP()
+{
+  local o
+  o=$(terraform output $1 2>/dev/null)
+  {
+    no=$2
+    while read a; do
+      if [ -n "$o" ]; then
+        if [ $no -eq 0 ]; then
+          echo ${a%%,}
+          return 0
+        fi
+        no=$((no-1))
+      fi
+    done
+    return 1
+  } <<<"$o"
+}
+
+doSSH()
+{
+  local t="$1"
+  shift
+  requireCluster
+  if [ $# -eq 0 ]; then
+    no=0
+  else
+    if [ "$1" == list ]; then
+      cd "$ROOT"
+      terraform output ${t}_ips | sed -e 's/,$//'
+      exit 0
+    fi
+    if [ "$1" -lt 0 ]; then
+      echo "index must not be negative"
+    fi
+    no="$1"
+    shift
+  fi
+  cd "$ROOT"
+  PEM="gen/nodes_privatekey.pem"
+  assureKey
+  chmod og-rwx "$PEM"
+
+  FIP="$(getIP $t $no)" || IP="$(getIP ${t}_ips $no)" || true
+  if [ -z "$FIP" ]; then
+    if [ -z "$IP" ]; then
+      echo "$t $no not found" >&2
+      exit 1
+    fi
+    echo IP=$IP >&2
+    FIP="$(getIP bastion 0)" || true
+    if [ -z "$FIP" ]; then
+      echo "no bastion found" >&2
+      exit 1
+    fi
+    echo BASTION=$FIP >&2
+    echo ssh -t -i $PEM -o \"ProxyCommand=ssh -i $PEM -W %h:%p ubuntu@$FIP\" core@$IP "$@" >&2
+    ssh-keygen -f ~/.ssh/known_hosts -R $FIP
+    ssh -i $PEM -o "ProxyCommand=ssh -i $PEM -W %h:%p ubuntu@$FIP" core@$IP "$@"
+  else
+    echo FIP=$FIP >&2
+    if [ "$t" == bastion ]; then
+      u=ubuntu
+    else
+      u=core
+    fi
+    echo ssh -i "$PEM" -A $u@"$FIP" "$@" >&2
+    ssh-keygen -f ~/.ssh/known_hosts -R $FIP
+    ssh -i "$PEM" -A $u@"$FIP" "$@"
+  fi
+}
+
+##############################################################
+# openstack commands
+##############################################################
+
+doNeutron()
+{
+  OSRC="$ROOT/gen/osrc"
+  if [ ! -f "$OSRC" ]; then
+    OSRC="$ROOT/osrc"
+  fi
+  if [ ! -f "$OSRC" ]; then
+    OSRC="$SEED/gen/osrc"
+  fi
+  if [ ! -f "$OSRC" ]; then
+    echo "no osrc found" >&2
+    exit 1
+  fi
+  source "$OSRC"
+  TMP="/tmp/os-$$"
+  neutron --insecure "$@" 2>"$TMP" || { cat "$TMP" | grep -v InsecurePlatformWarning | grep -v InsecureRequestWarning | grep -v SNIMissingWarning | grep -v "neutron CLI is deprecated" >&2; rm -f "$TMP"; exit 1; }
+  rm -f "$TMP"
+}
+
+doLBActive()
+{
+  if [ $# -eq 0 ]; then
+    ids=( $(doLBCmd list lb -f json | jq -r ".[]|.id") )
+  else
+    ids=( "$@" )
+  fi
+  for id in "${ids[@]}"; do
+    (doLBCmd show lb -f json "$id" | jq -r 'def val(v): v as $v | .[]|select(.Field==v).Value; [val("name"),val("vip_address"),val("operating_status"),val("id")]|join(" ")'
+    doLBCmd status lb  $id | jq -r '.loadbalancer.listeners[]|.pools[]|.members[]|[.address,"\(.protocol_port)",.operating_status]|join(" ")') | column -t -s " "
+  done
+}
+
+doLBAAS()
+{
+  case "$1" in
+    *-*) doNeutron "lbaas-$1" "${@:2}";;
+    list|show|delete|update|l|d|s|u|status) doLBCmd "$@";;
+    active|a) doLBActive "${@:2}";;
+    help) doNeutron "$@";;
+    *) echo "unknown command for lbaas" >&2
+       exit 1;;
+  esac
+}
+
+doLBCmd()
+{
+  local verb="$1"
+  local obj="$2"
+  shift 2
+  case "$verb" in
+    status) true;;
+    d*) verb=delete;;
+    l*) verb=list;;
+    s*) verb=show;;
+    u*) verb=update;;
+  esac
+  case "$obj" in
+    lb) obj="loadbalancer";;
+    hm) obj="healthmonitor";;
+    l)  obj="listener";;
+    p)  obj="pool";;
+    m)  obj="member";;
+  esac
+  doNeutron lbaas-$obj-$verb "$@"
+}
+
+
+##############################################################
+# etcd commands
+##############################################################
+
+
+genECScript()
+{
+  local ip="$(terraform output etcd_service_ip 2>/dev/null)"
+  local endpoint="--endpoints https://$ip:2379"
+  cat <<EOF
+TMP="/tmp/ec\$\$"
+trap cleanup EXIT
+cleanup()
+{
+  rm -rf "\$TMP"
+  rm script
+}
+CERT="$(cat gen/assets/tls/etcd-client.crt)"
+KEY="$(cat gen/assets/tls/etcd-client.key)"
+CA="$(cat gen/assets/tls/ca.crt)"
+mkdir "\$TMP"
+echo "\$CERT" >"\$TMP/etcd-client.crt"
+echo "\$KEY" >"\$TMP/etcd-client.key"
+echo "\$CA" >"\$TMP/ca.crt"
+docker run -i --rm -v "\$TMP":/tls quay.io/coreos/etcd:v3.2 /bin/sh -c "export ETCDCTL_API=3 && /usr/local/bin/etcdctl --cert /tls/etcd-client.crt --key /tls/etcd-client.key --cacert /tls/ca.crt $endpoint $*"
+EOF
+}
+
+doEC()
+{
+  requireCluster
+  cd "$ROOT"
+  genECScript $* | doSSH master 0 tee script >/dev/null
+  doSSH master 0 bash script
+}
+
+##############################################################
+# command set
+##############################################################
+
+case "$(basename "$0")" in
+  prepare)  doPrepare "$@";;
+  kc)       doSeed "$@";;
+  k)        doK "$@";;
+  ks)       doK -n kube-system "$@";;
+  kd)       doKDeploy "$@";;
+  update)   doUpdate "$@";;
+  kurl)     doCurl "$@";;
+  tf)       doTF "$@";;
+  plan)     doPlan "$@";;
+  apply)    doApply "$@";;
+  migrate)  doMigrate "$@";;
+  roll)     doRoll "$@";;
+  recreate) doRecreate "$@";;
+  ec)       doEC "$@";;
+  bastion)  doSSH bastion "$@";;
+  worker)   doSSH worker "$@";;
+  master)   if [ -n "$SEED" ]; then
+              echo "no master for shoot cluster" >&2
+              exit 1
+            fi
+            doSSH master "$@";;
+
+  n)        doNeutron "$@";;
+  lbaas)    doLBAAS "$@";;
+  *)        echo "invalid cmd $0" >&2
+            exit 1;;
+esac

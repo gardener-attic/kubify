@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bootstrap-etcd
+  namespace: kube-system
+  labels:
+    k8s-app: boot-etcd
+spec:
+${etcd_initcontainers}
+  containers:
+  - name: etcd
+    image: quay.io/coreos/etcd:${etcd_version}
+    command:
+    - /usr/local/bin/etcd
+    - --name=boot-etcd
+    - --listen-client-urls=https://0.0.0.0:12379
+    - --listen-peer-urls=https://0.0.0.0:12380
+    - --advertise-client-urls=https://${bootstrap_etcd_service_ip}:12379
+${etcd_args}
+    - --data-dir=/var/etcd/data
+    - --peer-client-cert-auth=true
+    - --peer-trusted-ca-file=/etc/kubernetes/secrets/etcd/peer-ca.crt
+    - --peer-cert-file=/etc/kubernetes/secrets/etcd/peer.crt
+    - --peer-key-file=/etc/kubernetes/secrets/etcd/peer.key
+    - --client-cert-auth=true
+    - --trusted-ca-file=/etc/kubernetes/secrets/etcd/server-ca.crt
+    - --cert-file=/etc/kubernetes/secrets/etcd/server.crt
+    - --key-file=/etc/kubernetes/secrets/etcd/server.key
+    volumeMounts:
+${etcd_mounts}
+    - mountPath: /etc/kubernetes/secrets
+      name: secrets
+      readOnly: true
+  volumes:
+${etcd_volumes}
+  - name: secrets
+    hostPath:
+      path: /etc/kubernetes/bootstrap-secrets
+  hostNetwork: true
+  restartPolicy: Never
+  dnsPolicy: ClusterFirstWithHostNet

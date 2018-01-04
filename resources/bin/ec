@@ -1,0 +1,24 @@
+#!/bin/bash -e
+
+if [ -f /opt/bootkube/assets/cluster-info ]; then
+  source /opt/bootkube/assets/cluster-info
+fi
+if [ -z "$BOOTSTRAP_ETCD_SERVICE_IP" ]; then
+  BOOTSTRAP_ETCD_SERVICE_IP=10.241.0.20
+fi
+if [ -z "$ETCD_SERVICE_IP" ]; then
+  ETCD_SERVICE_IP=10.241.0.15
+fi
+
+
+case "$1" in
+  B) endpoint="--endpoints https://localhost:12379"
+     shift;;
+  BS) endpoint="--endpoints https://$BOOTSTRAP_ETCD_SERVICE_IP:12379"
+     shift;;
+  C) endpoint="--endpoints https://$ETCD_SERVICE_IP:2379"
+     shift;;
+esac
+
+echo docker run --net="host" -it --rm -v /opt/bootkube/assets/tls:/tls quay.io/coreos/etcd:v3.2 /bin/sh -c "export ETCDCTL_API=3 && /usr/local/bin/etcdctl --cert /tls/etcd-client.crt --key /tls/etcd-client.key --cacert /tls/ca.crt $endpoint $*"
+docker run --net="host" -it --rm -v /opt/bootkube/assets/tls:/tls quay.io/coreos/etcd:v3.2 /bin/sh -c "export ETCDCTL_API=3 && /usr/local/bin/etcdctl --cert /tls/etcd-client.crt --key /tls/etcd-client.key --cacert /tls/ca.crt $endpoint $*"

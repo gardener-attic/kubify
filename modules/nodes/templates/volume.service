@@ -1,0 +1,16 @@
+  - name: volume.path
+    command: start
+    content: |
+      [Unit]
+      Description=Data Volume Trigger
+      [Path]
+      PathExists=${device}
+  - name: volume.service
+    content: |
+      [Unit]
+      Description=Prepare Volume
+      ConditionPathExists=${device}
+      [Service]
+      Type=oneshot
+      RemainAfterExit=true
+      ExecStart=/bin/sh /opt/bin/setup_volume "${device}" "${path}"

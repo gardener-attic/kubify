@@ -1,0 +1,10 @@
+apiVersion: v1
+data:
+  server-ca.crt: "${etcd_server_ca_crt_b64}"
+  server.crt: "${etcd_server_crt_b64}"
+  server.key: "${etcd_server_key_b64}"
+kind: Secret
+metadata:
+  name: etcd-server-tls
+  namespace: kube-system
+type: Opaque

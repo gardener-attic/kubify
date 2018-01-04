@@ -1,0 +1,43 @@
+  initContainers:
+  - name: recovery
+    image: quay.io/coreos/etcd:${etcd_version}
+    command:
+    - /bin/sh 
+    - -ec
+    - |
+      etcdctl snapshot restore \
+      /var/etcd-backupdir/${backup_file} \
+      --data-dir=/var/etcd/data \
+      --name=boot-etcd \
+      --initial-cluster=boot-etcd=https://${bootstrap_etcd_service_ip}:12380 \
+      --initial-cluster-token=bootkube \
+      --initial-advertise-peer-urls=https://${bootstrap_etcd_service_ip}:12380 \
+      --skip-hash-check=true 
+    env:
+    - name: ETCDCTL_API
+      value: "3"
+    volumeMounts:
+${etcd_mount}
+${etcd_backup_mount}
+  - name: cleanup
+    image: quay.io/coreos/etcd:${etcd_version}
+    command:
+    - /bin/sh 
+    - -ec
+    - |
+      (/usr/local/bin/etcd \
+      --listen-client-urls=http://127.0.0.1:32379 \
+      --listen-peer-urls=http://127.0.0.1:32380 \
+      --advertise-client-urls=http://127.0.0.1:32379 \
+      --data-dir=/var/etcd/data &) && sleep 30 && \
+      etcdctl \
+      --endpoints=http://127.0.0.1:32379 \
+      del ${crd_key}  && \
+      etcdctl \
+      --endpoints=http://127.0.0.1:32379 \
+      del --prefix ${member_pod_prefix}
+    env:
+    - name: ETCDCTL_API
+      value: "3"
+    volumeMounts:
+${etcd_mount}

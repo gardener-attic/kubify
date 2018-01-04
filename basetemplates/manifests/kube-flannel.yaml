@@ -1,0 +1,81 @@
+apiVersion: apps/v1beta2
+kind: DaemonSet
+metadata:
+  name: kube-flannel
+  namespace: kube-system
+  labels:
+    tier: node
+    k8s-app: flannel
+spec:
+  selector:
+    matchLabels:
+      tier: node
+      k8s-app: flannel
+  template:
+    metadata:
+      labels:
+        tier: node
+        k8s-app: flannel
+    spec:
+      containers:
+      - name: kube-flannel
+        image: quay.io/coreos/flannel:v0.9.0-amd64
+        command: [ "/opt/bin/flanneld", "--ip-masq", "--kube-subnet-mgr", "--iface=$(POD_IP)"]
+        securityContext:
+          privileged: true
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        volumeMounts:
+        - name: run
+          mountPath: /run
+        - name: cni
+          mountPath: /etc/cni/net.d
+        - name: flannel-cfg
+          mountPath: /etc/kube-flannel/
+      - name: install-cni
+        image: quay.io/coreos/flannel-cni:v0.3.0
+        command: ["/install-cni.sh"]
+        env:
+        - name: CNI_NETWORK_CONFIG
+          valueFrom:
+            configMapKeyRef:
+              name: kube-flannel-cfg
+              key: cni-conf.json
+        volumeMounts:
+        - name: cni
+          mountPath: /host/etc/cni/net.d
+        - name: host-cni-bin
+          mountPath: /host/opt/cni/bin/
+      hostNetwork: true
+      tolerations:
+      - key: node-role.kubernetes.io/master
+        operator: Exists
+        effect: NoSchedule
+      volumes:
+        - name: run
+          hostPath:
+            path: /run
+        - name: cni
+          hostPath:
+            path: /etc/kubernetes/cni/net.d
+        - name: flannel-cfg
+          configMap:
+            name: kube-flannel-cfg
+        - name: host-cni-bin
+          hostPath:
+            path: /opt/cni/bin
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 1
+    type: RollingUpdate

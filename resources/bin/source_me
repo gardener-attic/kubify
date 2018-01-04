@@ -1,0 +1,2 @@
+export KUBECONFIG=/etc/kubernetes/kubeconfig
+export PATH=$PATH:/opt/bin:/opt/bootkube/bin

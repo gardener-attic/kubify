@@ -1,0 +1,91 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: kube-controller-manager
+  namespace: kube-system
+  labels:
+    tier: control-plane
+    k8s-app: kube-controller-manager
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      tier: control-plane
+      k8s-app: kube-controller-manager
+  template:
+    metadata:
+      labels:
+        tier: control-plane
+        k8s-app: kube-controller-manager
+      annotations:
+        scheduler.alpha.kubernetes.io/critical-pod: ''
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: tier
+                  operator: In
+                  values:
+                  - control-plane
+                - key: k8s-app
+                  operator: In
+                  values:
+                  - kube-controller-manager
+              topologyKey: kubernetes.io/hostname
+      containers:
+      - name: kube-controller-manager
+        image: ${kubernetes_hyperkube}:${kubernetes_version}${kubernetes_hyperkube_patch}
+        command:
+        - ./hyperkube
+        - controller-manager
+        - --allocate-node-cidrs=true
+        - --cloud-provider=${cloud_provider}
+        - --cloud-config=/etc/kubernetes/cloud.conf
+        - --cluster-cidr=${pod_cidr}
+        - --cluster-name=${cluster_name}
+        - --configure-cloud-routes=false
+        - --leader-elect=true
+        - --root-ca-file=/etc/kubernetes/secrets/ca.crt
+        - --service-account-private-key-file=/etc/kubernetes/secrets/service-account.key
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 10252  # Note: Using default port. Update if --port option is set differently.
+          initialDelaySeconds: 15
+          timeoutSeconds: 15
+        volumeMounts:
+        - name: secrets
+          mountPath: /etc/kubernetes/secrets
+          readOnly: true
+        - name: ssl-host
+          mountPath: /etc/ssl/certs
+          readOnly: true
+        - mountPath: /etc/kubernetes/cloud.conf
+          name: cloud-conf
+          readOnly: true
+      nodeSelector:
+        node-role.kubernetes.io/master: ""
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+      tolerations:
+      - key: CriticalAddonsOnly
+        operator: Exists
+      - key: node-role.kubernetes.io/master
+        operator: Exists
+        effect: NoSchedule
+      volumes:
+      - name: secrets
+        secret:
+          secretName: kube-controller-manager
+      - name: ssl-host
+        hostPath:
+          path: ${ssl_certs_dir}
+      - name: cloud-conf
+        hostPath:
+          path: /etc/kubernetes/cloud.conf
+      dnsPolicy: Default # Don't use cluster DNS.
