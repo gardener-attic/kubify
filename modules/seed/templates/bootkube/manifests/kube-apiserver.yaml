@@ -1,0 +1,100 @@
+apiVersion: apps/v1beta2
+kind: DaemonSet
+metadata:
+  name: kube-apiserver
+  namespace: kube-system
+  labels:
+    tier: control-plane
+    k8s-app: kube-apiserver
+spec:
+  selector:
+    matchLabels:
+      tier: control-plane
+      k8s-app: kube-apiserver
+  template:
+    metadata:
+      labels:
+        tier: control-plane
+        k8s-app: kube-apiserver
+      annotations:
+        checkpointer.alpha.coreos.com/checkpoint: "true"
+        scheduler.alpha.kubernetes.io/critical-pod: ''
+    spec:
+      containers:
+      - name: kube-apiserver
+        image: ${kubernetes_hyperkube}:${kubernetes_version}${kubernetes_hyperkube_patch}
+        command:
+        - /usr/bin/flock
+        - /var/lock/api-server.lock
+        - /hyperkube
+        - apiserver
+${oidc_dropin}        - --admission-control=NamespaceLifecycle,LimitRanger,ServiceAccount,PersistentVolumeLabel,DefaultStorageClass,ResourceQuota,DefaultTolerationSeconds
+        - --advertise-address=$(POD_IP)
+        - --allow-privileged=true
+        - --anonymous-auth=false
+        - --apiserver-count=${master_count}
+        - --authorization-mode=RBAC
+        - --bind-address=0.0.0.0
+        - --client-ca-file=/etc/kubernetes/secrets/ca.crt
+        - --cloud-provider=${cloud_provider}
+        - --cloud-config=/etc/kubernetes/cloud.conf
+        - --etcd-cafile=/etc/kubernetes/secrets/etcd-client-ca.crt
+        - --etcd-certfile=/etc/kubernetes/secrets/etcd-client.crt
+        - --etcd-keyfile=/etc/kubernetes/secrets/etcd-client.key
+        - --etcd-quorum-read=true
+        - --etcd-servers=https://${etcd_service_ip}:2379
+        - --insecure-port=0
+        - --kubelet-client-certificate=/etc/kubernetes/secrets/apiserver.crt
+        - --kubelet-client-key=/etc/kubernetes/secrets/apiserver.key
+        - --secure-port=443
+        - --service-account-key-file=/etc/kubernetes/secrets/service-account.pub
+        - --service-cluster-ip-range=${service_cidr}
+        - --storage-backend=etcd3
+        - --tls-ca-file=/etc/kubernetes/secrets/ca.crt
+        - --tls-cert-file=/etc/kubernetes/secrets/apiserver.crt
+        - --tls-private-key-file=/etc/kubernetes/secrets/apiserver.key
+        - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
+        env:
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        volumeMounts:
+        - mountPath: /etc/ssl/certs
+          name: ssl-certs-host
+          readOnly: true
+        - mountPath: /etc/kubernetes/secrets
+          name: secrets
+          readOnly: true
+        - mountPath: /var/lock
+          name: var-lock
+          readOnly: false
+        - mountPath: /etc/kubernetes/cloud.conf
+          name: cloud-conf
+          readOnly: true
+      hostNetwork: true
+      nodeSelector:
+        node-role.kubernetes.io/master: ""
+      tolerations:
+      - key: CriticalAddonsOnly
+        operator: Exists
+      - key: node-role.kubernetes.io/master
+        operator: Exists
+        effect: NoSchedule
+      volumes:
+      - name: cloud-conf
+        hostPath:
+          path: /etc/kubernetes/cloud.conf
+      - name: ssl-certs-host
+        hostPath:
+          path: ${ssl_certs_dir}
+      - name: secrets
+        secret:
+          secretName: kube-apiserver
+      - name: var-lock
+        hostPath:
+          path: /var/lock
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 1
+    type: RollingUpdate

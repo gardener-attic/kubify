@@ -1,0 +1,13 @@
+{ 
+  "spec": {
+    "backup": {
+      "backupIntervalInSecond": 30,
+      "maxBackups": 5,
+      "storageType": "PersistentVolume",
+      "pv": {
+        "volumeSizeInMB": 20000,
+        "storageClass": "etcd"
+      }
+    }
+  }
+}

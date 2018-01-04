@@ -1,0 +1,51 @@
+apiVersion: apps/v1beta2
+kind: StatefulSet
+metadata:
+  name: redis-master
+  namespace: guestbook
+  # these labels can be applied automatically 
+  # from the labels in the pod template if not set
+  labels:
+    app: redis
+    role: master
+    tier: backend
+spec:
+  replicas: 1
+  # selector can be applied automatically 
+  # from the labels in the pod template if not set
+  selector:
+    matchLabels:
+      app: redis
+      role: master
+      tier: backend
+  serviceName: redis-master
+  template:
+    metadata:
+      labels:
+        app: redis
+        role: master
+        tier: backend
+    spec:
+      containers:
+      - name: master
+        image: gcr.io/google_containers/redis:e2e
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        ports:
+        - containerPort: 6379
+        volumeMounts:
+        - name: redis-storage
+          mountPath: /data
+  volumeClaimTemplates:
+  - metadata:
+      name: redis-storage
+    spec:
+      accessModes:
+      - ReadWriteOnce
+#      storageClassName: 
+      resources:
+        requests:
+          storage: 1G
+

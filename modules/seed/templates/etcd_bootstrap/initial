@@ -1,0 +1,4 @@
+    - --initial-advertise-peer-urls=https://${bootstrap_etcd_service_ip}:12380
+    - --initial-cluster=boot-etcd=https://${bootstrap_etcd_service_ip}:12380
+    - --initial-cluster-token=bootkube
+    - --initial-cluster-state=new

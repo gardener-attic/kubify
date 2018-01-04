@@ -1,0 +1,3 @@
+    - mountPath: /var/etcd
+      name: etcd
+      readOnly: false

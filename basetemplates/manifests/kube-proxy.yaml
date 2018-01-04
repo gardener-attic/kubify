@@ -1,0 +1,69 @@
+apiVersion: apps/v1beta2
+kind: DaemonSet
+metadata:
+  name: kube-proxy
+  namespace: kube-system
+  labels:
+    tier: node
+    k8s-app: kube-proxy
+spec:
+  selector:
+    matchLabels:
+      tier: node
+      k8s-app: kube-proxy
+  template:
+    metadata:
+      labels:
+        tier: node
+        k8s-app: kube-proxy
+      annotations:
+        scheduler.alpha.kubernetes.io/critical-pod: ''
+    spec:
+      containers:
+      - name: kube-proxy
+        image: gcr.io/google_containers/hyperkube:v1.8.3
+        command:
+        - ./hyperkube
+        - proxy
+        - --cluster-cidr=10.2.0.0/16
+        - --hostname-override=$(NODE_NAME)
+        - --kubeconfig=/etc/kubernetes/kubeconfig
+        - --proxy-mode=iptables
+        env:
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - mountPath: /lib/modules
+          name: lib-modules
+          readOnly: true
+        - mountPath: /etc/ssl/certs
+          name: ssl-certs-host
+          readOnly: true
+        - name: etc-kubernetes
+          mountPath: /etc/kubernetes
+          readOnly: true
+      hostNetwork: true
+      tolerations:
+      - key: CriticalAddonsOnly
+        operator: Exists
+      - key: node-role.kubernetes.io/master
+        operator: Exists
+        effect: NoSchedule
+      volumes:
+      - name: lib-modules
+        hostPath:
+          path: /lib/modules
+      - name: ssl-certs-host
+        hostPath:
+          path: /usr/share/ca-certificates
+      - name: etc-kubernetes
+        hostPath:
+          path: /etc/kubernetes
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 1
+    type: RollingUpdate

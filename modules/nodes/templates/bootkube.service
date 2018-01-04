@@ -1,0 +1,38 @@
+  - name: bootkube.path
+    command: start
+    content: |
+      [Unit]
+      Description=Bootkube Configuration Trigger
+      After=bootstrap.service
+      [Path]
+      DirectoryNotEmpty=${assets_inst_dir}
+  - name: bootkube.service
+    content: |
+      [Unit]
+      RequiresMountsFor=/etc/kubernetes/manifests
+      RequiresMountsFor=/var/etcd
+      After=bootstrap.service
+      Description=Bootstrap a Kubernetes cluster
+      ConditionPathExists=!${bootkube_done_dir}/init_bootkube.done
+      ConditionPathExists=${assets_inst_dir}
+      [Service]
+      Type=oneshot
+      RemainAfterExit=true
+      WorkingDirectory=${assets_inst_dir}
+      User=root
+      Group=root
+      ExecStartPre=/bin/mkdir -p /etc/kubernetes/manifests/.
+      ExecStart=/usr/bin/rkt run \
+        --trust-keys-from-https \
+        --volume assets,kind=host,source=${assets_inst_dir} \
+        --mount volume=assets,target=/assets \
+        --volume etc-kubernetes,kind=host,source=/etc/kubernetes \
+        --mount volume=etc-kubernetes,target=/etc/kubernetes \
+        ${bootkube_image} \
+        --net=host \
+        --dns=host \
+        --exec=/bootkube -- start --asset-dir=/assets
+      ExecStartPost=/bin/touch ${bootkube_done_dir}/init_bootkube.done
+      ExecStartPost=${bootkube_inst_dir}/bin/complete-cluster
+      [Install]
+      WantedBy=multi-user.target

@@ -1,0 +1,10 @@
+apiVersion: v1
+data:
+  etcd-client-ca.crt: "${etcd_client_ca_crt_b64}"
+  etcd-client.crt: "${etcd_client_crt_b64}"
+  etcd-client.key: "${etcd_client_key_b64}"
+kind: Secret
+metadata:
+  name: etcd-client-tls
+  namespace: kube-system
+type: Opaque

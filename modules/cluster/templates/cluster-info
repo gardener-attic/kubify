@@ -1,0 +1,7 @@
+BOOTSTRAP_ETCD_SERVICE_IP=${bootstrap_etcd_service_ip}
+ETCD_SERVICE_IP=${etcd_service_ip}
+DNS_SERVICE_IP=${dns_service_ip}
+API_SERVICE_IP=${api_service_ip}
+SERVICE_CIDR=${service_cidr}
+POD_CIDR=${service_cidr}
+API_DNS_NAME=${api_dns_name}

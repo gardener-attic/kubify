@@ -1,0 +1,19 @@
+#!/bin/bash
+
+mkdir -p /opt/cni /etc/cni /opt/bin
+mkdir -p /var/lib/kubelet /etc/kubernetes/manifests
+for f in /var/kubernetes/*.conf /var/kubernetes/kubelet.env; do
+  if [ ! -f "/etc/kubernetes/$(basename "$f")" ]; then
+    cp "$f" /etc/kubernetes
+  fi
+done
+if [ ! -f /etc/kubernetes/kubeconfig ]; then
+  ln /etc/kubernetes/kubelet.conf /etc/kubernetes/kubeconfig
+fi
+if [ ! -x /opt/bin/kubectl ]; then
+  while ! curl -L https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl -o /opt/bin/kubectl || [ $(ls -s /opt/bin/kubectl | cut -f 1 -d " ") -le 1000 ]; do
+    sleep 5
+    echo "retrying download kubectl"
+  done
+  chmod +x /opt/bin/kubectl
+fi

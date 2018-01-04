@@ -1,0 +1,108 @@
+# Copyright 2017 The Gardener Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+stop 7 97d3679
+
+version 0
+echo nginx loadbalancer
+mv module.nginx.openstack_lb_loadbalancer_v2.lbaas module.worker.module.vms.module.lbaas.openstack_lb_loadbalancer_v2.lbaas
+mv module.nginx.openstack_lb_pool_v2.lbaas         module.worker.module.vms.module.lbaas.openstack_lb_pool_v2.lbaas
+mv module.nginx.openstack_lb_listener_v2.lbaas     module.worker.module.vms.module.lbaas.openstack_lb_listener_v2.lbaas
+mv module.nginx.openstack_lb_member_v2.lbaas       module.worker.module.vms.module.lbaas.openstack_lb_member_v2.lbaas
+mv module.nginx.openstack_lb_monitor_v2.lbaas      module.worker.module.vms.module.lbaas.openstack_lb_monitor_v2.lbaas
+
+echo api loadbalancer
+mv module.api.openstack_lb_loadbalancer_v2.lbaas module.master.module.vms.module.lbaas.openstack_lb_loadbalancer_v2.lbaas
+mv module.api.openstack_lb_pool_v2.lbaas         module.master.module.vms.module.lbaas.openstack_lb_pool_v2.lbaas
+mv module.api.openstack_lb_listener_v2.lbaas     module.master.module.vms.module.lbaas.openstack_lb_listener_v2.lbaas
+mv module.api.openstack_lb_member_v2.lbaas       module.master.module.vms.module.lbaas.openstack_lb_member_v2.lbaas
+mv module.api.openstack_lb_monitor_v2.lbaas      module.master.module.vms.module.lbaas.openstack_lb_monitor_v2.lbaas
+
+#
+echo api server key
+mv tls_private_key.api_key module.apiserver.tls_private_key.key
+mv tls_cert_request.api_request module.apiserver.tls_cert_request.request
+mv tls_locally_signed_cert.api_cert module.apiserver.tls_locally_signed_cert.cert
+
+version 1
+mv -m tls_private_key.ca module.cluster
+mv -m tls_self_signed_cert.ca module.cluster
+mv -m tls_private_key.service_account module.cluster
+mv -m local_file.service_account_pub module.cluster
+mv -m local_file.ca_crt module.cluster
+mv -m local_file.ca_key module.cluster
+mv -m local_file.ca_pubkey module.cluster
+mv -m local_file.etcd_client_ca_crt module.cluster
+mv -m local_file.etcd_peer_ca_crt module.cluster
+mv -m local_file.etcd_server_ca_crt module.cluster
+mv -m local_file.service_account_key module.cluster
+mv -m module.apiserver module.cluster
+mv -m module.kubelet module.cluster
+mv module.etcd-server module.cluster.module.etcd_server
+mv module.etcd-peer module.cluster.module.etcd_peer
+mv module.etcd-client module.cluster.module.etcd_client
+
+version 2
+mv -m module.cluster module.instance
+mv -m module.iaas module.instance
+mv -m module.master module.instance
+mv -m module.worker module.instance
+mv -m aws_route53_record.api module.instance
+mv -m aws_route53_record.bastion module.instance
+mv -m aws_route53_record.identity module.instance
+mv -m aws_route53_record.ingress module.instance
+mv -m null_resource.master_setup module.instance
+mv -m null_resource.bootkube_assets module.instance
+mv -m null_resource.update_kubelet module.instance
+mv -m local_file.access_info module.instance
+mv -m local_file.kubelet_conf module.instance
+mv -m local_file.kubelet_env module.instance
+mv -m template_dir.addons module.instance
+mv -m template_dir.bootkube module.instance
+mv -m local_file.reset_bootkube module.instance
+mv -m local_file.rollinfo module.instance
+mv -m local_file.state module.instance
+# strange: after move images are stored as resource as well as data
+rm module.instance.module.worker.module.vms.openstack_images_image_v2.image
+rm module.instance.module.master.module.vms.openstack_images_image_v2.image
+rm module.instance.module.iaas.module.bastion.openstack_images_image_v2.image
+
+version 3
+mv -m module.instance.module.cluster.tls_private_key.ca module.instance.module.cluster.module.ca
+mv -m module.instance.module.cluster.tls_self_signed_cert.ca module.instance.module.cluster.module.ca
+mv -m module.instance.module.cluster.local_file.ca_key module.instance.module.cluster.module.ca
+mv -m module.instance.module.cluster.local_file.ca_crt module.instance.module.cluster.module.ca
+
+mv module.instance.module.cluster.local_file.etcd_client_ca_crt module.instance.module.cluster.module.etcd_client.local_file.ca
+mv module.instance.module.cluster.local_file.etcd_peer_ca_crt   module.instance.module.cluster.module.etcd_peer.local_file.ca
+mv module.instance.module.cluster.local_file.etcd_server_ca_crt module.instance.module.cluster.module.etcd_server.local_file.ca
+
+version 4
+mv -m module.instance.module.cluster.module.etcd_peer module.instance.module.cluster.module.etcd
+mv -m module.instance.module.cluster.module.etcd_server module.instance.module.cluster.module.etcd
+
+version 6
+mv -m module.instance.null_resource.bootkube_assets module.instance.module.seed
+mv -m module.instance.local_file.kubelet_conf       module.instance.module.seed
+mv -m module.instance.local_file.kubelet_env        module.instance.module.seed
+mv -m module.instance.null_resource.bootkube_assets module.instance.module.seed
+mv -m module.instance.template_dir.addons           module.instance.module.seed
+mv -m module.instance.template_dir.bootkube         module.instance.module.seed
+mv -m module.instance.data.archive_file.bootkube    module.instance.module.seed
+
+version 7
+mv module.instance.aws_route53_record.api      module.instance.module.apiserver_record.module.route53.aws_route53_record.record
+mv module.instance.aws_route53_record.bastion  module.instance.module.bastion_record.module.route53.aws_route53_record.record
+mv module.instance.aws_route53_record.identity module.instance.module.identity_record.module.route53.aws_route53_record.record
+mv module.instance.aws_route53_record.ingress  module.instance.module.ingress_record.module.route53.aws_route53_record.record

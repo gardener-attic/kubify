@@ -1,0 +1,136 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: heapster
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: heapster
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:heapster
+subjects:
+  - kind: ServiceAccount
+    name: heapster
+    namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: heapster-legacy
+  namespace: kube-system
+rules:
+- apiGroups:
+  - extensions
+  - apps
+  resources:
+  - deployments
+  resourceNames:
+  - heapster
+  verbs:
+  - get
+  - watch
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: heapster-legacy
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: heapster-legacy
+  namespace: kube-system
+subjects:
+  - kind: ServiceAccount
+    name: heapster
+    namespace: kube-system
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: heapster
+  namespace: kube-system
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 8082
+    protocol: TCP
+  selector:
+    app: heapster
+---
+# Source: heapster/templates/deployment.yaml
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: heapster
+  namespace: kube-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: heapster
+  template:
+    metadata:
+      labels:
+        app: heapster
+    spec:
+      serviceAccountName: heapster
+      containers:
+      - name: heapster
+        image: "gcr.io/google_containers/heapster:v1.4.3"
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8082
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8082
+          initialDelaySeconds: 180
+          timeoutSeconds: 5
+        resources:
+            {}
+
+        command:
+          - "/heapster"
+          - "--source=kubernetes.summary_api:''"
+
+      - name: heapster-nanny
+
+        image: "gcr.io/google_containers/addon-resizer:2.1"
+        imagePullPolicy: IfNotPresent
+        resources:
+            limits:
+              cpu: 50m
+              memory: 90Mi
+            requests:
+              cpu: 50m
+              memory: 90Mi
+
+        env:
+          - name: MY_POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: MY_POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+        command:
+          - "/pod_nanny"
+          - "--deployment=heapster"
+          - "--container=heapster"
+          - "--cpu=80m"
+          - "--extra-cpu=0.5m"
+          - "--memory=140Mi"
+          - "--extra-memory=4Mi"
+          - "--poll-period=300000"
+

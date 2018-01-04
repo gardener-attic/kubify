@@ -1,0 +1,17 @@
+#cloud-config 
+coreos: 
+  units: 
+    - name: extra-cloudinit.service 
+      command: start 
+      content: | 
+        [Unit]
+        ConditionPathExists=/opt/data/cloud-init
+        [Service] 
+        Type=oneshot 
+        RemainAfterExit=yes 
+        ExecStart=/usr/bin/coreos-cloudinit --from-file=/opt/data/cloud-init 
+write_files:
+- path: /opt/data/cloud-init
+  permissions: 0644
+  encoding: gz+b64
+  content: "${cloud_init_gzb64}"

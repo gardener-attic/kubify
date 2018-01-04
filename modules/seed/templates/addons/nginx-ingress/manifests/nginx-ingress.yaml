@@ -1,0 +1,316 @@
+#
+# namespace
+#
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nginx-ingress
+---
+#
+# servive account
+#
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app: nginx-ingress
+  name: nginx-ingress
+  namespace: nginx-ingress
+---
+#
+# permissions
+#
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  labels:
+    app: nginx-ingress
+  name: nginx-ingress
+  namespace: nginx-ingress
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+      - endpoints
+      - nodes
+      - pods
+      - secrets
+    verbs:
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - nodes
+    verbs:
+      - get
+  - apiGroups:
+      - ""
+    resources:
+      - services
+    verbs:
+      - get
+      - list
+      - update
+      - watch
+  - apiGroups:
+      - extensions
+    resources:
+      - ingresses
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
+  - apiGroups:
+      - extensions
+    resources:
+      - ingresses/status
+    verbs:
+      - update
+
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app: nginx-ingress
+  name: nginx-ingress
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: nginx-ingress
+subjects:
+  - kind: ServiceAccount
+    name: nginx-ingress
+    namespace: nginx-ingress
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: Role
+metadata:
+  labels:
+    app: nginx-ingress
+  name: nginx-ingress
+  namespace: nginx-ingress
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+      - namespaces
+      - pods
+      - secrets
+    verbs:
+      - get
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    resourceNames:
+      # Defaults to "<election-id>-<ingress-class>"
+      # Here: "<ingress-controller-leader>-<nginx>"
+      # This has to be adapted if you change either parameter
+      # when launching the nginx-ingress-controller.
+      - ingress-controller-leader-nginx
+    verbs:
+      - get
+      - update
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - create
+  - apiGroups:
+      - ""
+    resources:
+      - endpoints
+    verbs:
+      - create
+      - get
+      - update
+
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: RoleBinding
+metadata:
+  labels:
+    app: nginx-ingress
+  name: nginx-ingress
+  namespace: nginx-ingress
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: nginx-ingress
+subjects:
+  - kind: ServiceAccount
+    name: nginx-ingress
+    namespace: nginx-ingress
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+  labels:
+    app: nginx-ingress
+  name: nginx-ingress-controller
+  namespace: nginx-ingress
+spec:
+  type: "ClusterIP"
+  selector:
+    app: nginx-ingress
+    component: "controller"
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 80
+    - name: https
+      port: 443
+      protocol: TCP
+      targetPort: 443
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: nginx-ingress
+  name: nginx-default-backend
+  namespace: nginx-ingress
+spec:
+  ports:
+    - port: 80
+      targetPort: 8080
+  selector:
+    app: nginx-ingress
+    component: "nginx-default-backend"
+  type: "ClusterIP"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    app: nginx-ingress
+  name: nginx-ingress-controller
+  namespace: nginx-ingress
+data:
+  enable-vts-status: "false"
+  server-name-hash-bucket-size: "256"
+---
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  labels:
+    app: nginx-ingress
+  name: nginx-ingress-controller
+  namespace: nginx-ingress
+spec:
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: nginx-ingress
+        component: "controller"
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                - key: node-role.kubernetes.io/master
+                  operator: DoesNotExist
+      nodeSelector:
+        node-role.kubernetes.io/node: ""
+      containers:
+        - name: nginx-ingress-controller
+          image: "gcr.io/google_containers/nginx-ingress-controller:${version}"
+          imagePullPolicy: "IfNotPresent"
+          args:
+            - /nginx-ingress-controller
+            - --default-backend-service=nginx-ingress/nginx-default-backend
+            - --ingress-class=nginx
+            - --configmap=nginx-ingress/nginx-ingress-controller
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 10254
+              scheme: HTTP
+            initialDelaySeconds: 10
+            timeoutSeconds: 1
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+            - name: https
+              containerPort: 443
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 10254
+              scheme: HTTP
+          resources:
+            {}
+            
+      hostNetwork: true
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      serviceAccountName: nginx-ingress
+      terminationGracePeriodSeconds: 60
+
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: nginx-ingress
+  name: nginx-default-backend
+  namespace: nginx-ingress
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: nginx-ingress
+        component: "nginx-default-backend"
+    spec:
+      containers:
+        - name: nginx-default-backend
+          image: gcr.io/google_containers/defaultbackend:1.0
+          imagePullPolicy: "IfNotPresent"
+          args:
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          resources:
+            {}
+            
+      terminationGracePeriodSeconds: 60

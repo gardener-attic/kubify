@@ -1,0 +1,5 @@
+  - name: etcd
+    emptyDir: {}
+  - name: etcdbackup
+    hostPath:
+      path: ${etcd_backup_dir}

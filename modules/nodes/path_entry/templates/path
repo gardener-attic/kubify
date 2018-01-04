@@ -1,0 +1,4 @@
+- path: ${path}
+  permissions: ${permissions}
+  encoding: b64
+  content: "${content}"
