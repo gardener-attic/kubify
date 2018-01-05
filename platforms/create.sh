@@ -1,4 +1,4 @@
-#!/bin/bash -eu
+#!/bin/bash -e
 #
 # Copyright 2017 The Gardener Authors.
 #

@@ -56,4 +56,7 @@ variable "lbaas_pool_name" {
 variable "lbaas_provider" {
   default = ""
 }
+variable "device_name" {
+  default = ""
+}
 

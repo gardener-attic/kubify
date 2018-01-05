@@ -32,6 +32,11 @@ module "subnet_cidr" {
   value = "${var.subnet_cidr}"
   default = "192.168.100.0/24"
 }
+module "device_name" {
+  source = "../../../../modules/variable"
+  value = "${module.os.device_name}"
+  default = "/dev/vdb"
+}
 
 data "openstack_networking_network_v2" "fip" {
   name = "${module.os.fip_pool_name}"
@@ -136,7 +141,7 @@ output "default_password" {
 }
 
 output "device" {
-  value = "/dev/vdb"
+  value = "${module.device_name.value}"
 }
 output "cloud_provider" {
   value = "openstack"

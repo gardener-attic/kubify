@@ -1,17 +1,3 @@
-# Copyright 2017 The Gardener Authors.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 ##############################################################################
 # openstack iaas configuration handling
 # pack or unpack configuration variables for iaas layer
@@ -31,72 +17,124 @@ variable "iaas_config" {
 # pack a config map
 #
 
+#
+# [] operator only supports homogeneous maps in terraform
+# so we have to separate list from simple config values in two separate sub maps
+# but [] supports nested maps (but not the lookup function)
+# Therefore we cannot use a defaulted lookup, but have to be assure the entry exists.
+#
+locals {
+  struct = {
+    simple = {}
+    list = {}
+  }
+  config = "${merge(local.struct,var.iaas_config)}"
+  simple = "${local.config["simple"]}"
+  list = "${local.config["list"]}"
+}
 module "user_name" {
   source="../../../../modules/variable"
-  value="${lookup(var.iaas_config,"user_name",var.user_name)}"
+  value="${lookup(local.simple,"user_name",var.user_name)}"
 }
 module "availability_zone" {
   source="../../../../modules/variable"
-  value="${lookup(var.iaas_config,"availability_zone",var.availability_zone)}"
+  value="${lookup(local.simple,"availability_zone",var.availability_zone)}"
 }
 module "tenant_name" {
   source="../../../../modules/variable"
-  value="${lookup(var.iaas_config,"tenant_name",var.tenant_name)}"
+  value="${lookup(local.simple,"tenant_name",var.tenant_name)}"
 }
 module "domain_name" {
   source="../../../../modules/variable"
-  value="${lookup(var.iaas_config,"domain_name",var.domain_name)}"
+  value="${lookup(local.simple,"domain_name",var.domain_name)}"
 }
 module "password" {
   source="../../../../modules/variable"
-  value="${lookup(var.iaas_config,"password",var.password)}"
+  value="${lookup(local.simple,"password",var.password)}"
 }
 module "auth_url" {
   source="../../../../modules/variable"
-  value="${lookup(var.iaas_config,"auth_url",var.auth_url)}"
+  value="${lookup(local.simple,"auth_url",var.auth_url)}"
 }
 module "region" {
   source="../../../../modules/variable"
-  value="${lookup(var.iaas_config,"region",var.region)}"
+  value="${lookup(local.simple,"region",var.region)}"
 }
 module "insecure" {
   source="../../../../modules/variable"
-  value="${lookup(var.iaas_config,"insecure",var.insecure)}"
+  value="${lookup(local.simple,"insecure",var.insecure)}"
 }
 module "fip_pool_name" {
   source="../../../../modules/variable"
-  value="${lookup(var.iaas_config,"fip_pool_name",var.fip_pool_name)}"
+  value="${lookup(local.simple,"fip_pool_name",var.fip_pool_name)}"
 }
 module "lbaas_subnet_id" {
   source="../../../../modules/variable"
-  value="${lookup(var.iaas_config,"lbaas_subnet_id",var.lbaas_subnet_id)}"
+  value="${lookup(local.simple,"lbaas_subnet_id",var.lbaas_subnet_id)}"
 }
 module "lbaas_pool_name" {
   source="../../../../modules/variable"
-  value="${lookup(var.iaas_config,"lbaas_pool_name",var.lbaas_pool_name)}"
+  value="${lookup(local.simple,"lbaas_pool_name",var.lbaas_pool_name)}"
 }
 module "lbaas_provider" {
   source="../../../../modules/variable"
-  value="${lookup(var.iaas_config,"lbaas_provider",var.lbaas_provider)}"
+  value="${lookup(local.simple,"lbaas_provider",var.lbaas_provider)}"
+}
+module "device_name" {
+  source="../../../../modules/variable"
+  value="${lookup(local.simple,"device_name",var.device_name)}"
 }
 
 #
 # always provide a config map value
 #
+locals {
+  iaas_config = {
+    simple = {
+      user_name = "${module.user_name.value}"
+      availability_zone = "${module.availability_zone.value}"
+      tenant_name = "${module.tenant_name.value}"
+      domain_name = "${module.domain_name.value}"
+      password = "${module.password.value}"
+      auth_url = "${module.auth_url.value}"
+      region = "${module.region.value}"
+      insecure = "${module.insecure.value}"
+      fip_pool_name = "${module.fip_pool_name.value}"
+      lbaas_subnet_id = "${module.lbaas_subnet_id.value}"
+      lbaas_pool_name = "${module.lbaas_pool_name.value}"
+      lbaas_provider = "${module.lbaas_provider.value}"
+      device_name = "${module.device_name.value}"
+    }
+    list = {
+
+    }
+  }
+}
+
 output "iaas_config" {
+  value = "${local.iaas_config}"
+}
+
+output "simple" {
   value = {
-    user_name = "${module.user_name.value}"
-    availability_zone = "${module.availability_zone.value}"
-    tenant_name = "${module.tenant_name.value}"
-    domain_name = "${module.domain_name.value}"
-    password = "${module.password.value}"
-    auth_url = "${module.auth_url.value}"
-    region = "${module.region.value}"
-    insecure = "${module.insecure.value}"
-    fip_pool_name = "${module.fip_pool_name.value}"
-    lbaas_subnet_id = "${module.lbaas_subnet_id.value}"
-    lbaas_pool_name = "${module.lbaas_pool_name.value}"
-    lbaas_provider = "${module.lbaas_provider.value}"
+      user_name = "${module.user_name.value}"
+      availability_zone = "${module.availability_zone.value}"
+      tenant_name = "${module.tenant_name.value}"
+      domain_name = "${module.domain_name.value}"
+      password = "${module.password.value}"
+      auth_url = "${module.auth_url.value}"
+      region = "${module.region.value}"
+      insecure = "${module.insecure.value}"
+      fip_pool_name = "${module.fip_pool_name.value}"
+      lbaas_subnet_id = "${module.lbaas_subnet_id.value}"
+      lbaas_pool_name = "${module.lbaas_pool_name.value}"
+      lbaas_provider = "${module.lbaas_provider.value}"
+      device_name = "${module.device_name.value}"
+  }
+}
+output "list" {
+  value = {
+
   }
 }
 
@@ -138,4 +176,7 @@ output "lbaas_pool_name" {
 }
 output "lbaas_provider" {
   value = "${module.lbaas_provider.value}"
+}
+output "device_name" {
+  value = "${module.device_name.value}"
 }
