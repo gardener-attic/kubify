@@ -31,6 +31,11 @@ variable "cluster_type" {
   type = "string"
 }
 
+variable "bastion" {
+  type = "map"
+  default = { }
+}
+
 #
 # node config for worker and master
 #

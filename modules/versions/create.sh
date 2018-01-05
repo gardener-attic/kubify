@@ -1,4 +1,5 @@
-#!/bin/bash -eu
+#!/bin/bash -e
+COPYRIGHT='
 #
 # Copyright 2017 The Gardener Authors.
 #
@@ -13,8 +14,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-#!/bin/bash -e
+'
 
 DIR="$(dirname "$0")"
 defs="variables.tf"
@@ -110,6 +110,8 @@ for v in $defs; do
 done
 
 cat >"$DIR/config.tf" <<EOF
+$COPYRIGHT
+
 ##############################################################################
 # version configuration handling
 # pack or unpack version variables

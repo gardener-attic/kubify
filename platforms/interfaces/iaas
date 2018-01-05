@@ -15,6 +15,10 @@
 variable "iaas_config" {
   type = "map"
 }
+variable "bastion" {
+  type = "map"
+}
+
 
 variable "cluster_name" {
   type = "string"
@@ -38,18 +42,6 @@ variable "dns_nameservers" {
 
 variable "use_bastion" {
   default = true
-}
-
-variable "bastion_user" {
-#  default = "ubuntu"
-}
-
-variable "bastion_image_name" {
-  default = "ubuntu-16.04"
-}
-
-variable "bastion_flavor_name" {
-  default = "medium_2_4"
 }
 
 variable "dns_domain" {

@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+module "bastion_config" {
+  source = "../../../../modules/access/node_config"
+  node_config = "${var.bastion}"
+}
 
 module "bastion" {
   source = "../vms"
@@ -25,15 +29,15 @@ module "bastion" {
   node_type         = "bastion"
   node_count        = "${var.use_bastion ? 1 : 0}"
 
-  image_name        = "${var.bastion_image_name}"
-  flavor_name       = "${var.bastion_flavor_name}"
+  image_name        = "${module.bastion_config.image_name}"
+  flavor_name       = "${module.bastion_config.flavor_name}"
 
   key               = "${tls_private_key.ssh_key.public_key_openssh}"
 
   subnet_id         = "${azurerm_subnet.subnet.id}"
   security_group    = "${azurerm_network_security_group.bastion.id}"
 
-  admin_user        = "${var.bastion_user}"
+  admin_user        = "${module.bastion_config.user_name}"
   provide_fips      = true
 }
 

@@ -19,6 +19,9 @@
 variable "image_name" {
  default = ""
 } 
+variable "bastion_image_name" {
+ default = ""
+} 
 
 variable "kubernetes_version" {
  default = ""

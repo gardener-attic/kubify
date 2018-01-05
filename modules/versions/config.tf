@@ -1,3 +1,19 @@
+#
+# Copyright 2017 The Gardener Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
 ##############################################################################
 # version configuration handling
 # pack or unpack version variables
@@ -21,6 +37,11 @@ module "image_name" {
   source="../defaults"
   optional = true
   values=[ "${var.image_name}","${lookup(var.versions,"image_name","")}", "${local.image_name}" ]
+}
+module "bastion_image_name" {
+  source="../defaults"
+  optional = true
+  values=[ "${var.bastion_image_name}","${lookup(var.versions,"bastion_image_name","")}", "${local.bastion_image_name}" ]
 }
 module "kubernetes_version" {
   source="../defaults"
@@ -90,6 +111,7 @@ module "lego_version" {
 output "versions" {
   value = {
       image_name = "${module.image_name.value}"
+      bastion_image_name = "${module.bastion_image_name.value}"
       kubernetes_version = "${module.kubernetes_version.value}"
       dns_version = "${module.dns_version.value}"
       flannel_version = "${module.flannel_version.value}"
@@ -110,6 +132,9 @@ output "versions" {
 #
 output "image_name" {
   value = "${module.image_name.value}"
+}
+output "bastion_image_name" {
+  value = "${module.bastion_image_name.value}"
 }
 output "kubernetes_version" {
   value = "${module.kubernetes_version.value}"

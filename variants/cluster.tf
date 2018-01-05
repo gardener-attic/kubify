@@ -93,6 +93,11 @@ variable "cluster_type" {
   type = "string"
 }
 
+variable "bastion" {
+  type = "map"
+  default = { }
+}
+
 #
 # node config for worker and master
 #
@@ -355,6 +360,7 @@ module "instance" {
   ca_key_pem = "${var.ca_key_pem}"
   cluster_name = "${var.cluster_name}"
   cluster_type = "${var.cluster_type}"
+  bastion = "${var.bastion}"
   worker = "${var.worker}"
   master = "${var.master}"
   worker_count = "${var.worker_count}"

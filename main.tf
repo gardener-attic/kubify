@@ -46,6 +46,24 @@ module "pull_secret" {
   path = "${var.pull_secret_file}"
 }
 
+module "bastion_config" {
+  source = "modules/access/node_config"
+  node_config = "${var.bastion}"
+
+  volume_size = "0"
+
+  flavor_name = "${module.bastion_vm.flavor_name}"
+  image_name = "${module.bastion_vm.image_name}"
+  user_name = "${var.bastion_user}"
+
+  defaults = {
+    update_mode = "${var.node_update_mode}"
+    count = "${var.worker_count}"
+    assign_fips = "${var.assign_worker_fips}"
+    user_name = "ubuntu"
+  }
+}
+
 module "iaas" {
   source = "variants/current/modules/iaas"
 
@@ -61,9 +79,7 @@ module "iaas" {
   dns_nameservers = "${var.dns_nameservers}"
 
   use_bastion = "${module.use_bastion.value}"
-  bastion_flavor_name = "${module.bastion_vm.flavor_name}"
-  bastion_image_name = "${module.bastion_vm.image_name}"
-  bastion_user = "${module.bastion_user.value}"
+  bastion = "${module.bastion_config.node_config}"
 }
 
 data "archive_file" "helper_scripts" {

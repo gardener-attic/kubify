@@ -27,6 +27,11 @@ variable "flavor_name" {
   default = ""
 }
 
+variable "user_name" {
+  type = "string"
+  default = ""
+}
+
 variable "update_mode" {
   type = "string"
   default = ""
