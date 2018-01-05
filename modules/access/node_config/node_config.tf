@@ -1,3 +1,4 @@
+#
 # Copyright 2017 The Gardener Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 
 ##############################################################################
 # node config handling
@@ -41,6 +43,7 @@ locals {
   count = "${var.count == "" ? lookup(local.info,"count",var.count) : var.count}"
   image_name = "${var.image_name == "" ? lookup(local.info,"image_name",var.image_name) : var.image_name}"
   flavor_name = "${var.flavor_name == "" ? lookup(local.info,"flavor_name",var.flavor_name) : var.flavor_name}"
+  user_name = "${var.user_name == "" ? lookup(local.info,"user_name",var.user_name) : var.user_name}"
   update_mode = "${var.update_mode == "" ? lookup(local.info,"update_mode",var.update_mode) : var.update_mode}"
   generation = "${var.generation == "" ? lookup(local.info,"generation",var.generation) : var.generation}"
   assign_fips = "${var.assign_fips == "" ? lookup(local.info,"assign_fips",var.assign_fips) : var.assign_fips}"
@@ -53,6 +56,7 @@ output "node_config" {
       count = "${local.count}"
       image_name = "${local.image_name}"
       flavor_name = "${local.flavor_name}"
+      user_name = "${local.user_name}"
       update_mode = "${local.update_mode}"
       generation = "${local.generation}"
       assign_fips = "${local.assign_fips}"
@@ -71,6 +75,9 @@ output "image_name" {
 }
 output "flavor_name" {
   value = "${local.flavor_name}"
+}
+output "user_name" {
+  value = "${local.user_name}"
 }
 output "update_mode" {
   value = "${local.update_mode}"

@@ -22,10 +22,10 @@ module "bastion_vm" {
   platform = "${var.platform}"
   node_type = "bastion"
   default_flavor_name = "${var.flavor_name}"
-  flavor_name = "${var.bastion_flavor_name}"
+  flavor_name = "${lookup(var.bastion,"flavor_name", var.bastion_flavor_name)}"
 
   default_image_name = "${module.versions.image_name}"
-  image_name = "${var.bastion_image_name}"
+  image_name = "${lookup(var.bastion,"image_name", var.bastion_image_name)}"
 }
 
 module "master_vm" {
@@ -38,6 +38,7 @@ module "master_vm" {
 
   default_image_name = "${module.versions.image_name}"
   image_name = "${lookup(var.master,"image_name", var.master_image_name)}"
+
 }
 
 module "worker_vm" {

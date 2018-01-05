@@ -256,6 +256,7 @@ The folloing variables are required for every cluster:
 |dashboard_creds|The credential file the kubernetes dashboard created by `htpasswd`. Unfortunately terraform does not support `bcrypt` up to now|
 |master|Settings for master nodes (see below)|
 |worker|Settimgs for worker nodes (see below)|
+|bastion|Settimgs for bastion VM (see below)|
 
 `master` and `worker` use the following common structure
 
@@ -268,6 +269,14 @@ The folloing variables are required for every cluster:
 |volume_size|Optional: Size in GB of persistent volume for master (default: 20), should not be used for worker|
 |update_mode|Optional: Update mode for VMs|
 |generation|Optional: explicit node generation count to enforce recreation|
+
+For the `bastion` settings the following structure is used
+
+|Name|Meaning|
+|--|--|
+|flavor_name|Optional: flavor used for the VM|
+|image_name|Optional: image used for the VM|
+|user_name|Optional: user name of initial admin user of image|
 
 DNS configuration is done via the input map `dns`. It contains an entry `dns_type` to select the desired DNS
 provider and additional configuration entries required for that provider.
@@ -326,10 +335,7 @@ These are otional settings for all kinds of nodes
 |--|--|
 |root_certs_file|File containing additional root certificates to be installed on the nodes|
 |dns_nameservers|List of DNS servers to configure for the subnets and/or VMs|
-|bastion_flavor_name|Flavor name used for the bastion node (defaulted by the IaaS specific modules)|
 |flavor_name|Default flavor for all kinds of VMs|
-|bastion_image_name|Image name used for the bastion node (defaulted by the IaaS specific modules)|
-|bastion_user|User to use for non-standard bastion images|
 |subnet_cidr|IP range for node subnet (defaulted by IaaS modules)|
 
 It is possible to specify IaaS specific names (or search pattern for AWS). Additionally 
@@ -388,6 +394,7 @@ Versions can be configured as member of a map variable `versions`. The following
 |Name|Meaning|
 |--|--|
 |image_name|image used for cluster VMs (master and nodes)|
+|bastion_image_name|image used for bastion VMs|
 |kubernetes_version|kubernetes version|
 |dns_version|DNS version|
 |flannel_version|flannel version|
