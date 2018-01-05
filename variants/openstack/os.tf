@@ -52,6 +52,10 @@ variable "os_lbaas_provider" {
   type = "string"
   default = ""
 }
+variable "os_device_name" {
+  type = "string"
+  default = ""
+}
 
 
 module "iaas_config" {
@@ -68,6 +72,7 @@ module "iaas_config" {
   lbaas_pool_name = "${var.os_lbaas_pool_name}"
   lbaas_subnet_id = "${var.os_lbaas_subnet_id}"
   lbaas_provider = "${var.os_lbaas_provider}"
+  device_name = "${var.os_device_name}"
 }
 
 provider "openstack" {
