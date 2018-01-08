@@ -50,62 +50,82 @@ locals {
 module "user_name" {
   source="../../../../modules/variable"
   value="${lookup(local.simple,"user_name",var.user_name)}"
+  
 }
 module "availability_zone" {
   source="../../../../modules/variable"
   value="${lookup(local.simple,"availability_zone",var.availability_zone)}"
+  
+}
+module "volume_zone" {
+  source="../../../../modules/variable"
+  value="${lookup(local.simple,"volume_zone",var.volume_zone)}"
+  default = "${module.availability_zone.value}"
 }
 module "tenant_name" {
   source="../../../../modules/variable"
   value="${lookup(local.simple,"tenant_name",var.tenant_name)}"
+  
 }
 module "tenant_id" {
   source="../../../../modules/variable"
   value="${lookup(local.simple,"tenant_id",var.tenant_id)}"
+  
 }
 module "domain_name" {
   source="../../../../modules/variable"
   value="${lookup(local.simple,"domain_name",var.domain_name)}"
+  
 }
 module "domain_id" {
   source="../../../../modules/variable"
   value="${lookup(local.simple,"domain_id",var.domain_id)}"
+  
 }
 module "password" {
   source="../../../../modules/variable"
   value="${lookup(local.simple,"password",var.password)}"
+  
 }
 module "auth_url" {
   source="../../../../modules/variable"
   value="${lookup(local.simple,"auth_url",var.auth_url)}"
+  
 }
 module "region" {
   source="../../../../modules/variable"
   value="${lookup(local.simple,"region",var.region)}"
+  
 }
 module "insecure" {
   source="../../../../modules/variable"
   value="${lookup(local.simple,"insecure",var.insecure)}"
+  
 }
 module "fip_pool_name" {
   source="../../../../modules/variable"
   value="${lookup(local.simple,"fip_pool_name",var.fip_pool_name)}"
+  
 }
 module "lbaas_subnet_id" {
   source="../../../../modules/variable"
   value="${lookup(local.simple,"lbaas_subnet_id",var.lbaas_subnet_id)}"
+  
 }
 module "lbaas_pool_name" {
   source="../../../../modules/variable"
   value="${lookup(local.simple,"lbaas_pool_name",var.lbaas_pool_name)}"
+  
 }
 module "lbaas_provider" {
   source="../../../../modules/variable"
   value="${lookup(local.simple,"lbaas_provider",var.lbaas_provider)}"
+  
 }
 module "device_name" {
   source="../../../../modules/variable"
   value="${lookup(local.simple,"device_name",var.device_name)}"
+  
 }
 
 #
@@ -116,6 +136,7 @@ locals {
     simple = {
       user_name = "${module.user_name.value}"
       availability_zone = "${module.availability_zone.value}"
+      volume_zone = "${module.volume_zone.value}"
       tenant_name = "${module.tenant_name.value}"
       tenant_id = "${module.tenant_id.value}"
       domain_name = "${module.domain_name.value}"
@@ -144,6 +165,7 @@ output "simple" {
   value = {
       user_name = "${module.user_name.value}"
       availability_zone = "${module.availability_zone.value}"
+      volume_zone = "${module.volume_zone.value}"
       tenant_name = "${module.tenant_name.value}"
       tenant_id = "${module.tenant_id.value}"
       domain_name = "${module.domain_name.value}"
@@ -173,6 +195,9 @@ output "user_name" {
 }
 output "availability_zone" {
   value = "${module.availability_zone.value}"
+}
+output "volume_zone" {
+  value = "${module.volume_zone.value}"
 }
 output "tenant_name" {
   value = "${module.tenant_name.value}"

@@ -37,6 +37,14 @@ contains()
   return 1
 }
 
+print_default()
+{
+  local d="${defaults[$1]}"
+  if [ -n "$d" ]; then
+    echo "default = \"\${module.$d.value}\""
+  fi
+}
+
 print_locals()
 {
   cat <<EOF
@@ -68,6 +76,7 @@ EOF
 module "$l" {
   source="../../../../modules/variable"
   value="\${lookup(local.simple,"$l",var.$l)}"
+  $(print_default $l)
 }
 EOF
     done
@@ -125,15 +134,24 @@ get_variables()
   for v in $defs; do
     (
       V=
+      D=
       T=string
       while read a; do
         n="$(grep "variable[[:space:]]" <<< "$a" | sed -e 's/.*"\(.*\)".*/\1/')"
         if [ -n "$n" ]; then
           if [ -n "$V" ]; then
-            echo "$V $T"
+            echo "$V $T $D"
           fi
+          echo VAR $n >&2
           V="$n"
           T=string
+          d="$(grep "# default:" <<< "$a" | sed -e 's/.*# default:\(.*\)/\1/')"
+          if [ -n "$d" ]; then
+            echo DEF $d >&2
+            D="$d"
+          else
+            D=
+          fi
         else
           t="$(grep "type[[:space:]]=" <<< "$a" | sed -e 's/.*"\(.*\)".*/\1/')"
           if [ -n "$t" ]; then
@@ -142,21 +160,26 @@ get_variables()
         fi
       done
       if [ -n "$V" ]; then
-        echo "$V $T"
+        echo "$V $T $D"
       fi
     ) < "$v"
   done
 
 }
 
+declare -A defaults
+
 for v in $defs; do
-  while read n t; do
+  while read n t d; do
     case "$t" in
       string) simple_inputs+=( $n );;
       list) list_inputs+=( $n );;
       *) echo "invalid variable type '$t' for $n" >&1
          exit 1;;
     esac
+    if [ -n "$d" ]; then
+       defaults[$n]="$d"
+    fi
   done <<<"$(get_variables)"
 done
 

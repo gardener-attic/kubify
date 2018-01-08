@@ -13,17 +13,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-if [ "$1" == -p ]; then
-  visibility="--visibility public"
-  shift
-fi
-version=${1:-1576.4.0}
-if [ ! -f coreos_production_openstack_image.img ]; then
+format=qcow2
+image=coreos_production_openstack_image.img
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -p)
+        visibility="--visibility public"
+        shift;;
+    -f) format="$2"
+        shift 2;;
+    -*) echo "invalid option $1" >&2
+        exit 1;;
+    *) break;;
+   esac
+done
+
+version=${1:-1520.6.0}
+#version=${1:-1576.4.0}
+if [ ! -f $image ]; then
+  echo "downloading image $version"
   wget http://stable.release.core-os.net/amd64-usr/$version/coreos_production_openstack_image.img.bz2
   bunzip2 coreos_production_openstack_image.img.bz2
 fi
+if [ "$format" != "qcow2" ]; then
+  echo "converting to $format"
+  qemu-img convert -f qcow2 -O $format $image "$(basename $image .img).$format"
+  image="$(basename $image .img).$format"
+fi
+echo "uploading format $format"
 glance image-create --name coreos-$version \
   --container-format bare \
-  --disk-format qcow2 \
-  --progress $visibility\
-  --file coreos_production_openstack_image.img
+  --disk-format $format \
+  --progress $visibility \
+  --file "$image"

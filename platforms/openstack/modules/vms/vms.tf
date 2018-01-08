@@ -39,7 +39,7 @@ resource "openstack_blockstorage_volume_v2" "nodes" {
   count       = "${module.storage.value * var.node_count}"
   name        = "${var.prefix}-${var.node_type}-${count.index}"
   size        = "${var.volume_size + local.toggle}"
-  availability_zone = "${module.os.availability_zone}"
+  availability_zone = "${module.os.volume_zone}"
 }
 locals {
   volumes = "${openstack_blockstorage_volume_v2.nodes.*.id}"
