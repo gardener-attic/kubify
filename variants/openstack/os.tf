@@ -44,6 +44,10 @@ variable "os_region" {
 variable "os_az" {
   type = "string"
 }
+variable "os_vaz" {
+  type = "string"
+  default = ""
+}
 variable "os_insecure" {
   default = true
 }
@@ -72,6 +76,7 @@ module "iaas_config" {
   source = "./modules/config"
   auth_url = "${var.os_auth_url}"
   availability_zone = "${var.os_az}"
+  volume_zone = "${var.os_vaz}"
   domain_name = "${var.os_domain_name}"
   domain_id = "${var.os_domain_id}"
   tenant_name = "${var.os_tenant_name}"

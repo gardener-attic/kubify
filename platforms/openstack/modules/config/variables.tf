@@ -20,6 +20,10 @@ variable "availability_zone" {
   type = "string"
   default = ""
 }
+variable "volume_zone" { # default: availability_zone
+  type = "string"
+  default = ""
+}
 variable "tenant_name" {
   type = "string"
   default = ""
