@@ -13,6 +13,15 @@
 # limitations under the License.
 
 
+locals {
+  mapping = {
+    OS_PROJECT_DOMAIN_NAME = "domain-name"
+    OS_PROJECT_DOMAIN_ID = "domain-id"
+    OS_TENANT_NAME = "tenant-name"
+    OS_TENANT_ID = "tenant-id"
+  }
+}
+
 data "template_file" "cloud_conf" {
   template = "${file("${path.module}/templates/cloud.conf")}"
 
@@ -20,8 +29,10 @@ data "template_file" "cloud_conf" {
     os_auth_url = "${module.os.auth_url}"
     os_username = "${module.os.user_name}"
     os_password = "${module.os.password}"
-    os_tenant_name = "${module.os.tenant_name}"
-    os_domain_name = "${module.os.domain_name}"
+    os_tenant_key = "${local.mapping[module.os.tenant_key]}"
+    os_domain_key = "${local.mapping[module.os.domain_key]}"
+    os_tenant_value = "${module.os.tenant_value}"
+    os_domain_value = "${module.os.domain_value}"
     fip_subnet_id = "${data.openstack_networking_network_v2.fip.id}"
     lb_subnet_id = "${openstack_networking_subnet_v2.cluster.id}"
     lb_provider = "${module.os.lbaas_provider}"

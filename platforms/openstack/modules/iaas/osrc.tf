@@ -20,8 +20,12 @@ data "template_file" "osrc" {
     os_auth_url = "${module.os.auth_url}"
     os_username = "${module.os.user_name}"
     os_password = "${module.os.password}"
-    os_tenant_name = "${module.os.tenant_name}"
-    os_domain_name = "${module.os.domain_name}"
+    os_tenant_key = "${module.os.tenant_key}"
+    os_tenant_value = "${module.os.tenant_value}"
+    os_domain_key = "${module.os.domain_key}"
+    os_domain_value = "${module.os.domain_value}"
+    os_user_domain_key = "${module.os.user_domain_key}"
+    os_user_domain_value = "${module.os.user_domain_value}"
     os_region = "${module.os.region}"
   }
 }

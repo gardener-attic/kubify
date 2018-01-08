@@ -1,17 +1,20 @@
 #!/usr/bin/env bash
 
+# unset alternate items in case set
+unset OS_TENANT_NAME
+unset OS_TENANT_ID
+unset OS_PROJECT_DOMAIN_NAME
+unset OS_PROJECT_DOMAIN_ID
+unset OS_USER_DOMAIN_NAME
+unset OS_USER_DOMAIN_ID
+
 export OS_IDENTITY_API_VERSION=3
 export OS_AUTH_VERSION=3
 export OS_AUTH_STRATEGY=keystone
 export OS_AUTH_URL="${os_auth_url}"
-export OS_TENANT_NAME="${os_tenant_name}"
-export OS_PROJECT_DOMAIN_NAME="${os_domain_name}"
-export OS_USER_DOMAIN_NAME="${os_domain_name}"
-
-# unset v2.0 items in case set
-unset OS_TENANT_ID
-unset OS_PROJECT_DOMAIN_ID
-unset OS_USER_DOMAIN_ID
+export ${os_tenant_key}="${os_tenant_value}"
+export ${os_domain_key}="${os_domain_value}"
+export ${os_user_domain_key}="${os_user_domain_value}"
 
 export OS_USERNAME="${os_username}"
 export OS_PASSWORD="${os_password}"
