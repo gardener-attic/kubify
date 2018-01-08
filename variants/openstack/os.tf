@@ -18,9 +18,19 @@ variable "os_user_name" {
 }
 variable "os_tenant_name" {
   type = "string"
+  default = ""
+}
+variable "os_tenant_id" {
+  type = "string"
+  default = ""
 }
 variable "os_domain_name" {
   type = "string"
+  default = ""
+}
+variable "os_domain_id" {
+  type = "string"
+  default = ""
 }
 variable "os_password" {
   type = "string"
@@ -63,7 +73,9 @@ module "iaas_config" {
   auth_url = "${var.os_auth_url}"
   availability_zone = "${var.os_az}"
   domain_name = "${var.os_domain_name}"
+  domain_id = "${var.os_domain_id}"
   tenant_name = "${var.os_tenant_name}"
+  tenant_id = "${var.os_tenant_id}"
   region = "${var.os_region}"
   user_name = "${var.os_user_name}"
   password = "${var.os_password}"
@@ -80,6 +92,8 @@ provider "openstack" {
   user_name   = "${var.os_user_name}"
   tenant_name = "${var.os_tenant_name}"
   domain_name = "${var.os_domain_name}"
+  tenant_id   = "${var.os_tenant_id}"
+  domain_id   = "${var.os_domain_id}"
   password    = "${var.os_password}"
   auth_url    = "${var.os_auth_url}"
   region      = "${var.os_region}"

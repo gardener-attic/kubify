@@ -1,3 +1,18 @@
+#
+# Copyright 2017 The Gardener Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 ##############################################################################
 # openstack iaas configuration handling
 # pack or unpack configuration variables for iaas layer
@@ -44,9 +59,17 @@ module "tenant_name" {
   source="../../../../modules/variable"
   value="${lookup(local.simple,"tenant_name",var.tenant_name)}"
 }
+module "tenant_id" {
+  source="../../../../modules/variable"
+  value="${lookup(local.simple,"tenant_id",var.tenant_id)}"
+}
 module "domain_name" {
   source="../../../../modules/variable"
   value="${lookup(local.simple,"domain_name",var.domain_name)}"
+}
+module "domain_id" {
+  source="../../../../modules/variable"
+  value="${lookup(local.simple,"domain_id",var.domain_id)}"
 }
 module "password" {
   source="../../../../modules/variable"
@@ -94,7 +117,9 @@ locals {
       user_name = "${module.user_name.value}"
       availability_zone = "${module.availability_zone.value}"
       tenant_name = "${module.tenant_name.value}"
+      tenant_id = "${module.tenant_id.value}"
       domain_name = "${module.domain_name.value}"
+      domain_id = "${module.domain_id.value}"
       password = "${module.password.value}"
       auth_url = "${module.auth_url.value}"
       region = "${module.region.value}"
@@ -120,7 +145,9 @@ output "simple" {
       user_name = "${module.user_name.value}"
       availability_zone = "${module.availability_zone.value}"
       tenant_name = "${module.tenant_name.value}"
+      tenant_id = "${module.tenant_id.value}"
       domain_name = "${module.domain_name.value}"
+      domain_id = "${module.domain_id.value}"
       password = "${module.password.value}"
       auth_url = "${module.auth_url.value}"
       region = "${module.region.value}"
@@ -150,8 +177,14 @@ output "availability_zone" {
 output "tenant_name" {
   value = "${module.tenant_name.value}"
 }
+output "tenant_id" {
+  value = "${module.tenant_id.value}"
+}
 output "domain_name" {
   value = "${module.domain_name.value}"
+}
+output "domain_id" {
+  value = "${module.domain_id.value}"
 }
 output "password" {
   value = "${module.password.value}"
