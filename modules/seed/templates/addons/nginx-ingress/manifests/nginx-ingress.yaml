@@ -235,7 +235,7 @@ spec:
         node-role.kubernetes.io/node: ""
       containers:
         - name: nginx-ingress-controller
-          image: "gcr.io/google_containers/nginx-ingress-controller:${version}"
+          image: "quay.io/kubernetes-ingress-controller/nginx-ingress-controller:${version}"
           imagePullPolicy: "IfNotPresent"
           args:
             - /nginx-ingress-controller
