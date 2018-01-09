@@ -1,4 +1,57 @@
 ---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: prometheus
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  - services
+  - endpoints
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - nodes/metrics
+  # TODO: remove entry below once legacy Prometheus are gone (ones using proxy to scrape kubelets)
+  - nodes/proxy
+  verbs:
+  - get
+- nonResourceURLs:
+  - /metrics
+  # TODO: remove entry below once legacy Prometheus are gone (ones using proxy to scrape kubelets)
+  - /metrics/*
+  verbs:
+  - get
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus
+  namespace: kube-system
+  labels:
+    app: prometheus
+    role: monitoring
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus-kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: prometheus
+subjects:
+- kind: ServiceAccount
+  name: prometheus
+  namespace: kube-system
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -123,6 +176,7 @@ spec:
         app: prometheus
         role: monitoring
     spec:
+      serviceAccount: prometheus
       containers:
       - name: prometheus
         image: quay.io/prometheus/prometheus:v2.0.0
