@@ -23,12 +23,20 @@ variable "route53_access_key" {
 variable "route53_secret_key" {
   default = ""
 }
+variable "route53_hosted_zone_id" {
+  default = ""
+}
+locals {
+  hosted_zone_id = "${var.route53_hosted_zone_id == "" ? lookup(var.dns, "hosted_zone_id", "") : var.route53_hosted_zone_id}"
+  dns = "${merge(var.dns, map("hosted_zone_id", local.hosted_zone_id))}"
+}
+
 module "route53" {
   source = "../../modules/access/aws"
   defaults = {
     region = "us-east-1"
   }
-  access_info = "${var.dns}"
+  access_info = "${local.dns}"
 
   access_key = "${var.route53_access_key}"
   secret_key = "${var.route53_secret_key}"
@@ -355,7 +363,7 @@ module "instance" {
 
   access_info = "${local.access_info}"
   etcd_backup = "${var.etcd_backup}"
-  dns = "${var.dns}"
+  dns = "${local.dns}"
   ca_cert_pem = "${var.ca_cert_pem}"
   ca_key_pem = "${var.ca_key_pem}"
   cluster_name = "${var.cluster_name}"

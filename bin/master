@@ -131,12 +131,30 @@ doPrepare()
 
 doTF()
 {
-  doPrepare -s
-  SUF=
-  case "$1" in
-    get|plan|apply|init|refresh|destroy|validate) SUF=$MODULE
-  esac
-  terraform "$@" $SUF
+  if [ "$1" == cleanup ]; then
+    echo "This will delete the terraform state. Be sure the project is completely deleted from the IaaS layer!"
+    echo -n "Are you sure? (yes) "
+    read a
+    if [ "$a" == yes ]; then
+      echo "cleaning kubify project"
+      doCleanup
+    else
+      echo "Cleanup discarded"
+    fi
+  else
+    doPrepare -s
+    SUF=
+    case "$1" in
+      get|plan|apply|init|refresh|destroy|validate) SUF=$MODULE
+    esac
+    terraform "$@" $SUF
+  fi
+}
+
+doCleanup()
+{
+  cd "$ROOT"
+  rm -Rf .terraform terraform gen terraform.tfstate* rollinfo state.auto.tfvars structure-version
 }
 
 doPlan()
