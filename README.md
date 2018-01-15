@@ -114,7 +114,7 @@ and by keeping the actual state in a separate json file which can later again be
 - Add the kubify repository as a git submodule with the name `k8s`.
 
   ```
-  git submodule add https://github.wdf.sap.corp/kubernetes/kubify.git k8s
+  git submodule add https://github.com/gardener/kubify.git k8s
   git submodule init
   ```
 
@@ -228,7 +228,7 @@ and by keeping the actual state in a separate json file which can later again be
 
 #### Quick Setup
 
-Alternatively you can copy the project template `https://github.wdf.sap.corp/kubernetes/openstack-cluster-template.git`.
+Alternatively you can copy the project template `https://github.com/gardener/kubify-openstack-template.git`.
 Afterwards you set the `origin`to your upstream git repository. Then continue with the configuration steps above.
 
 It uses the same submodule, so don't forget to call
