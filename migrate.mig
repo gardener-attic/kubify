@@ -13,6 +13,7 @@
 # limitations under the License.
 
 stop 7 97d3679
+stop 8 dc96efd
 
 version 0
 echo nginx loadbalancer

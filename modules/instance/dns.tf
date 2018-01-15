@@ -18,15 +18,15 @@ variable "dns" {
 }
 
 module "hosted_zone_domain" {
-  source = "./modules/variable"
+  source = "./../variable"
   value = "${lookup(var.dns,"hosted_zone_domain","k8s.sapcloud.io")}"
 }
 module "base_domain" {
-  source = "./modules/variable"
+  source = "./../variable"
   value = "${lookup(var.dns,"base_domain","${var.base_domain}")}"
 }
 module "domain_name" {
-  source = "./modules/variable"
+  source = "./../variable"
   value = "${lookup(var.dns,"domain_name","${var.domain_name}")}"
 }
 
@@ -35,12 +35,12 @@ module "domain_name" {
 #
 
 module "configure_additional_dns" {
-  source = "./modules/flag"
+  source = "./../flag"
   option = "${var.configure_additional_dns}"
 }
 
 module "apiserver_record" {
-  source = "./modules/dns"
+  source = "./../dns"
 
   config = "${var.dns}"
 
@@ -52,7 +52,7 @@ module "apiserver_record" {
 }
 
 module "ingress_record" {
-  source = "./modules/dns"
+  source = "./../dns"
 
   config = "${var.dns}"
 
@@ -64,7 +64,7 @@ module "ingress_record" {
 }
 
 module "bastion_record" {
-  source = "./modules/dns"
+  source = "./../dns"
 
   config = "${var.dns}"
 
@@ -76,7 +76,7 @@ module "bastion_record" {
 }
 
 module "identity_record" {
-  source = "./modules/dns"
+  source = "./../dns"
 
   config = "${var.dns}"
 

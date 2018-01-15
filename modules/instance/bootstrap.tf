@@ -18,7 +18,7 @@ variable "test" {
 
 
 module "provision" {
-  source = "./modules/flag"
+  source = "./../flag"
   option= "${var.provision_bootkube}"
 }
 

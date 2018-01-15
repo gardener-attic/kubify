@@ -1,5 +1,3 @@
-#!/bin/bash -eu
-#
 # Copyright 2017 The Gardener Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,18 +12,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#!/bin/bash -e
+variable "versions" {
+  type = "map"
+}
 
-target="$1"
-shift
-rm -Rf "$target"/manifests
-mkdir -p "$target"
+module "versions" {
+  source = "../versions"
+  versions = "${var.versions}"
+}
 
-for i; do
-  if [ -d "$i" ]; then
-    echo "copying $i..."
-    cp -r "$i/." "$target"
-  else
-    echo "$i not found"
-  fi
-done
+
+
+module "structure_version" {
+  source = "../variable"
+  value = 9
+}
+
+output "structure-version" {
+  value = "${module.structure_version.value}"
+}
+
+resource "local_file" "version" {
+  content = <<EOF
+${module.structure_version.value}
+EOF
+  filename = "${path.cwd}/structure-version"
+}
+

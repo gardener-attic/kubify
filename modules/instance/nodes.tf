@@ -14,7 +14,7 @@
 
 
 module "enforce_master_fips" {
-  source = "modules/variable"
+  source = "../variable"
   value = "${module.use_bastion.value ? "${lookup(var.master,"assign_fips", "")}" : "single"}"
   default = "${var.assign_master_fips}"
 }
@@ -25,7 +25,7 @@ locals {
 }
 
 module "master_config" {
-  source = "modules/access/node_config"
+  source = "../access/node_config"
   node_config = "${var.master}"
   
   update_mode = "${module.recover_cluster.if_active ? "All" : "${lookup(var.master,"update_mode",var.master_update_mode)}"}"
@@ -44,7 +44,7 @@ module "master_config" {
 }
 
 module "worker_config" {
-  source = "modules/access/node_config"
+  source = "../access/node_config"
   node_config = "${var.worker}"
 
   volume_size = "0"
@@ -67,7 +67,7 @@ module "worker_config" {
 #
 
 module "master" {
-  source = "modules/nodes"
+  source = "../nodes"
 
   iaas_config        = "${var.iaas_config}"
   iaas_info          = "${module.iaas.iaas_info}"
@@ -140,7 +140,7 @@ output "master_count" {
 #
 
 module "worker" {
-  source = "modules/nodes"
+  source = "../nodes"
 
   iaas_config        = "${var.iaas_config}"
   iaas_info          = "${module.iaas.iaas_info}"

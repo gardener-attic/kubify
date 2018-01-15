@@ -151,6 +151,7 @@ doTF()
       case "$1" in
         get|plan|apply|init|refresh|destroy|validate) SUF=$MODULE
       esac
+      echo terraform "$@" $SUF
       terraform "$@" $SUF;;
   esac
 }
@@ -230,6 +231,7 @@ doApply()
   else
     terraform init "$MODULE"
   fi
+  echo terraform apply $config "$@" $MODULE
   terraform apply $config "$@" $MODULE
 }
 
@@ -821,6 +823,10 @@ doSSH()
 {
   local t="$1"
   shift
+  case "$1" in
+    -l) cmd="journalctl -u $2 -f"
+        shift 2;;
+  esac
   requireCluster
   if [ $# -eq 0 ]; then
     no=0
@@ -831,10 +837,17 @@ doSSH()
       exit 0
     fi
     if [ "$1" -lt 0 ]; then
-      echo "index must not be negative"
+      Error "index must not be negative"
     fi
     no="$1"
     shift
+  fi
+  if [ -n "$cmd" ]; then
+    if [ $# -eq 0 ]; then
+      set $cmd
+    else
+      Error "contradicting command options"
+    fi
   fi
   cd "$ROOT"
   PEM="gen/nodes_privatekey.pem"

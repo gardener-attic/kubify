@@ -424,3 +424,40 @@ This recreates the master volumes and nodes and then recreates the cluster using
 etcd content. All manual changes to your deployment of the standard components will be lost,
 because all standard components (not only the control plane) will be updated to the version
 configured in the terraform project.
+
+#### Migrating to new Versions of the Kubify Project
+
+Every new version of this project comes with a migration script
+[`migration.mig`](migrate.mig)  that is used by the command
+`migrate`. It is used to adapt terraform state files generated
+by former versions of this project before they can be
+used with the actual version. With this mechanism it is possible
+to change the structure of the terraform project for new
+versions without loosing cluster projects based on older
+versions. Nevertheless there might still be changes that
+cannot be migrated. The migration script then prompts
+an information about the latest commit, that can be used
+with the actual state version.
+
+For this purpose the state structure used by this project is
+versioned (in `modules/instance/version.tf`). Running the 
+project generates a file `structure_version` containing
+the actual version. Additionally the version is also
+contained in the `state.auto.tfvars` file.
+
+The migration
+of the actual state file to the lastest structure version is done
+version by version until the actual version is reached.
+
+The utility command `apply`, `plan` and `tf` implicitly
+do the state migration if required. If terraform is called
+manually the migration steps have be explicitly done by
+using the `migrate` utility command. It can always be called,
+because it checks if an action is required before touching
+the state file. 
+
+The migration command provides some utility functions
+used by the migration script. After defining those functions
+it just calls the migration script as regular shell script.
+The utility functions are based on the state manipulation
+sub commands of the `terraform` command.

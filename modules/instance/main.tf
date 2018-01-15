@@ -23,7 +23,7 @@ variable "etcd_backup" {
 }
 
 module "cluster"{
-  source = "modules/cluster"
+  source = "../cluster"
 
   cluster_name = "${var.cluster_name}"
   cluster_type = "${var.cluster_type}"
@@ -38,16 +38,16 @@ module "cluster"{
 }
 
 module "root_certs" {
-  source = "modules/file"
+  source = "../file"
   path = "${var.root_certs_file}"
 }
 module "pull_secret" {
-  source = "modules/file"
+  source = "../file"
   path = "${var.pull_secret_file}"
 }
 
 module "bastion_config" {
-  source = "modules/access/node_config"
+  source = "../access/node_config"
   node_config = "${var.bastion}"
 
   volume_size = "0"
@@ -65,7 +65,7 @@ module "bastion_config" {
 }
 
 module "iaas" {
-  source = "variants/current/modules/iaas"
+  source = "../../variants/current/modules/iaas"
 
   iaas_config    = "${var.iaas_config}"
 
@@ -89,7 +89,7 @@ data "archive_file" "helper_scripts" {
 }
 
 module "seed" {
-  source = "modules/seed"
+  source = "../seed"
 
   cluster_name = "${var.cluster_name}"
   addons = "${var.addons}"

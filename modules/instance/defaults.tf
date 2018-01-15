@@ -17,7 +17,7 @@ variable "platform" {
 }
 
 module "bastion_vm" {
-  source = "./modules/vms"
+  source = "./../vms"
 
   platform = "${var.platform}"
   node_type = "bastion"
@@ -29,7 +29,7 @@ module "bastion_vm" {
 }
 
 module "master_vm" {
-  source = "./modules/vms"
+  source = "./../vms"
 
   platform = "${var.platform}"
   node_type = "master"
@@ -42,7 +42,7 @@ module "master_vm" {
 }
 
 module "worker_vm" {
-  source = "./modules/vms"
+  source = "./../vms"
 
   platform = "${var.platform}"
   node_type = "worker"

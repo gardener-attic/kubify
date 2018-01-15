@@ -17,33 +17,33 @@
 #
 
 module "use_lbaas" {
-  source = "modules/flag"
+  source = "../flag"
   option = "${var.use_lbaas}"
 }
 module "omit_lbaas" {
-  source = "modules/flag"
+  source = "../flag"
   option = "${var.omit_lbaas}"
 }
 module "provide_lbaas" {
-  source = "modules/variable"
+  source = "../variable"
   value = "${module.use_lbaas.flag && ! module.omit_lbaas.flag ? 1 : 0}"
 }
 
 module "vip_nginx" {
-  source = "modules/variable"
+  source = "../variable"
   value = "${module.worker.lbaas_address}"
 }
 module "vip_type_nginx" {
-  source = "modules/variable"
+  source = "../variable"
   value = "${module.worker.lbaas_address_type}"
 }
 
 module "vip_apiserver" {
-  source = "modules/variable"
+  source = "../variable"
   value = "${module.master.lbaas_address}"
 }
 module "vip_type_apiserver" {
-  source = "modules/variable"
+  source = "../variable"
   value = "${module.master.lbaas_address_type}"
 }
 
@@ -52,16 +52,16 @@ module "vip_type_apiserver" {
 #
 
 module "use_bastion" {
-  source = "modules/flag"
+  source = "../flag"
   option = "${var.use_bastion}"
 }
 
 module "bastion_user" {
-  source = "modules/variable"
+  source = "../variable"
   value = "${module.use_bastion.flag ? var.bastion_user : "core"}"
 }
 module "bastion_host" {
-  source = "modules/variable"
+  source = "../variable"
 #  value = "${element(compact(concat(list(module.iaas.bastion),module.master.fips)),0)}"
   value = "${module.use_bastion.flag ? module.iaas.bastion : element(concat(module.master.fips,list("none")),0)}"
 }

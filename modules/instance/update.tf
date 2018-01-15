@@ -13,7 +13,7 @@
 # limitations under the License.
 
 module "update_kubelet" {
-  source = "modules/flag"
+  source = "../flag"
   option = "${var.update_kubelet}"
 }
 

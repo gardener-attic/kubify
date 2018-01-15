@@ -14,11 +14,11 @@
 
 
 module "recover_cluster" {
-  source = "./modules/flag"
+  source = "./../flag"
   option= "${var.recover_cluster && length(var.etcd_backup_file)>0}"
 }
 module "keep_version" {
-  source = "./modules/flag"
+  source = "./../flag"
   option= "${var.keep_recovery_version}"
 }
 
@@ -28,7 +28,7 @@ module "keep_version" {
 # Whenever a recovery is requested the recovery version is increased
 # to enforce new master nodes
 module "recovery_version" {
-  source = "./modules/variable"
+  source = "./../variable"
   value = "${module.recover_cluster.if_active && module.keep_version.if_not_active ? var.recovery_version + 1 : var.recovery_version}"
 }
 
