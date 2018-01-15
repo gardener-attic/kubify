@@ -155,11 +155,11 @@ and by keeping the actual state in a separate json file which can later again be
   ```
   os_user_name="<your user>"
   os_password="<your password>"
-  os_auth_url="https://cluster-4.eu-de-1.cloud.sap:5000/v3/"
+  os_auth_url="<your keystone auth url>"
   os_tenant_name="<your tenant name>"
-  os_domain_name="HCP_CF_01"
-  os_region="eu-de-1"
-  os_fip_pool_name="HCP-CF-DEV-773"
+  os_domain_name="<your openstack domain name>"
+  os_region="<your region>"
+  os_fip_pool_name="<your fip pool name>"
 
   cluster_name="<your cluster name>"
   cluster_type="<your cluster type>"
@@ -170,7 +170,7 @@ and by keeping the actual state in a separate json file which can later again be
     access_key="<route53 access key>"
     secret_key="<route53 secret key>"
     hosted_zone_id="<route53 hosted zone id>"
-    hosted_zone_domain="k8s.sapcloud.io"
+    hosted_zone_domain="<domain>"
   }
 
   # cluster size
