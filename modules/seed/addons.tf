@@ -13,86 +13,9 @@
 # limitations under the License.
 
 
-locals {
-  addons_dir = "${path.module}/templates/addons"
-}
-
-#
-# special monitoring
-#
-
-module "prometheus" {
-  source = "../tls"
-
-  file_base = "${var.tls_dir}/prometheus"
-  common_name = "prometheus"
-  organization = "${var.cluster_name}"
-  ca = "${module.apiserver.ca_cert}"
-  ca_key = "${module.apiserver.ca_key}"
-  ip_addresses = []
-  dns_names = [ "prometheus.${var.ingress_base_domain}" ]
-}
-module "prometheus_config" {
-  source = "../file"
-  path="${lookup(local.config["monitoring"],"prometheus_config_file","")}"
-  prefix=<<EOF
-
-EOF
-}
-module "prometheus_rules" {
-  source = "../file"
-  path="${lookup(local.config["monitoring"],"prometheus_rules_file","")}"
-  prefix=<<EOF
-
-EOF
-}
-
-module "grafana" {
-  source = "../tls"
-
-  file_base = "${var.tls_dir}/grafana"
-  common_name = "grafana"
-  organization = "${var.cluster_name}"
-  ca = "${module.apiserver.ca_cert}"
-  ca_key = "${module.apiserver.ca_key}"
-  ip_addresses = []
-  dns_names = [ "grafana.${var.ingress_base_domain}" ]
-}
-
-module "grafana_config" {
-  source = "../file"
-  path="${lookup(local.config["monitoring"],"grafana_config_file","")}"
-  prefix=<<EOF
-
-EOF
-}
-
-module "alertmanager" {
-  source = "../tls"
-
-  file_base = "${var.tls_dir}/alertmanager"
-  common_name = "alertmanager"
-  organization = "${var.cluster_name}"
-  ca = "${module.apiserver.ca_cert}"
-  ca_key = "${module.apiserver.ca_key}"
-  ip_addresses = []
-  dns_names = [ "alertmanager.${var.ingress_base_domain}" ]
-}
-
-module "alertmanager_config" {
-  source = "../file"
-  path="${lookup(local.config["monitoring"],"alertmanager_config_file","")}"
-}
-
-data "template_file" "alertmanager_config" {
-  template="${file("${local.addons_dir}/monitoring/alertmanager-config.yaml")}"
-  vars {
-  }
-}
-
-locals {
-  alertmanager_default_b64="${base64encode(data.template_file.alertmanager_config.rendered)}"
-  alertmanager_config_b64="${base64encode(module.alertmanager_config.content==""?data.template_file.alertmanager_config.rendered:module.alertmanager_config.content)}"
+module "addons_dir" {
+  source = "../variable"
+  value = "${path.module}/templates/addons"
 }
 
 #
@@ -139,56 +62,25 @@ locals {
      "kube-lego" = {
        version = "${module.versions.lego_version}"
      }
-     "monitoring" = {
-       basic_auth_b64 = "${module.dashboard_creds.b64}"
-
-       prometheus_crt_b64 = "${module.prometheus.cert_pem_b64}"
-       prometheus_key_b64 = "${module.prometheus.private_key_pem_b64}"
-       prometheus_volume_size = "20Gi"
-
-       grafana_crt_b64 = "${module.grafana.cert_pem_b64}"
-       grafana_key_b64 = "${module.grafana.private_key_pem_b64}"
-
-       alertmanager_crt_b64 = "${module.alertmanager.cert_pem_b64}"
-       alertmanager_key_b64 = "${module.alertmanager.private_key_pem_b64}"
-       alertmanager_config_b64 = "${local.alertmanager_default_b64}"
-       alertmanager_volume_size = "10Gi"
-     }
+     "monitoring" = "${module.monitoring_defaults.value}"
      "guestbook" = {}
   }
 
   generated = {
-    "monitoring" = {
-       grafana_config = "${module.grafana_config.content}"
-       prometheus_config = "${module.prometheus_config.content}"
-       prometheus_rules = "${module.prometheus_rules.content}"
-       alertmanager_config_b64 = "${local.alertmanager_config_b64}"
-    }
+    "monitoring" = "${module.monitoring_generated.value}"
   }
 
-  dummy = {
-     dummy = {
+  dummy_tmp = {
        basic_auth_b64 = ""
        email = ""
        version = ""
-       prometheus_config = ""
-       prometheus_rules = ""
-       prometheus_crt_b64 = "${module.prometheus.cert_pem_b64}"
-       prometheus_key_b64 = "${module.prometheus.private_key_pem_b64}"
-       prometheus_volume_size = "20Gi"
-
-       grafana_config = ""
-       grafana_crt_b64 = "${module.grafana.cert_pem_b64}"
-       grafana_key_b64 = "${module.grafana.private_key_pem_b64}"
-
-       alertmanager_crt_b64 = "${module.alertmanager.cert_pem_b64}"
-       alertmanager_key_b64 = "${module.alertmanager.private_key_pem_b64}"
-       alertmanager_config_b64 = "${local.alertmanager_default_b64}"
-       alertmanager_volume_size = "10Gi"
      }
+  dummy = {
+     dummy = "${merge(local.dummy_tmp, module.monitoring_dummy.value)}"
   }
 
   selected = "${keys(var.addons)}"
+
   config = "${merge(local.empty, local.dummy, var.addons)}"
 
   defaultconfig = "${merge(local.empty, local.defaults)}"
@@ -213,12 +105,21 @@ locals {
 resource "template_dir" "addons" {
   count = "${length(local.addons)}"
 
-  source_dir = "${local.addons_dir}/${local.addons[count.index]}"
+  source_dir = "${module.addons_dir.value}/${local.addons[count.index]}"
   destination_dir = "${var.gen_dir}/addons/${local.addons[count.index]}"
 
   vars = "${merge(local.standard,local.defaultconfig[local.addons[count.index]],local.generatedconfig[local.addons[count.index]],local.config[contains(local.selected, local.addons[count.index]) ? local.addons[count.index] : "dummy"])}"
 }
 
+#output "addon-generated" {
+#  value = "${local.generated}"
+#}
+#output "addon-empty" {
+#  value = "${local.empty}"
+#}
+#output "addon-dummy" {
+#  value = "${local.dummy}"
+#}
 output "addon-config" {
   value = "${local.config}"
 }

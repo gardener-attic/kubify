@@ -23,6 +23,14 @@ rules:
   - nodes/proxy
   verbs:
   - get
+- apiGroups:
+  - "extensions/v1beta1"
+  verbs:
+  - get
+  - list
+  - watch
+  resources:
+  - ingresses
 - nonResourceURLs:
   - /metrics
   # TODO: remove entry below once legacy Prometheus are gone (ones using proxy to scrape kubelets)
@@ -80,7 +88,7 @@ data:
           regex: alertmanager-client
           action: keep
         
-    scrape_configs: ${prometheus_config}
+    ${prometheus_config}
 
 ---
 apiVersion: v1
