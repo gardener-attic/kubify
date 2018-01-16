@@ -23,7 +23,7 @@ locals {
   dns_version                = "1.14.5"
   flannel_version            = "v0.9.1"
   cni_version                = "0.3.0"
-  etcd_version               = "v3.2.11"
+  etcd_version               = "v3.2.14"
   etcd_operator_version      = "v0.6.1"
   bootkube_version           = "v0.8.2"
   bootkube                   = "quay.io/coreos/bootkube"

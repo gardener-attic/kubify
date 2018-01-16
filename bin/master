@@ -65,6 +65,7 @@ Error()
 # terraform commands
 ##############################################################
 
+
 # prepare terraform project
 doPrepare()
 {
@@ -125,36 +126,51 @@ doPrepare()
   rm -rf terraform
   ln -s terraform/variants/current variant
   cp -r k8s terraform
-  rm terraform/variants/current
+  rm -f terraform/variants/current
   ln -s "$VARIANT" terraform/variants/current
 }
 
 doTF()
 {
-  if [ "$1" == cleanup ]; then
-    echo "This will delete the terraform state. Be sure the project is completely deleted from the IaaS layer!"
-    echo -n "Are you sure? (yes) "
-    read a
-    if [ "$a" == yes ]; then
-      echo "cleaning kubify project"
-      doCleanup
-    else
-      echo "Cleanup discarded"
-    fi
-  else
-    doPrepare -s
-    SUF=
-    case "$1" in
-      get|plan|apply|init|refresh|destroy|validate) SUF=$MODULE
-    esac
-    terraform "$@" $SUF
-  fi
+  case "$1" in
+    cleanup)
+      echo "This will delete the terraform state. Be sure the project is completely deleted from the IaaS layer!"
+      echo -n "Are you sure? (yes) "
+      read a
+      if [ "$a" == yes ]; then
+        echo "cleaning kubify project"
+        doCleanup
+      else
+        echo "Cleanup discarded"
+      fi;;
+    prepare)
+      doPrepare "${@:2}";;
+    *)
+      doPrepare -s
+      SUF=
+      case "$1" in
+        get|plan|apply|init|refresh|destroy|validate) SUF=$MODULE
+      esac
+      terraform "$@" $SUF;;
+  esac
 }
 
 doCleanup()
 {
   cd "$ROOT"
+  VARIANT=
+  if [ -h "variant" ]; then
+    VARIANT="$(basename "$(${rlink} -f variant)")"
+    if [ "$(basename "$(${rlink} variant)")" == "$VARIANT" ]; then
+      VARIANT=
+    fi
+  fi
   rm -Rf .terraform terraform gen terraform.tfstate* rollinfo state.auto.tfvars structure-version
+  if [ -n "$VARIANT" ]; then
+    echo "preserving variant $VARIANT for copy mode"
+    mkdir -p "terraform/variants"
+    ln -s "$VARIANT" "terraform/variants/current"
+  fi
 }
 
 doPlan()
@@ -949,6 +965,7 @@ mkdir "\$TMP"
 echo "\$CERT" >"\$TMP/etcd-client.crt"
 echo "\$KEY" >"\$TMP/etcd-client.key"
 echo "\$CA" >"\$TMP/ca.crt"
+echo endpoint is $endpoint
 docker run -i --rm -v "\$TMP":/tls quay.io/coreos/etcd:v3.2 /bin/sh -c "export ETCDCTL_API=3 && /usr/local/bin/etcdctl --cert /tls/etcd-client.crt --key /tls/etcd-client.key --cacert /tls/ca.crt $endpoint $*"
 EOF
 }
