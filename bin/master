@@ -131,12 +131,22 @@ doPrepare()
 
 doTF()
 {
-  doPrepare -s
-  SUF=
-  case "$1" in
-    get|plan|apply|init|refresh|destroy|validate) SUF=$MODULE
-  esac
-  terraform "$@" $SUF
+  if [ "$1" == cleanup ]; then
+    doCleanup
+  else
+    doPrepare -s
+    SUF=
+    case "$1" in
+      get|plan|apply|init|refresh|destroy|validate) SUF=$MODULE
+    esac
+    terraform "$@" $SUF
+  fi
+}
+
+doCleanup()
+{
+  cd "$ROOT"
+  rm -Rf .terraform terraform gen terraform.tfstate* rollinfo state.auto.tfvars structure-version
 }
 
 doPlan()
