@@ -67,6 +67,10 @@ data:
 apiVersion: v1
 kind: Service
 metadata:
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/name: "grafana"
+    prometheus.io/port: "3000"
   name: grafana
   namespace: kube-system
   labels:
@@ -108,7 +112,7 @@ spec:
       #  command: ['sh', '-c', 'until wget -T 5 -qO- http://prometheus-web:8080/status > /dev/null; do echo waiting for Prometheus; sleep 2; done;']
       containers:
       - name: grafana
-        image: grafana/grafana:4.1.1
+        image: grafana/grafana:4.6.3
         imagePullPolicy: IfNotPresent
         env:
         - name: GF_AUTH_BASIC_ENABLED

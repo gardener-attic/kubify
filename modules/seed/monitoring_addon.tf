@@ -62,6 +62,17 @@ module "prometheus_rules" {
 EOF
 }
 
+data "template_file" "prometheus_rules" {
+  template="${file("${module.addons_dir.value}/monitoring/prometheus-rules.yaml")}"
+  vars {
+  }
+}
+
+locals {
+  prometheus_rules_default_indent="${indent(2,data.template_file.prometheus_rules.rendered)}"
+  prometheus_rules_indent="${indent(2,module.prometheus_rules.content==""?data.template_file.prometheus_rules.rendered:module.prometheus_rules.content)}"
+}
+
 #
 # grafana
 #
@@ -122,6 +133,8 @@ module "monitoring_defaults" {
   value = {
      basic_auth_b64 = "${module.dashboard_creds.b64}"
 
+     prometheus_config = "${local.prometheus_config_indent}"
+     prometheus_rules = "${local.prometheus_rules_indent}"
      prometheus_crt_b64 = "${module.prometheus.cert_pem_b64}"
      prometheus_key_b64 = "${module.prometheus.private_key_pem_b64}"
      prometheus_volume_size = "20Gi"
@@ -141,7 +154,7 @@ module "monitoring_generated" {
   value = {
      grafana_config = "${module.grafana_config.content}"
      prometheus_config = "${local.prometheus_config_indent}"
-     prometheus_rules = "${module.prometheus_rules.content}"
+     prometheus_rules = "${local.prometheus_rules_indent}"
      alertmanager_config_b64 = "${local.alertmanager_config_b64}"
   }
 }
@@ -150,7 +163,7 @@ module "monitoring_dummy" {
   source = "../mapvar"
   value = {
      prometheus_config = "${local.prometheus_default_indent}"
-     prometheus_rules = ""
+     prometheus_rules = "${local.prometheus_rules_default_indent}"
      prometheus_crt_b64 = "${module.prometheus.cert_pem_b64}"
      prometheus_key_b64 = "${module.prometheus.private_key_pem_b64}"
      prometheus_volume_size = "20Gi"
@@ -164,4 +177,14 @@ module "monitoring_dummy" {
      alertmanager_config_b64 = "${local.alertmanager_default_b64}"
      alertmanager_volume_size = "10Gi"
   }
+}
+
+output "prometheus_config" {
+  value="${local.prometheus_default_indent}"
+}
+output "prometheus_rules" {
+  value="${local.prometheus_rules_indent}"
+}
+output "alertmanager_config_b64" {
+  value="${local.alertmanager_config_b64}"
 }

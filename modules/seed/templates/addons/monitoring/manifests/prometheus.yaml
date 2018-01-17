@@ -74,6 +74,7 @@ data:
        cluster: ${cluster_name}
     rule_files:
     - /etc/prometheus/rules/*.yml
+    - /etc/prometheus/rules/*.yaml
     alerting:
       alertmanagers:
       - kubernetes_sd_configs:
@@ -96,7 +97,8 @@ kind: ConfigMap
 metadata:
   name: prometheus-rules
   namespace: kube-system
-data: ${prometheus_rules}
+data:
+  ${prometheus_rules}
 ---
 apiVersion: v1
 kind: Secret
@@ -144,6 +146,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/name: "prometheus"
+    prometheus.io/port: "9090"
   name: prometheus-web
   namespace: kube-system
   labels:

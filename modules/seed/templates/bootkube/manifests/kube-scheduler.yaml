@@ -19,6 +19,9 @@ spec:
         k8s-app: kube-scheduler
       annotations:
         scheduler.alpha.kubernetes.io/critical-pod: ''
+        prometheus.io/scrape: "true"
+        prometheus.io/name: "kube-scheduler"
+        prometheus.io/port: "10251"
     spec:
       affinity:
         podAntiAffinity:

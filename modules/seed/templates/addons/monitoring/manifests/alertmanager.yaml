@@ -53,6 +53,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/name: "alertmanager"
+    prometheus.io/port: "9093"
   name: alertmanager-client
   namespace: kube-system
   labels:
