@@ -15,6 +15,24 @@
 
 format=qcow2
 image=coreos_production_openstack_image.img
+default=1520.6.0
+
+help()
+{
+  cat <<EOF
+os_image - Openstack image upload for coreos images
+
+os_image [-p] [-f <format>] [<version>]
+
+Options:
+  -p          upload as public image
+  -f <format> use dedicated format for openstack
+              (default is $format)
+The default version is $default.
+EOF
+  exit 0
+}
+
 while [ $# -gt 0 ]; do
   case "$1" in
     -p)
@@ -24,11 +42,12 @@ while [ $# -gt 0 ]; do
         shift 2;;
     -*) echo "invalid option $1" >&2
         exit 1;;
+    help) help;;
     *) break;;
    esac
 done
 
-version=${1:-1520.6.0}
+version=${1:-$default}
 #version=${1:-1576.4.0}
 if [ ! -f $image ]; then
   echo "downloading image $version"

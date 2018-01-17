@@ -28,3 +28,12 @@ So far, it uses the AWS route53 service for providing DNS names.
 
 On openstack the given image names are directly used to lookup the images (see `glance`). The `bin/os` folder 
 provides a script (`os_image`) that can be used to upload an appropriate coreos image.
+
+The expected image names are by default:
+- `ubuntu-16.04` for the bastion host
+- `coreos-`<version> for the cluster nodes 
+
+The image for the bastion can be chossen arbitrarily, but the expected user is `ubuntu`. It
+can be changed by specifying the `user_name` atributte for the `bastion` settings in `terraform.tfvars`
+
+The node image *MUST* always be a coreos image.
