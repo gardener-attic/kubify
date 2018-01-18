@@ -28,7 +28,7 @@ The following addons are supported so far:
 |heapster |Resource usage analysis|
 |nginx-ingress |Nginx http/https ingress controller for ports 80 and 443|
 |kube-lego|Letsencrypt based TLS certificate support|
-|fluentd-elasticsearch||
+|fluentd-elasticsearch| Fluentd, Kibana, ElasticSearch logging stack|
 |guestbook|Application Deployment Example|
 
 
