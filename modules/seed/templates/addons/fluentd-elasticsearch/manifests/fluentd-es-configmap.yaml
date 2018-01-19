@@ -99,13 +99,13 @@ data:
     # Json Log Example:
     # {"log":"[info:2016-02-16T16:04:05.930-08:00] Some log text here\n","stream":"stdout","time":"2016-02-17T00:04:05.931087621Z"}
     # CRI Log Example:
-    # 2016-02-17T00:04:05.931087621Z stdout [info:2016-02-16T16:04:05.930-08:00] Some log text here
+    # 2016-02-17T00:04:05.931087621Z stdout F [info:2016-02-16T16:04:05.930-08:00] Some log text here
     <source>
       type tail
       path /var/log/containers/*.log
       pos_file /var/log/es-containers.log.pos
       time_format %Y-%m-%dT%H:%M:%S.%NZ
-      tag kubernetes.*
+      tag raw.kubernetes.*
       read_from_head true
       format multi_format
       <pattern>
@@ -114,22 +114,21 @@ data:
         time_format %Y-%m-%dT%H:%M:%S.%NZ
       </pattern>
       <pattern>
-        format /^(?<time>.+)\b(?<stream>stdout|stderr)\b(?<log>.*)$/
+        format /^(?<time>.+) (?<stream>stdout|stderr) [^ ]* (?<log>.*)$/
         time_format %Y-%m-%dT%H:%M:%S.%N%:z
       </pattern>
     </source>
+    # Detect exceptions in the log output and forward them as one log entry.
+    <match raw.kubernetes.**>
+      @type detect_exceptions
+      remove_tag_prefix raw
+      message log
+      stream stream
+      multiline_flush_interval 5
+      max_bytes 500000
+      max_lines 1000
+    </match>
   system.input.conf: |-
-    # Example:
-    # 2015-12-21 23:17:22,066 [salt.state       ][INFO    ] Completed state [net.ipv4.ip_forward] at time 23:17:22.066081
-    <source>
-      type tail
-      format /^(?<time>[^ ]* [^ ,]*)[^\[]*\[[^\]]*\]\[(?<severity>[^ \]]*) *\] (?<message>.*)$/
-      time_format %Y-%m-%d %H:%M:%S
-      path /var/log/salt/minion
-      pos_file /var/log/es-salt.pos
-      tag salt
-    </source>
-
     # Example:
     # Dec 21 23:17:22 gke-foo-1-1-4b5cbd14-node-4eoj startupscript: Finished running startup script /var/run/google.startup.script
     <source>
@@ -323,7 +322,7 @@ data:
     <source>
       @type prometheus_monitor
       <labels>
-        host $${hostname}
+        host ${hostname}
       </labels>
     </source>
 
@@ -331,7 +330,7 @@ data:
     <source>
       @type prometheus_output_monitor
       <labels>
-        host $${hostname}
+        host ${hostname}
       </labels>
     </source>
 
@@ -339,7 +338,7 @@ data:
     <source>
       @type prometheus_tail_monitor
       <labels>
-        host $${hostname}
+        host ${hostname}
       </labels>
     </source>
   output.conf: |-
@@ -367,7 +366,7 @@ data:
        num_threads 2
     </match>
 metadata:
-  name: fluentd-es-config-v0.1.0
+  name: fluentd-es-config-v0.1.2
   namespace: kube-system
   labels:
     addonmanager.kubernetes.io/mode: Reconcile
