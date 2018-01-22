@@ -79,6 +79,8 @@ resource "template_dir" "bootkube" {
     service_cidr = "${var.service_cidr}"
     pod_cidr = "${var.pod_cidr}"
     cloud_provider = "${var.cloud_provider}"
+    api_aggregator_crt_b64 = "${module.aggregator.cert_pem_b64}"
+    api_aggregator_key_b64 = "${module.aggregator.private_key_pem_b64}"
     apiserver_crt_b64 = "${module.apiserver.cert_pem_b64}"
     apiserver_key_b64 = "${module.apiserver.private_key_pem_b64}"
     apiserver_ca_crt_b64 = "${module.apiserver.ca_cert_b64}"

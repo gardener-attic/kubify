@@ -21,6 +21,10 @@ module "apiserver" {
   source = "../tls/access"
   tls = "${var.tls_apiserver}"
 }
+module "aggregator" {
+  source = "../tls/access"
+  tls = "${var.tls_aggregator}"
+}
 module "etcd" {
   source = "../etcd_tls/access"
   tls = "${var.tls_etcd}"

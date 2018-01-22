@@ -61,6 +61,9 @@ variable "std_api_domains" {
   ]
 }
 
+#
+# api server certificate
+#
 module "apiserver" {
   source = "../tls"
 
@@ -73,6 +76,19 @@ module "apiserver" {
   ip_addresses = "${concat(list("127.0.0.1", "${module.api_service_ip.value}"))}"
 
   dns_names = "${concat(var.std_api_domains,module.api_domains.value)}"
+}
+
+#
+# aggregator certificate
+#
+module "aggregator" {
+  source = "../tls"
+
+  file_base = "${module.tls_dir.value}/aggregator"
+  common_name = "system:kube-aggregator"
+  organization = "kube-master"
+  ca = "${module.ca.ca_cert_pem}"
+  ca_key = "${module.ca.ca_key_pem}"
 }
 
 ################################################################################
@@ -135,6 +151,9 @@ output "tls_kubelet" {
 }
 output "tls_apiserver" {
   value = "${module.apiserver.tls}"
+}
+output "tls_aggregator" {
+  value = "${module.aggregator.tls}"
 }
 output "tls_etcd" {
   value = "${module.etcd.tls}"

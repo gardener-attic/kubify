@@ -38,12 +38,27 @@ module "monitoring" {
   source = "addons/monitoring"
   active = "${contains(local.selected,"monitoring")}"
 
-  config = "${local.config["monitoring"]}"
-  tls_dir = "${var.gen_dir}/files/addons/monitoring/tls"
+  config = "${local.configured["monitoring"]}"
   cluster_name = "${var.cluster_name}"
   ingress_base_domain = "${var.ingress_base_domain}"
   dashboard_creds_b64 = "${module.dashboard_creds.b64}"
 
+  tls_dir = "${var.gen_dir}/files/addons/monitoring/tls"
+  ca = "${module.apiserver.ca_cert}"
+  ca_key = "${module.apiserver.ca_key}"
+}
+
+module "gardener" {
+  source = "addons/gardener"
+  active = "${contains(local.selected,"gardener")}"
+  config = "${local.configured["gardener"]}"
+
+  domain_name = "${var.domain_name}"
+  etcd_service_ip = "${var.etcd_service_ip}"
+  dns = "${merge(module.route53_access_info.value,var.dns)}"
+  versions = "${var.versions}"
+
+  tls_dir = "${var.gen_dir}/files/addons/gardener/tls"
   ca = "${module.apiserver.ca_cert}"
   ca_key = "${module.apiserver.ca_key}"
 }
@@ -68,7 +83,7 @@ module "iaas-addons" {
 
 locals {
   # this an explicit array to keep a distinct order for the multi-resource
-  addons = [ "dashboard", "nginx-ingress", "fluentd-elasticsearch", "kube-lego", "heapster", "monitoring", "guestbook", "cluster" ]
+  addons = [ "dashboard", "nginx-ingress", "fluentd-elasticsearch", "kube-lego", "heapster", "monitoring", "guestbook", "cluster", "gardener" ]
 
   empty = {
      "dashboard" = { }
@@ -79,6 +94,7 @@ locals {
      "monitoring" = { }
      "guestbook" = { }
      "cluster" = { }
+     "gardener" = { }
   }
 
   defaults = {
@@ -93,42 +109,58 @@ locals {
      "kube-lego" = {
        version = "${module.versions.lego_version}"
      }
-     "monitoring" = "${module.monitoring.defaults}"
      "guestbook" = {}
+     "monitoring" = "${module.monitoring.defaults}"
+     "gardener" = "${module.gardener.defaults}"
      "cluster" = {}
   }
 
   generated = {
     "monitoring" = "${module.monitoring.generated}"
+    "gardener" = "${module.gardener.generated}"
   }
   deploy = {
     "monitoring" = "${module.monitoring.deploy}"
+    "gardener" = "${module.gardener.deploy}"
   }
 
   dummy_tmp = {
        basic_auth_b64 = ""
        email = ""
        version = ""
+       namespace = ""
      }
   dummy = {
-     dummy = "${merge(local.dummy_tmp, module.monitoring.dummy)}"
+     dummy = "${merge(local.dummy_tmp, module.monitoring.dummy, module.gardener.dummy)}"
   }
 
   selected = "${keys(var.addons)}"
 
+  configured = "${merge(local.empty, var.addons)}"
   config = "${merge(local.empty, local.dummy, var.addons)}"
   defaultconfig = "${merge(local.empty, local.defaults)}"
   generatedconfig = "${merge(local.empty, local.generated)}"
 
   standard = {
+    rbac_version = "rbac.authorization.k8s.io/v1beta1"
+    deployment_version = "apps/v1beta2"
+
     cluster_name = "${var.cluster_name}"
     ingress = "${var.ingress_base_domain}"
+
+    apiserver_ca_crt_b64 = "${module.apiserver.ca_cert_b64}"
+    api_aggregator_crt_b64 = "${module.aggregator.cert_pem_b64}"
+    api_aggregator_key_b64 = "${module.aggregator.private_key_pem_b64}"
+    etcd_client_ca_crt_b64 = "${module.etcd-client.ca_cert_b64}"
+    etcd_client_crt_b64 = "${module.etcd-client.cert_pem_b64}"
+    etcd_client_key_b64 = "${module.etcd-client.private_key_pem_b64}"
   }
 
   empty_dir =  "${path.module}/templates/empty"
   addon_template_dirs = {
     cluster = "${lookup(local.config["cluster"],"template_dir","${local.empty_dir}")}"
     monitoring = "${module.monitoring.manifests}"
+    gardener = "${module.gardener.manifests}"
   }
 }
 

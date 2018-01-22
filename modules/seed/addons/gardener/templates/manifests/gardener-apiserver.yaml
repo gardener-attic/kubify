@@ -1,0 +1,148 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ${api_service_account}
+  namespace: ${namespace}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: garden-apiserver
+  namespace: ${namespace}
+  labels:
+    app: gardener
+    role: apiserver
+spec:
+  selector:
+    app: gardener
+    role: apiserver
+  ports:
+  - port: 443
+    protocol: TCP
+    targetPort: 443
+---
+apiVersion: apiregistration.k8s.io/v1beta1
+kind: APIService
+metadata:
+  name: v1beta1.garden.sapcloud.io
+spec:
+  caBundle: "${apiserver_ca_crt_b64}"
+  group: garden.sapcloud.io
+  version: v1beta1
+  groupPriorityMinimum: 10000
+  versionPriority: 20
+  service:
+    name: garden-apiserver
+    namespace: ${namespace}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: garden-apiserver-cert
+  namespace: ${namespace}
+type: Opaque
+data:
+  garden-apiserver.crt: "${apiserver_crt_b64}"
+  garden-apiserver.key: "${apiserver_key_b64}"
+  etcd-client-ca.crt: "${etcd_client_ca_crt_b64}"
+  etcd-client.crt: "${etcd_client_crt_b64}"
+  etcd-client.key: "${etcd_client_key_b64}"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: garden-audit-policy-config
+  namespace: ${namespace}
+  labels:
+    app: gardener
+data:
+  audit-policy.yaml: |-
+    ---
+    apiVersion: audit.k8s.io/v1beta1
+    kind: Policy
+    rules:
+    - level: None
+      userGroups:
+      - system:nodes
+    - level: None
+      users:
+      - gardener
+      - kubelet
+      - system:kube-controller-manager
+      - system:kube-scheduler
+      - system:kube-addon-manager
+      - system:kube-aggregator
+      - system:kube-proxy
+      - system:apiserver
+      - system:apiserver
+      - garden.sapcloud.io:monitoring
+      - garden.sapcloud.io:monitoring:auto-node-repair
+      - garden.sapcloud.io:monitoring:prometheus
+      - garden.sapcloud.io:monitoring:kube-state-metrics
+    - level: None
+      nonResourceURLs:
+      - /healthz*
+      - /version
+      - /swagger*
+    - level: None
+      resources:
+      - group: ""
+        resources: ["events"]
+    - level: None
+      verbs: ["get"]
+    - level: Metadata
+---
+apiVersion: ${deployment_version}
+kind: Deployment
+metadata:
+  name: garden-apiserver
+  namespace: ${namespace}
+  labels:
+    app: gardener
+    role: apiserver
+spec:
+  replicas: ${apiserver_replicas}
+  selector:
+    matchLabels:
+      app: gardener
+      role: apiserver
+  template:
+    metadata:
+      labels:
+        app: gardener
+        role: apiserver
+    spec:
+      serviceAccountName: ${api_service_account}
+      containers:
+      - name: garden-apiserver
+        image: ${apiserver_image}:${apiserver_version}
+        imagePullPolicy: IfNotPresent
+        command:
+        - /garden-apiserver
+        - --admission-control=ShootSeedFinder,ShootDNSHostedZone,ShootValidator,ShootQuotaValidator
+        - --audit-log-path=/var/lib/audit.log
+        - --audit-policy-file=/etc/garden/audit/audit-policy.yaml
+        - --audit-log-maxsize=100
+        - --audit-log-maxbackup=5
+        - --etcd-cafile=/var/run/kubernetes/etcd-client-ca.crt
+        - --etcd-certfile=/var/run/kubernetes/etcd-client.crt
+        - --etcd-keyfile=/var/run/kubernetes/etcd-client.key
+        - --etcd-servers=https://${etcd_service_ip}:2379
+        - --secure-port=443
+        - --tls-cert-file=/var/run/kubernetes/garden-apiserver.crt
+        - --tls-private-key-file=/var/run/kubernetes/garden-apiserver.key
+        - --v=2
+        volumeMounts:
+        - name: garden-apiserver-cert
+          mountPath: /var/run/kubernetes
+          readOnly: true
+        - name: garden-audit-policy-config
+          mountPath: /etc/garden/audit
+      volumes:
+      - name: garden-apiserver-cert
+        secret:
+          secretName: garden-apiserver-cert
+      - name: garden-audit-policy-config
+        configMap:
+          name: garden-audit-policy-config

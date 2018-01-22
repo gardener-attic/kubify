@@ -1,3 +1,4 @@
+
 #
 # Copyright 2017 The Gardener Authors.
 #
@@ -103,6 +104,26 @@ module "lego_version" {
   optional = true
   values=[ "${var.lego_version}","${lookup(var.versions,"lego_version","")}", "${local.lego_version}" ]
 }
+module "garden_apiserver_image" {
+  source="../defaults"
+  optional = true
+  values=[ "${var.garden_apiserver_image}","${lookup(var.versions,"garden_apiserver_image","")}", "${local.garden_apiserver_image}" ]
+}
+module "garden_apiserver_version" {
+  source="../defaults"
+  optional = true
+  values=[ "${var.garden_apiserver_version}","${lookup(var.versions,"garden_apiserver_version","")}", "${local.garden_apiserver_version}" ]
+}
+module "garden_controller_image" {
+  source="../defaults"
+  optional = true
+  values=[ "${var.garden_controller_image}","${lookup(var.versions,"garden_controller_image","")}", "${local.garden_controller_image}" ]
+}
+module "garden_controller_version" {
+  source="../defaults"
+  optional = true
+  values=[ "${var.garden_controller_version}","${lookup(var.versions,"garden_controller_version","")}", "${local.garden_controller_version}" ]
+}
 
 #
 # always provide a config map value
@@ -124,6 +145,10 @@ output "versions" {
       kubernetes_hyperkube_patch = "${module.kubernetes_hyperkube_patch.value}"
       nginx_version = "${module.nginx_version.value}"
       lego_version = "${module.lego_version.value}"
+      garden_apiserver_image = "${module.garden_apiserver_image.value}"
+      garden_apiserver_version = "${module.garden_apiserver_version.value}"
+      garden_controller_image = "${module.garden_controller_image.value}"
+      garden_controller_version = "${module.garden_controller_version.value}"
   }
 }
 
@@ -171,4 +196,16 @@ output "nginx_version" {
 }
 output "lego_version" {
   value = "${module.lego_version.value}"
+}
+output "garden_apiserver_image" {
+  value = "${module.garden_apiserver_image.value}"
+}
+output "garden_apiserver_version" {
+  value = "${module.garden_apiserver_version.value}"
+}
+output "garden_controller_image" {
+  value = "${module.garden_controller_image.value}"
+}
+output "garden_controller_version" {
+  value = "${module.garden_controller_version.value}"
 }

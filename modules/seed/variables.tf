@@ -59,6 +59,9 @@ variable "tls_kubelet" {
 variable "tls_apiserver" {
   type = "map"
 }
+variable "tls_aggregator" {
+  type = "map"
+}
 
 variable "tls_etcd" {
   type = "map"

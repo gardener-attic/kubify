@@ -103,6 +103,7 @@ module "seed" {
   tls_dir    = "${module.cluster.tls_dir}"
   tls_kubelet = "${module.cluster.tls_kubelet}"
   tls_apiserver = "${module.cluster.tls_apiserver}"
+  tls_aggregator = "${module.cluster.tls_aggregator}"
   tls_etcd = "${module.cluster.tls_etcd}"
   tls_etcd_client = "${module.cluster.tls_etcd_client}"
 
@@ -143,6 +144,8 @@ module "seed" {
 
   access_info = "${var.access_info}"
   cluster_info = "${module.cluster.cluster-info}"
+
+  dns = "${var.dns}"
 }
 
 output "gen_dir" {

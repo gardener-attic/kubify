@@ -93,7 +93,7 @@ get_variables()
       if [ -n "$V" ]; then
         echo "$V $T"
       fi
-    ) < "$v"
+    ) < "$DIR/$v"
   done
 
 }

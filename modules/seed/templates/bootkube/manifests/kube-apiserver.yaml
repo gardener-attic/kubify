@@ -54,6 +54,13 @@ ${oidc_dropin}        - --admission-control=NamespaceLifecycle,LimitRanger,Servi
         - --tls-cert-file=/etc/kubernetes/secrets/apiserver.crt
         - --tls-private-key-file=/etc/kubernetes/secrets/apiserver.key
         - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
+        - --requestheader-allowed-names=system:kube-aggregator
+        - --requestheader-extra-headers-prefix=X-Remote-Extra-
+        - --requestheader-group-headers=X-Remote-Group
+        - --requestheader-username-headers=X-Remote-User
+        - --requestheader-client-ca-file=/etc/kubernetes/secrets/ca.crt
+        - --proxy-client-cert-file=/etc/kubernetes/secrets/aggregator.crt
+        - --proxy-client-key-file=/etc/kubernetes/secrets/aggregator.key
         env:
         - name: POD_IP
           valueFrom:

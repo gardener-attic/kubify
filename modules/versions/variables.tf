@@ -61,3 +61,16 @@ variable "nginx_version" {
 variable "lego_version" {
  default = ""
 }
+
+variable "garden_apiserver_image" {
+ default = ""
+}
+variable "garden_apiserver_version" {
+ default = ""
+}
+variable "garden_controller_image" {
+ default = ""
+}
+variable "garden_controller_version" {
+ default = ""
+}

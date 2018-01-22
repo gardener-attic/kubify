@@ -1,0 +1,77 @@
+apiVersion: ${rbac_version}
+kind: ClusterRole
+metadata:
+  name: garden.sapcloud.io:admin
+rules:
+- apiGroups:
+  - garden.sapcloud.io
+  resources:
+  - '*'
+  verbs:
+  - '*'
+---
+apiVersion: ${rbac_version}
+kind: ClusterRoleBinding
+metadata:
+  name: garden.sapcloud.io:admin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: garden.sapcloud.io:admin
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: system:kube-aggregator
+---
+apiVersion: ${rbac_version}
+kind: ClusterRoleBinding
+metadata:
+  name: garden.sapcloud.io:apiserver:auth-delegator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:auth-delegator
+subjects:
+- kind: ServiceAccount
+  name: ${api_service_account}
+  namespace: ${namespace}
+---
+apiVersion: ${rbac_version}
+kind: RoleBinding
+metadata:
+  name: garden.sapcloud.io:apiserver:auth-reader
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: extension-apiserver-authentication-reader
+subjects:
+- kind: ServiceAccount
+  name: ${api_service_account}
+  namespace: ${namespace}
+---
+apiVersion: ${rbac_version}
+kind: ClusterRoleBinding
+metadata:
+  name:  garden.sapcloud.io:apiserver:admin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: ${api_service_account}
+  namespace: ${namespace}
+---
+apiVersion: ${rbac_version}
+kind: ClusterRoleBinding
+metadata:
+  name:  garden.sapcloud.io:controller-manager:admin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: ${controller_service_account}
+  namespace: ${namespace}
