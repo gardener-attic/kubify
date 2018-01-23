@@ -1,0 +1,9 @@
+cluster-prometheus-datasource.json: |-
+  {
+    "name":"cluster-prometheus",
+    "type":"prometheus",
+    "access":"proxy",
+    "url":"http://prometheus-web:8080",
+    "basicAuth": false,
+    "isDefault": true
+  }

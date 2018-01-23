@@ -96,6 +96,17 @@ module "grafana_config" {
 EOF
 }
 
+data "template_file" "grafana_config" {
+  template="${file("${module.addons_dir.value}/monitoring/grafana-config.yaml")}"
+  vars {
+  }
+}
+
+locals {
+  grafana_config_default_indent="${indent(2,data.template_file.grafana_config.rendered)}"
+  grafana_config_indent="${indent(2,module.grafana_config.content==""?data.template_file.grafana_config.rendered:module.grafana_config.content)}"
+}
+
 #
 # alertmanager
 #
@@ -139,6 +150,7 @@ module "monitoring_defaults" {
      prometheus_key_b64 = "${module.prometheus.private_key_pem_b64}"
      prometheus_volume_size = "20Gi"
 
+     grafana_config = "${local.grafana_config_indent}"
      grafana_crt_b64 = "${module.grafana.cert_pem_b64}"
      grafana_key_b64 = "${module.grafana.private_key_pem_b64}"
 
@@ -152,7 +164,7 @@ module "monitoring_defaults" {
 module "monitoring_generated" {
   source = "../mapvar"
   value = {
-     grafana_config = "${module.grafana_config.content}"
+     grafana_config = "${local.grafana_config_indent}"
      prometheus_config = "${local.prometheus_config_indent}"
      prometheus_rules = "${local.prometheus_rules_indent}"
      alertmanager_config_b64 = "${local.alertmanager_config_b64}"
@@ -168,7 +180,7 @@ module "monitoring_dummy" {
      prometheus_key_b64 = "${module.prometheus.private_key_pem_b64}"
      prometheus_volume_size = "20Gi"
 
-     grafana_config = ""
+     grafana_config = "${local.grafana_config_default_indent}"
      grafana_crt_b64 = "${module.grafana.cert_pem_b64}"
      grafana_key_b64 = "${module.grafana.private_key_pem_b64}"
 
@@ -179,6 +191,9 @@ module "monitoring_dummy" {
   }
 }
 
+output "grafana_config" {
+  value="${local.grafana_config_indent}"
+}
 output "prometheus_config" {
   value="${local.prometheus_default_indent}"
 }
