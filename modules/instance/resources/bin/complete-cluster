@@ -1,6 +1,7 @@
 #!/bin/bash
 
 DIR="$(dirname "$0")"
+BOOT=/opt/bootkube/assets
 echo finalizing cluster setup
 
 source "$(dirname "$0")"/source_me
@@ -28,4 +29,23 @@ fi
 
 "$DIR/completeetcd.sh"
 
+if [ -d "$BOOT/addons" ]; then
+  for d in "$BOOT/addons"/*; do
+    if [ -d "$d" ]; then
+       if [ -x "$d/deploy" ]; then
+         echo "deploying addon $(basename "$d") with handler ..."
+         ( cd "$d"
+           ./deploy
+         )
+       else
+         echo "deploying addon $(basename "$d") from manifests ..."
+         for f in "$d/manifests"/*.{yaml,yml}; do
+           if [ -f "$f" ]; then
+             kubectl apply -f "$f"
+           fi
+         done
+       fi
+    fi
+  done
+fi
 echo "cluster setup done"

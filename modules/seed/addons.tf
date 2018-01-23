@@ -68,7 +68,7 @@ module "iaas-addons" {
 
 locals {
   # this an explicit array to keep a distinct order for the multi-resource
-  addons = [ "dashboard", "nginx-ingress", "fluentd-elasticsearch", "kube-lego", "heapster", "monitoring", "guestbook" ]
+  addons = [ "dashboard", "nginx-ingress", "fluentd-elasticsearch", "kube-lego", "heapster", "monitoring", "guestbook", "cluster" ]
 
   empty = {
      "dashboard" = { }
@@ -95,6 +95,7 @@ locals {
      }
      "monitoring" = "${module.monitoring.defaults}"
      "guestbook" = {}
+     "cluster" = {}
   }
 
   generated = {
@@ -129,9 +130,12 @@ locals {
 }
 
 #
-# the templates are always processed for all possible extensions, always in the same
+# the templates are always processed for all possible addons, always in the same
 # order, this allows to use a counted resource, even if then actual set of addons
 # changes without potentials recreation because of the index change of an addon.
+#
+# non-active addons are generated into a temporary dummy location, while active
+# addons are generated into the addons folder below the gen folder.
 #
 # the dummy config defines null values for all template vars for all addons
 # It is used ONLY if the addon is inactive, this prevents errors comming from the template.
@@ -142,8 +146,8 @@ locals {
 resource "template_dir" "addons" {
   count = "${length(local.addons)}"
 
-  source_dir = "${module.addons_dir.value}/${local.addons[count.index]}"
-  destination_dir = "${var.gen_dir}/addons/${local.addons[count.index]}"
+  source_dir = "${lookup(local.addon_template_dirs, local.addons[count.index], "${module.addons_dir.value}/${local.addons[count.index]}/manifests")}"
+  destination_dir = "${var.gen_dir}/${contains(local.selected, local.addons[count.index]) ? "addons" : "tmp"}/${local.addons[count.index]}/manifests"
 
   vars = "${merge(map("addon_name",local.addons[count.index]), local.standard,local.defaultconfig[local.addons[count.index]],local.generatedconfig[local.addons[count.index]],local.config[contains(local.selected, local.addons[count.index]) ? local.addons[count.index] : "dummy"])}"
 }
