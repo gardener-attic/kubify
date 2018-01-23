@@ -125,7 +125,7 @@ doPrepare()
   rm -f variant
   rm -rf terraform
   ln -s terraform/variants/current variant
-  cp -r k8s terraform
+  cp --preserve -r k8s terraform
   rm -f terraform/variants/current
   ln -s "$VARIANT" terraform/variants/current
 }
@@ -356,6 +356,7 @@ doMigrate()
   local vers=0
   if [ -f "$file" ]; then
     while read a b c; do
+      #echo vers=$vers
       if [ -n "$a" ]; then
         case "$a" in
            \#*) true;;
@@ -390,7 +391,9 @@ doMigrate()
       fi
     done <"$file"
     if [ -n "$vers" -a -z "$dryrun" ]; then
-      echo "$(( vers + 1 ))" >structure-version
+      if [ $vers -gt $cur ]; then
+        echo "$(( vers + 1 ))" >structure-version
+      fi
     fi
   fi
 }
