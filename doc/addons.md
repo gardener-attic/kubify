@@ -29,6 +29,5 @@ The following addons are supported so far:
 |nginx-ingress |Nginx http/https ingress controller for ports 80 and 443|
 |kube-lego|Letsencrypt based TLS certificate support|
 |fluentd-elasticsearch| Fluentd, Kibana, ElasticSearch logging stack|
+|monitoring| Prometheus, Alertmanager, Grafana monitoring stack|
 |guestbook|Application Deployment Example|
-
-
