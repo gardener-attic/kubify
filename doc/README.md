@@ -1,4 +1,4 @@
-<img align=right src="doc/kubify.png" width="25%" height="0%">
+<img align=right src="kubify.png" width="25%" height="0%">
 
 ### Terraform Template to Setup a Kubernetes Cluster on OpenStack/AWS/Azure
 
