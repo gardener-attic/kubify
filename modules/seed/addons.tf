@@ -13,6 +13,15 @@
 # limitations under the License.
 
 
+module "addons_dir" {
+  source = "../variable"
+  value = "${path.module}/templates/addons"
+}
+
+#
+# generic addon handling
+#
+
 #
 # to add an addon add an appropriate entry to local.defaultconfig and append the key to local.addons
 #
@@ -29,11 +38,21 @@ module "iaas-addons" {
 
 locals {
   # this an explicit array to keep a distinct order for the multi-resource
-  addons = [ "dashboard", "nginx-ingress", "fluentd-elasticsearch", "kube-lego", "heapster", "guestbook" ]
+  addons = [ "dashboard", "nginx-ingress", "fluentd-elasticsearch", "kube-lego", "heapster", "monitoring", "guestbook" ]
 
-  defaultconfig = {
+  empty = {
+     "dashboard" = { }
+     "heapster" = { }
+     "nginx-ingress" = { }
+     "kube-lego" = { }
+     "fluentd-elasticsearch" = {}
+     "monitoring" = { }
+     "guestbook" = { }
+  }
+
+  defaults = {
      "dashboard" = {
-        basic_auth_b64 = "${module.dashboard_creds.b64}"
+       basic_auth_b64 = "${module.dashboard_creds.b64}"
      }
      "nginx-ingress" = {
         version = "${module.versions.nginx_version}"
@@ -41,19 +60,31 @@ locals {
      "fluentd-elasticsearch" = {}
      "heapster" = {}
      "kube-lego" = {
-        version = "${module.versions.lego_version}"
+       version = "${module.versions.lego_version}"
      }
+     "monitoring" = "${module.monitoring_defaults.value}"
      "guestbook" = {}
+  }
 
-     dummy = {
+  generated = {
+    "monitoring" = "${module.monitoring_generated.value}"
+  }
+
+  dummy_tmp = {
        basic_auth_b64 = ""
        email = ""
        version = ""
      }
+  dummy = {
+     dummy = "${merge(local.dummy_tmp, module.monitoring_dummy.value)}"
   }
 
   selected = "${keys(var.addons)}"
-  config = "${merge(local.defaultconfig,  var.addons)}"
+
+  config = "${merge(local.empty, local.dummy, var.addons)}"
+
+  defaultconfig = "${merge(local.empty, local.defaults)}"
+  generatedconfig = "${merge(local.empty, local.generated)}"
   standard = {
     cluster_name = "${var.cluster_name}"
     ingress = "${var.ingress_base_domain}"
@@ -74,9 +105,21 @@ locals {
 resource "template_dir" "addons" {
   count = "${length(local.addons)}"
 
-  source_dir = "${path.module}/templates/addons/${local.addons[count.index]}"
+  source_dir = "${module.addons_dir.value}/${local.addons[count.index]}"
   destination_dir = "${var.gen_dir}/addons/${local.addons[count.index]}"
 
-  vars = "${merge(local.standard,local.defaultconfig[local.addons[count.index]],local.config[contains(local.selected, local.addons[count.index]) ? local.addons[count.index] : "dummy"])}"
+  vars = "${merge(local.standard,local.defaultconfig[local.addons[count.index]],local.generatedconfig[local.addons[count.index]],local.config[contains(local.selected, local.addons[count.index]) ? local.addons[count.index] : "dummy"])}"
 }
 
+#output "addon-generated" {
+#  value = "${local.generated}"
+#}
+#output "addon-empty" {
+#  value = "${local.empty}"
+#}
+#output "addon-dummy" {
+#  value = "${local.dummy}"
+#}
+output "addon-config" {
+  value = "${local.config}"
+}

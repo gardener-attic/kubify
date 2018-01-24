@@ -7,6 +7,9 @@ metadata:
   # This feature is always enabled in endpoint controller in k8s even it is alpha.
   annotations:
     service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+    prometheus.io/scrape: "true"
+    prometheus.io/name: "etcd"
+    prometheus.io/port: "2379"
 spec:
   selector:
     app: etcd

@@ -40,7 +40,6 @@ variable "master_count" {
 
 variable "tls_dir" {
   type="string"
-  default=""
 }
 variable "cloud_provider" {
   type="string"

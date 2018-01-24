@@ -19,6 +19,9 @@ spec:
         k8s-app: kube-controller-manager
       annotations:
         scheduler.alpha.kubernetes.io/critical-pod: ''
+        prometheus.io/scrape: "true"
+        prometheus.io/name: "kube-controller-manager"
+        prometheus.io/port: "10252"
     spec:
       affinity:
         podAntiAffinity:
