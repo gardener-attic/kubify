@@ -158,3 +158,6 @@ output "ca_cert_b64" {
 output "ca_key_b64" {
   value = "${base64encode(var.ca_key)}"
 }
+output "active" {
+  value = "${module.active.if_active}"
+}

@@ -108,7 +108,7 @@ doPrepare()
     Error "variant name missing"
   fi
   if [ -n "$VARIANT" -a -n "$1" -a "$1" != "$VARIANT" ]; then
-    Error "variant mismatch, cluster is configuted for $VARIANT"
+    Error "variant mismatch, cluster is configured for $VARIANT"
   fi
   if [ -z "$VARIANT" ]; then
     VARIANT="$1"
