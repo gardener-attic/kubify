@@ -17,7 +17,7 @@
 ################################################################
 
 locals {
-  monitoring = "${var.addons["monitoring"]}"
+  monitoring = "${local.config["monitoring"]}"
 }
 
 #
