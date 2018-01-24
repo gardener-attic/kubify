@@ -3,7 +3,7 @@
 <img src="doc/kubify.png" width="15%">
 
 ---
-Kubify is a project to deploy Kubernetes on OpenStack, AWS and Azure by only using Terraform. 
+Kubify is a project to deploy Kubernetes on OpenStack, AWS and Azure via Terraform. 
 
 ## Features
 
