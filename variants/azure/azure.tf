@@ -35,6 +35,7 @@ variable "az_cloudenv" {
 
 
 provider "azurerm" {
+  version = "0.1.5"
   tenant_id = "${var.az_tenant_id}"
   subscription_id = "${var.az_subscription_id}"
   client_id = "${var.az_client_id}"
