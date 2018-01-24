@@ -48,6 +48,7 @@ locals {
      "fluentd-elasticsearch" = {}
      "monitoring" = { }
      "guestbook" = { }
+     "cluster" = { }
   }
 
   defaults = {
@@ -82,9 +83,9 @@ locals {
   selected = "${keys(var.addons)}"
 
   config = "${merge(local.empty, local.dummy, var.addons)}"
-
   defaultconfig = "${merge(local.empty, local.defaults)}"
   generatedconfig = "${merge(local.empty, local.generated)}"
+
   standard = {
     cluster_name = "${var.cluster_name}"
     ingress = "${var.ingress_base_domain}"

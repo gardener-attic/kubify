@@ -18,6 +18,7 @@
 
 locals {
   monitoring = "${local.config["monitoring"]}"
+  monitoring_active = "${contains(keys(var.addons),"monitoring") ? 1 : 0}"
 }
 
 #
@@ -25,6 +26,7 @@ locals {
 #
 module "prometheus" {
   source = "../tls"
+  active = "${local.monitoring_active}"
 
   file_base = "${var.tls_dir}/prometheus"
   common_name = "prometheus"
@@ -78,6 +80,7 @@ locals {
 #
 module "grafana" {
   source = "../tls"
+  active = "${local.monitoring_active}"
 
   file_base = "${var.tls_dir}/grafana"
   common_name = "grafana"
@@ -112,6 +115,7 @@ locals {
 #
 module "alertmanager" {
   source = "../tls"
+  active = "${local.monitoring_active}"
 
   file_base = "${var.tls_dir}/alertmanager"
   common_name = "alertmanager"
