@@ -47,7 +47,6 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: heapster-legacy
-  namespace: kube-system
 subjects:
   - kind: ServiceAccount
     name: heapster
