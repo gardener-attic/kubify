@@ -142,11 +142,11 @@ resource "null_resource" "manifests" {
   depends_on = ["template_dir.bootkube" ]
   triggers {
     bootkube = "${template_dir.bootkube.id}"
-    addons   = "${join(",",template_dir.addons.*.id)}"
     backup   = "${module.etcd_backup_id.value}"
     iaas     = "${var.addon_trigger}"
     script   = "${sha256(file("${path.module}/scripts/prepare_assets.sh"))}"
-    command  = "${path.module}/scripts/prepare_assets.sh \"${var.gen_dir}/assets\" \"${var.gen_dir}/bootkube\" ${join(" ",formatlist("${var.gen_dir}/addons/%s",concat(local.selected,list("distinct"))))} \"${module.iaas-addons.value}\""
+    #command  = "${path.module}/scripts/prepare_assets.sh \"${var.gen_dir}/assets\" \"${var.gen_dir}/bootkube\" ${join(" ",formatlist("${var.gen_dir}/addons/%s",concat(local.selected,list("distinct"))))} \"${module.iaas-addons.value}\""
+    command  = "${path.module}/scripts/prepare_assets.sh \"${var.gen_dir}/assets\" \"${var.gen_dir}/bootkube\" \"${var.gen_dir}/addons/distinct\" \"${module.iaas-addons.value}\""
   }
 
   provisioner "local-exec" {
@@ -162,6 +162,8 @@ resource "null_resource" "archive_deps" {
   depends_on = [ "template_dir.bootkube", "local_file.cluster_info", "local_file.kubelet_conf", "module.kubelet", "module.apiserver", "module.etcd", "module.etcd-client", "null_resource.etcd_backup" ]
   triggers {
     cluster_info = "${local_file.cluster_info.id}"
+    addon_deploy   = "${join(",",null_resource.deploy.*.id)}"
+    addons   = "${join(",",template_dir.addons.*.id)}"
     manifests = "${null_resource.manifests.id}"
     backup   = "${module.etcd_backup_id.value}"
     recover = "${var.vm_version}"
