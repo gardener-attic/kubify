@@ -101,6 +101,9 @@ locals {
   generated = {
     "monitoring" = "${module.monitoring.generated}"
   }
+  deploy = {
+    "monitoring" = "${module.monitoring.deploy}"
+  }
 
   dummy_tmp = {
        basic_auth_b64 = ""
@@ -147,9 +150,22 @@ resource "template_dir" "addons" {
   count = "${length(local.addons)}"
 
   source_dir = "${lookup(local.addon_template_dirs, local.addons[count.index], "${module.addons_dir.value}/${local.addons[count.index]}/manifests")}"
-  destination_dir = "${var.gen_dir}/${contains(local.selected, local.addons[count.index]) ? "addons" : "tmp"}/${local.addons[count.index]}/manifests"
+  destination_dir = "${var.gen_dir}/${contains(local.selected, local.addons[count.index]) ? "assets/addons" : "tmp"}/${local.addons[count.index]}/manifests"
 
   vars = "${merge(map("addon_name",local.addons[count.index]), local.standard,local.defaultconfig[local.addons[count.index]],local.generatedconfig[local.addons[count.index]],local.config[contains(local.selected, local.addons[count.index]) ? local.addons[count.index] : "dummy"])}"
+}
+
+resource "null_resource" "deploy" {
+  count = "${length(local.addons)}"
+  triggers {
+    addon = "${local.addons[count.index]}"
+    active ="${contains(local.selected, local.addons[count.index])}"
+    deploy = "${contains(local.selected, local.addons[count.index]) ? lookup(local.deploy,local.addons[count.index],"") : ""}" 
+  }
+
+  provisioner "local-exec" {
+    command  = "${contains(local.selected, local.addons[count.index]) ? "${path.module}/scripts/copy_deploy '${var.gen_dir}/addons/${local.addons[count.index]}' '${lookup(local.deploy,local.addons[count.index],"")}'" : "echo ${local.addons[count.index]} inactive"}"
+  }
 }
 
 #output "addon-generated" {

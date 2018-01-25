@@ -245,3 +245,7 @@ output "generated" {
 output "manifests" {
   value="${path.module}/templates/manifests"
 }
+
+output "deploy" {
+  value=""
+}
