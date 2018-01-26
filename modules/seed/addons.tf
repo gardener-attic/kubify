@@ -19,6 +19,36 @@ module "addons_dir" {
 }
 
 #
+# addon specific modules
+#
+
+#
+# outputs per addon module
+#
+# output "dummy"      # config for inactive processing
+# output "defaults"   # defaults for manual config settings
+# output "generated"  # generated settings (i.e. certificates)
+# output "manifests"  # manifest template path
+#
+# all those settings will be available for the 
+# manifesttemplate processing of the addon
+#
+
+module "monitoring" {
+  source = "addons/monitoring"
+  active = "${contains(local.selected,"monitoring")}"
+
+  config = "${local.config["monitoring"]}"
+  tls_dir = "${var.gen_dir}/files/addons/monitoring/tls"
+  cluster_name = "${var.cluster_name}"
+  ingress_base_domain = "${var.ingress_base_domain}"
+  dashboard_creds_b64 = "${module.dashboard_creds.b64}"
+
+  ca = "${module.apiserver.ca_cert}"
+  ca_key = "${module.apiserver.ca_key}"
+}
+
+#
 # generic addon handling
 #
 
@@ -48,6 +78,7 @@ locals {
      "fluentd-elasticsearch" = {}
      "monitoring" = { }
      "guestbook" = { }
+     "cluster" = { }
   }
 
   defaults = {
@@ -62,12 +93,12 @@ locals {
      "kube-lego" = {
        version = "${module.versions.lego_version}"
      }
-     "monitoring" = "${module.monitoring_defaults.value}"
+     "monitoring" = "${module.monitoring.defaults}"
      "guestbook" = {}
   }
 
   generated = {
-    "monitoring" = "${module.monitoring_generated.value}"
+    "monitoring" = "${module.monitoring.generated}"
   }
 
   dummy_tmp = {
@@ -76,18 +107,24 @@ locals {
        version = ""
      }
   dummy = {
-     dummy = "${merge(local.dummy_tmp, module.monitoring_dummy.value)}"
+     dummy = "${merge(local.dummy_tmp, module.monitoring.dummy)}"
   }
 
   selected = "${keys(var.addons)}"
 
   config = "${merge(local.empty, local.dummy, var.addons)}"
-
   defaultconfig = "${merge(local.empty, local.defaults)}"
   generatedconfig = "${merge(local.empty, local.generated)}"
+
   standard = {
     cluster_name = "${var.cluster_name}"
     ingress = "${var.ingress_base_domain}"
+  }
+
+  empty_dir =  "${path.module}/templates/empty"
+  addon_template_dirs = {
+    cluster = "${lookup(local.config["cluster"],"template_dir","${local.empty_dir}")}"
+    monitoring = "${module.monitoring.manifests}"
   }
 }
 
@@ -108,7 +145,7 @@ resource "template_dir" "addons" {
   source_dir = "${module.addons_dir.value}/${local.addons[count.index]}"
   destination_dir = "${var.gen_dir}/addons/${local.addons[count.index]}"
 
-  vars = "${merge(local.standard,local.defaultconfig[local.addons[count.index]],local.generatedconfig[local.addons[count.index]],local.config[contains(local.selected, local.addons[count.index]) ? local.addons[count.index] : "dummy"])}"
+  vars = "${merge(map("addon_name",local.addons[count.index]), local.standard,local.defaultconfig[local.addons[count.index]],local.generatedconfig[local.addons[count.index]],local.config[contains(local.selected, local.addons[count.index]) ? local.addons[count.index] : "dummy"])}"
 }
 
 #output "addon-generated" {

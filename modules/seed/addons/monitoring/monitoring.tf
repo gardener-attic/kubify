@@ -16,35 +16,64 @@
 # special handling for monitoring addon
 ################################################################
 
-locals {
-  monitoring = "${local.config["monitoring"]}"
+variable "config" {
+  type = "map"
+}
+variable "active" {
+  type = "string"
+}
+
+variable "tls_dir" {
+  type = "string"
+}
+variable "cluster_name" {
+  type = "string"
+}
+variable "ingress_base_domain" {
+  type = "string"
+}
+variable "dashboard_creds_b64" {
+  type = "string"
+}
+
+variable "ca" {
+  type = "string"
+}
+variable "ca_key" {
+  type = "string"
+}
+
+module "monitoring" {
+  source = "../../../flag"
+  option = "${var.active}"
 }
 
 #
 # prometheus
 #
 module "prometheus" {
-  source = "../tls"
+  source = "../../../tls"
+#  active = "${var.active}"
 
   file_base = "${var.tls_dir}/prometheus"
   common_name = "prometheus"
   organization = "${var.cluster_name}"
-  ca = "${module.apiserver.ca_cert}"
-  ca_key = "${module.apiserver.ca_key}"
+  ca = "${var.ca}"
+  ca_key = "${var.ca_key}"
   ip_addresses = []
   dns_names = [ "prometheus.${var.ingress_base_domain}" ]
 }
 
 module "prometheus_config" {
-  source = "../file"
-  path="${lookup(local.monitoring,"prometheus_config_file","")}"
+  source = "../../../file"
+  path="${lookup(var.config,"prometheus_config_file","")}"
   prefix=<<EOF
 
 EOF
 }
 
 data "template_file" "prometheus_config" {
-  template="${file("${module.addons_dir.value}/monitoring/prometheus-config.yaml")}"
+  template="${file("${path.module}/templates/prometheus-config.yaml")}"
   vars {
   }
 }
@@ -55,15 +84,15 @@ locals {
 }
 
 module "prometheus_rules" {
-  source = "../file"
-  path="${lookup(local.monitoring,"prometheus_rules_file","")}"
+  source = "../../../file"
+  path="${lookup(var.config,"prometheus_rules_file","")}"
   prefix=<<EOF
 
 EOF
 }
 
 data "template_file" "prometheus_rules" {
-  template="${file("${module.addons_dir.value}/monitoring/prometheus-rules.yaml")}"
+  template="${file("${path.module}/templates/prometheus-rules.yaml")}"
   vars {
   }
 }
@@ -77,27 +106,28 @@ locals {
 # grafana
 #
 module "grafana" {
-  source = "../tls"
+  source = "../../../tls"
+  active = "${var.active}"
 
   file_base = "${var.tls_dir}/grafana"
   common_name = "grafana"
   organization = "${var.cluster_name}"
-  ca = "${module.apiserver.ca_cert}"
-  ca_key = "${module.apiserver.ca_key}"
+  ca = "${var.ca}"
+  ca_key = "${var.ca_key}"
   ip_addresses = []
   dns_names = [ "grafana.${var.ingress_base_domain}" ]
 }
 
 module "grafana_config" {
-  source = "../file"
-  path="${lookup(local.monitoring,"grafana_config_file","")}"
+  source = "../../../file"
+  path="${lookup(var.config,"grafana_config_file","")}"
   prefix=<<EOF
 
 EOF
 }
 
 data "template_file" "grafana_config" {
-  template="${file("${module.addons_dir.value}/monitoring/grafana-config.yaml")}"
+  template="${file("${path.module}/templates/grafana-config.yaml")}"
   vars {
   }
 }
@@ -111,24 +141,25 @@ locals {
 # alertmanager
 #
 module "alertmanager" {
-  source = "../tls"
+  source = "../../../tls"
+  active = "${var.active}"
 
   file_base = "${var.tls_dir}/alertmanager"
   common_name = "alertmanager"
   organization = "${var.cluster_name}"
-  ca = "${module.apiserver.ca_cert}"
-  ca_key = "${module.apiserver.ca_key}"
+  ca = "${var.ca}"
+  ca_key = "${var.ca_key}"
   ip_addresses = []
   dns_names = [ "alertmanager.${var.ingress_base_domain}" ]
 }
 
 module "alertmanager_config" {
-  source = "../file"
-  path="${lookup(local.monitoring,"alertmanager_config_file","")}"
+  source = "../../../file"
+  path="${lookup(var.config,"alertmanager_config_file","")}"
 }
 
 data "template_file" "alertmanager_config" {
-  template="${file("${module.addons_dir.value}/monitoring/alertmanager-config.yaml")}"
+  template="${file("${path.module}/templates/alertmanager-config.yaml")}"
   vars {
   }
 }
@@ -136,13 +167,25 @@ data "template_file" "alertmanager_config" {
 locals {
   alertmanager_default_b64="${base64encode(data.template_file.alertmanager_config.rendered)}"
   alertmanager_config_b64="${base64encode(module.alertmanager_config.content==""?data.template_file.alertmanager_config.rendered:module.alertmanager_config.content)}"
-}
 
+  dummy = {
+     prometheus_config = ""
+     prometheus_rules = ""
+     prometheus_crt_b64 = ""
+     prometheus_key_b64 = ""
+     prometheus_volume_size = ""
 
-module "monitoring_defaults" {
-  source = "../mapvar"
-  value = {
-     basic_auth_b64 = "${module.dashboard_creds.b64}"
+     grafana_config = ""
+     grafana_crt_b64 = ""
+     grafana_key_b64 = ""
+
+     alertmanager_crt_b64 = ""
+     alertmanager_key_b64 = ""
+     alertmanager_config_b64 = ""
+     alertmanager_volume_size = ""
+  }
+  default_values = {
+     basic_auth_b64 = "${var.dashboard_creds_b64}"
 
      prometheus_config = "${local.prometheus_config_indent}"
      prometheus_rules = "${local.prometheus_rules_indent}"
@@ -159,11 +202,7 @@ module "monitoring_defaults" {
      alertmanager_config_b64 = "${local.alertmanager_default_b64}"
      alertmanager_volume_size = "10Gi"
   }
-}
-
-module "monitoring_generated" {
-  source = "../mapvar"
-  value = {
+  generated = {
      grafana_config = "${local.grafana_config_indent}"
      prometheus_config = "${local.prometheus_config_indent}"
      prometheus_rules = "${local.prometheus_rules_indent}"
@@ -171,26 +210,9 @@ module "monitoring_generated" {
   }
 }
 
-module "monitoring_dummy" {
-  source = "../mapvar"
-  value = {
-     prometheus_config = "${local.prometheus_default_indent}"
-     prometheus_rules = "${local.prometheus_rules_default_indent}"
-     prometheus_crt_b64 = "${module.prometheus.cert_pem_b64}"
-     prometheus_key_b64 = "${module.prometheus.private_key_pem_b64}"
-     prometheus_volume_size = "20Gi"
-
-     grafana_config = "${local.grafana_config_default_indent}"
-     grafana_crt_b64 = "${module.grafana.cert_pem_b64}"
-     grafana_key_b64 = "${module.grafana.private_key_pem_b64}"
-
-     alertmanager_crt_b64 = "${module.alertmanager.cert_pem_b64}"
-     alertmanager_key_b64 = "${module.alertmanager.private_key_pem_b64}"
-     alertmanager_config_b64 = "${local.alertmanager_default_b64}"
-     alertmanager_volume_size = "10Gi"
-  }
-}
-
+#
+# debug info
+#
 output "grafana_config" {
   value="${local.grafana_config_indent}"
 }
@@ -202,4 +224,24 @@ output "prometheus_rules" {
 }
 output "alertmanager_config_b64" {
   value="${local.alertmanager_config_b64}"
+}
+output "active" {
+  value="${var.active}"
+}
+
+#
+# addon module api
+#
+output "dummy" {
+  value = "${local.dummy}"
+}
+output "defaults" {
+  value="${local.default_values}"
+}
+output "generated" {
+  value="${local.generated}"
+}
+
+output "manifests" {
+  value="${path.module}/templates/manifests"
 }
