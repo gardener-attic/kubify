@@ -47,6 +47,11 @@ variable "assign_fips" {
   default = ""
 }
 
+variable "root_volume_size" {
+  type = "string"
+  default = ""
+}
+
 variable "volume_size" {
   type = "string"
   default = ""

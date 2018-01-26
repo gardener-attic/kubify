@@ -40,6 +40,7 @@ module "master_config" {
     count = "${var.master_count}"
     assign_fips = "${var.assign_master_fips}"
     volume_size = "${var.master_volume_size}"
+    root_volume_size = "50"
   }
 }
 
@@ -58,6 +59,7 @@ module "worker_config" {
     update_mode = "${var.node_update_mode}"
     count = "${var.worker_count}"
     assign_fips = "${var.assign_worker_fips}"
+    root_volume_size = "50"
   }
 }
 
@@ -92,6 +94,11 @@ module "master" {
   image_name         = "${module.master_config.image_name}"
   flavor_name        = "${module.master_config.flavor_name}"
 
+  root_volume_size   = "${module.master_config.root_volume_size}"
+  volume_size        = "${module.master_config.volume_size}"
+  device             = "${module.iaas.device}"
+  provide_storage    = true
+
   security_group     = "${module.iaas.security_group}"
   subnet_id          = "${module.iaas.subnet_id}"
 
@@ -110,9 +117,6 @@ module "master" {
   assets_inst_dir    = "${module.cluster.assets_inst_dir}"
   bootkube_inst_dir  = "${module.cluster.bootkube_inst_dir}"
   bootkube_image     = "${module.versions.bootkube}:${module.versions.bootkube_version}"
-  volume_size        = "${var.master_volume_size}"
-  device             = "${module.iaas.device}"
-  provide_storage    = true
   #provide_fips        = "${module.use_bastion.value ? "${var.assign_master_fips}" : "single"}"
   provide_fips       = "${module.master_config.assign_fips}"
 
@@ -163,6 +167,7 @@ module "worker" {
   node_count         = "${module.worker_config.count}"
   image_name         = "${module.worker_config.image_name}"
   flavor_name        = "${module.worker_config.flavor_name}"
+  root_volume_size   = "${module.master_config.root_volume_size}"
 
   security_group     = "${module.iaas.security_group}"
   subnet_id          = "${module.iaas.subnet_id}"

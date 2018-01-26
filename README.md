@@ -266,6 +266,7 @@ The folloing variables are required for every cluster:
 |flavor_name|Optional: flavor used for the VM|
 |image_name|Optional: image used for the VM|
 |assign_fips|Optional: Always assign public IP to nodes|
+|root_volume_size|Optional: Size in GB of root volume (default: 50)|
 |volume_size|Optional: Size in GB of persistent volume for master (default: 20), should not be used for worker|
 |update_mode|Optional: Update mode for VMs|
 |generation|Optional: explicit node generation count to enforce recreation|

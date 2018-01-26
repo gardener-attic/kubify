@@ -47,6 +47,7 @@ locals {
   update_mode = "${var.update_mode == "" ? lookup(local.info,"update_mode",var.update_mode) : var.update_mode}"
   generation = "${var.generation == "" ? lookup(local.info,"generation",var.generation) : var.generation}"
   assign_fips = "${var.assign_fips == "" ? lookup(local.info,"assign_fips",var.assign_fips) : var.assign_fips}"
+  root_volume_size = "${var.root_volume_size == "" ? lookup(local.info,"root_volume_size",var.root_volume_size) : var.root_volume_size}"
   volume_size = "${var.volume_size == "" ? lookup(local.info,"volume_size",var.volume_size) : var.volume_size}"
 }
 
@@ -60,6 +61,7 @@ output "node_config" {
       update_mode = "${local.update_mode}"
       generation = "${local.generation}"
       assign_fips = "${local.assign_fips}"
+      root_volume_size = "${local.root_volume_size}"
       volume_size = "${local.volume_size}"
   }
 }
@@ -87,6 +89,9 @@ output "generation" {
 }
 output "assign_fips" {
   value = "${local.assign_fips}"
+}
+output "root_volume_size" {
+  value = "${local.root_volume_size}"
 }
 output "volume_size" {
   value = "${local.volume_size}"

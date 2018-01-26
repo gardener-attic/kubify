@@ -77,6 +77,10 @@ resource "aws_instance" "nodes" {
   disable_api_termination = false
   source_dest_check  = false
 
+  root_block_device {
+    volume_size = "${var.root_volume_size}"
+  }
+  
   iam_instance_profile = "${module.instance_profile.value}"
 
   tags = "${merge(module.tags.value, var.tags, map("Name", "${var.prefix}-${var.node_type}-${count.index}"))}"
