@@ -14,6 +14,9 @@ ${units}  - name: bootstrap.service
       Type=oneshot
       RemainAfterExit=true
       ExecStart=/bin/sh /opt/bin/setup_kubeenv
+  - name: systemd-sysctl.service
+    command: restart
+    enable: true
   - name: kubelet-update.path
     command: start
     content: |
@@ -89,3 +92,9 @@ ${paths}- path: /var/kubernetes/kubelet.env
   permissions: 0644
   encoding: b64
   content: "${kubelet_conf_b64}"
+- path: /etc/sysctl.d/99-k8s-general.conf
+  permissions: 0644
+  content: |
+    # https://github.com/kubernetes/kubernetes/issues/41916#issuecomment-312428731
+    net.ipv4.tcp_retries2 = 8
+
