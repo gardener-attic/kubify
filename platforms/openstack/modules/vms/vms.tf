@@ -77,6 +77,7 @@ resource "openstack_compute_instance_v2" "storage" {
     destination_type      = "local"
     boot_index            = 0
     delete_on_termination = true
+    volume_size           = "${var.root_volume_size}"
   }
 
   block_device {
@@ -107,6 +108,15 @@ resource "openstack_compute_instance_v2" "nostorage" {
   force_delete = true
 
   metadata = "${merge(module.tags.value, map("Name", "${var.prefix}-${var.node_type}-${count.index}"))}"
+
+  block_device {
+    uuid                  = "${element(module.roll.image_list, count.index)}"
+    source_type           = "image"
+    destination_type      = "local"
+    boot_index            = 0
+    delete_on_termination = true
+    volume_size           = "${var.root_volume_size}"
+  }
 
   network {
     uuid = "${lookup(var.iaas_info, "network_id")}"

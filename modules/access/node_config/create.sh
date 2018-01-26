@@ -25,4 +25,5 @@ header="$COPYRIGHT
 variable="node_config"
 locals=X
 
+cd "$(dirname "$0")"
 source ../create.sh

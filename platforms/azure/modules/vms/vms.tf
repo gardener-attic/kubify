@@ -76,7 +76,7 @@ resource "azurerm_virtual_machine" "storage" {
     managed_disk_type = "Standard_LRS"
     caching       = "None"
     create_option = "FromImage"
-    disk_size_gb  = "50"
+    disk_size_gb  = "${var.root_volume_size}"
   }
 
   storage_data_disk {
@@ -132,7 +132,7 @@ resource "azurerm_virtual_machine" "nostorage" {
     managed_disk_type = "Standard_LRS"
     caching       = "None"
     create_option = "FromImage"
-    disk_size_gb  = "50"
+    disk_size_gb  = "${var.root_volume_size}"
   }
 
   tags {

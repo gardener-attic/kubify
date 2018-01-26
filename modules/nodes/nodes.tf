@@ -66,6 +66,10 @@ variable "volume_size" {
   type = "string"
   default = "20"
 }
+variable "root_volume_size" {
+  type = "string"
+  default = "50"
+}
 
 variable "tags" {
   type = "map"
@@ -393,6 +397,8 @@ module "vms" {
   security_group    = "${var.security_group}"
   iaas_info         = "${var.iaas_info}"
 
+  root_volume_size  = "${var.root_volume_size}"
+  volume_size       = "${var.volume_size}"
   provide_storage   = "${var.provide_storage}"
   provide_fips      = "${var.provide_fips}"
 

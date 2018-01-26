@@ -32,6 +32,7 @@ module "bastion" {
   image_name        = "${module.bastion_config.image_name}"
   flavor_name       = "${module.bastion_config.flavor_name}"
 
+  root_volume_size  = "40"
   key               = "${openstack_compute_keypair_v2.ssh_key.name}"
 
   subnet_id         = "${openstack_networking_subnet_v2.cluster.id}"
