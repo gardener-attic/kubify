@@ -219,7 +219,9 @@ doApply()
   local config
   while [ $# -gt 0 ]; do
     case "$1" in
-      -c) config="-target=module.instance.data.archive_file.bootkube"
+      -y) config="$config -auto-approve"
+          shift;;
+      -c) config="$config -target=module.instance.data.archive_file.bootkube"
           shift;;
       *)  break;;
     esac
