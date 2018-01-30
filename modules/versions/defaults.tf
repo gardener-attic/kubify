@@ -31,6 +31,7 @@ locals {
   kubernetes_hyperkube_patch = ""
   nginx_version              = "0.9.0"
   lego_version               = "0.1.5"
+  dex_version                = "v2.6.1"
 
   garden_apiserver_image     = "rfranzke/garden-apiserver"
   garden_apiserver_version   = "latest"

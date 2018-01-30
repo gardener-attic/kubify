@@ -146,6 +146,7 @@ module "seed" {
   cluster_info = "${module.cluster.cluster-info}"
 
   dns = "${var.dns}"
+  identity_domain = "${module.cluster.identity}"
 }
 
 output "gen_dir" {

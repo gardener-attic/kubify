@@ -1,0 +1,47 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: identity-configmap
+  namespace: ${namespace}
+data:
+  issuer: https://${identity}
+  kubectlClientID: ${kubectl_client_id}
+  kubectlSecret: ${kubectl_client_secret}
+
+  config.yaml: |
+    issuer: https://${identity}
+    storage:
+      type: kubernetes
+      config:
+        inCluster: true
+    web:
+      http: '0.0.0.0:${dex_port}'
+      allowedOrigins:
+        - '*'
+    frontend:
+      theme: coreos
+      issuer: Kubify Identity
+    oauth2:
+      skipApprovalScreen: true
+      responseTypes:
+        - token
+        - code
+        - id_token
+    staticClients:
+      - id: gardener
+        redirectURIs:
+          - 'https://gardener.${ingress}/callback'
+          - 'http://localhost:8080/callback'
+        name: Gardener UI
+        secret: ${gardener_client_secret}
+      - id: ${kubectl_client_id}
+        public: true
+        trustedPeers:
+          - gardener
+        name: Kubectl
+        secret: ${kubectl_client_secret}
+    enablePasswordDB: false 
+    staticPasswords: []  # https://github.com/coreos/dex/blob/master/examples/k8s/dex.yaml
+    connectors: ${connectors}
+${tls_secret}

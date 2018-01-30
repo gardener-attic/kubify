@@ -31,6 +31,9 @@ variable "domain_name" {
 variable "ingress_base_domain" {
   type="string"
 }
+variable "identity_domain" {
+  type="string"
+}
 variable "use_lbaas" {
   type="string"
 }

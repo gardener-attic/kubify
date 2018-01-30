@@ -228,8 +228,23 @@ and by keeping the actual state in a separate json file which can later again be
 
 #### Quick Setup
 
-Alternatively you can copy the project template `https://github.com/gardener/kubify-openstack-template.git`.
-Afterwards you set the `origin`to your upstream git repository. Then continue with the configuration steps above.
+Alternatively you can copy the project templates prepared for your IaaS environment of choice:
+  - for Openstack: https://github.com/gardener/kubify-openstack-template.git
+  - for AWS: https://github.com/gardener/kubify-aws-template.git
+
+Afterwards you should set the `origin` to your upstream git repository.
+It is strongly recommended to maintain such a *cluster* project keeping track
+of the actual state of your cluster.
+
+---
+
+Please remember: you should use
+a *PRIVATE* repository, because it contains secrets and access keys
+for the cluster AND the selected IaaS environment.
+
+---
+
+Then continue with the configuration steps above.
 
 It uses the same submodule, so don't forget to call
 

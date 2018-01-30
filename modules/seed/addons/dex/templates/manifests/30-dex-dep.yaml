@@ -1,0 +1,78 @@
+---
+apiVersion: ${deployment_version}
+kind: Deployment
+metadata:
+  labels:
+    component: identity
+    k8s-app: identity
+  name: identity
+  namespace: ${namespace}
+spec:
+  minReadySeconds: 30
+  replicas: 1
+  selector:
+    matchLabels:
+      component: identity
+      k8s-app: identity
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        component: identity
+        k8s-app: identity
+      name: identity
+    spec:
+      containers:
+      - command:
+        - /usr/local/bin/dex
+        - serve
+        - /etc/dex/config.yaml
+        image: quay.io/coreos/dex:${version}
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthz
+            port: ${dex_port}
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        name: identity
+        ports:
+        - containerPort: ${dex_port}
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 100m
+            memory: 50Mi
+          requests:
+            cpu: 100m
+            memory: 50Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /etc/dex
+          name: config
+      dnsPolicy: ClusterFirst
+      imagePullSecrets:
+      - name: coreos-pull-secret
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - configMap:
+          defaultMode: 420
+          items:
+          - key: config.yaml
+            path: config.yaml
+          name: identity-configmap
+        name: config
+

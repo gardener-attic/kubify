@@ -40,7 +40,7 @@ resource "local_file" "cluster_info" {
 
 module "use_oidc" {
   source = "../variable"
-  value = "${length("${var.oidc_issuer_subdomain}${var.oidc_issuer_domain}") > 0 ? 1 : 0}"
+  value = "${length("${var.oidc_issuer_subdomain}${var.oidc_issuer_domain}") > 0 ? 1 : module.dex.if_active}"
 }
 module "oidc_issuer_domain" {
   source = "../variable"
@@ -48,14 +48,17 @@ module "oidc_issuer_domain" {
   default = "${var.oidc_issuer_subdomain}.${var.domain_name}"
 }
 
+locals {
+}
+
 data "template_file" "oidc" {
   template = "${file("${path.module}/templates/misc/oidc.dropin")}"
 
   vars {
-    oidc-issuer-url = "https://${module.oidc_issuer_domain.value}"
-    oidc-client-id  = "${var.oidc_client_id}"
-    oidc-username-claim  = "${var.oidc_username_claim}"
-    oidc-groups-claim  = "${var.oidc_groups_claim}"
+    oidc-issuer-url = "${module.dex.if_active ? module.dex.oidc["oidc-issuer-url"] : "https://${module.oidc_issuer_domain.value}"}"
+    oidc-client-id  = "${module.dex.if_active ? module.dex.oidc["oidc-client-id"] : var.oidc_client_id}"
+    oidc-username-claim  = "${module.dex.if_active ? module.dex.oidc["oidc-username-claim"] : var.oidc_username_claim}"
+    oidc-groups-claim  = "${module.dex.if_active ? module.dex.oidc["oidc-groups-claim"] : var.oidc_groups_claim}"
   }
 }
 

@@ -1,4 +1,4 @@
         - --oidc-issuer-url=${oidc-issuer-url}
         - --oidc-client-id=${oidc-client-id}
-        - --oidc-username=${oidc-username-claim}
+        - --oidc-username-claim=${oidc-username-claim}
         - --oidc-groups-claim=${oidc-groups-claim}

@@ -48,6 +48,15 @@ module "monitoring" {
   ca_key = "${module.apiserver.ca_key}"
 }
 
+module "dex" {
+  source = "addons/dex"
+  active = "${contains(local.selected,"dex")}"
+  config = "${local.configured["dex"]}"
+
+  versions = "${var.versions}"
+  standard = "${local.standard}"
+}
+
 module "gardener" {
   source = "addons/gardener"
   active = "${contains(local.selected,"gardener")}"
@@ -83,7 +92,9 @@ module "iaas-addons" {
 
 locals {
   # this an explicit array to keep a distinct order for the multi-resource
-  addons = [ "dashboard", "nginx-ingress", "fluentd-elasticsearch", "kube-lego", "heapster", "monitoring", "guestbook", "cluster", "gardener" ]
+  addons = [ "dashboard", "nginx-ingress", "fluentd-elasticsearch", "kube-lego", "heapster", "monitoring", "guestbook", "cluster", "dex", "gardener" ]
+
+  index_dex = "${index(local.addons,"dex")}"
 
   empty = {
      "dashboard" = { }
@@ -94,6 +105,7 @@ locals {
      "monitoring" = { }
      "guestbook" = { }
      "cluster" = { }
+     "dex" = { }
      "gardener" = { }
   }
 
@@ -111,17 +123,23 @@ locals {
      }
      "guestbook" = {}
      "monitoring" = "${module.monitoring.defaults}"
+     "dex" = "${module.dex.defaults}"
      "gardener" = "${module.gardener.defaults}"
      "cluster" = {}
   }
 
   generated = {
     "monitoring" = "${module.monitoring.generated}"
+    "dex" = "${module.dex.generated}"
     "gardener" = "${module.gardener.generated}"
   }
   deploy = {
     "monitoring" = "${module.monitoring.deploy}"
+    "dex" = "${module.dex.deploy}"
     "gardener" = "${module.gardener.deploy}"
+  }
+  subst = {
+    "dex" = "empty"
   }
 
   dummy_tmp = {
@@ -130,14 +148,15 @@ locals {
        version = ""
        namespace = ""
      }
-  dummy = {
-     dummy = "${merge(local.dummy_tmp, module.monitoring.dummy, module.gardener.dummy)}"
+  extention = {
+     dummy = "${merge(local.dummy_tmp, module.monitoring.dummy, module.dex.dummy, module.gardener.dummy)}"
+     empty = { }
   }
 
   selected = "${keys(var.addons)}"
 
   configured = "${merge(local.empty, var.addons)}"
-  config = "${merge(local.empty, local.dummy, var.addons)}"
+  config = "${merge(local.empty, local.extention, var.addons)}"
   defaultconfig = "${merge(local.empty, local.defaults)}"
   generatedconfig = "${merge(local.empty, local.generated)}"
 
@@ -148,6 +167,7 @@ locals {
     cluster_name = "${var.cluster_name}"
     ingress = "${var.ingress_base_domain}"
 
+    identity = "${var.identity_domain}"
     apiserver_ca_crt_b64 = "${module.apiserver.ca_cert_b64}"
     api_aggregator_crt_b64 = "${module.aggregator.cert_pem_b64}"
     api_aggregator_key_b64 = "${module.aggregator.private_key_pem_b64}"
@@ -161,6 +181,7 @@ locals {
     cluster = "${lookup(local.config["cluster"],"template_dir","${local.empty_dir}")}"
     monitoring = "${module.monitoring.manifests}"
     gardener = "${module.gardener.manifests}"
+    dex = "${module.dex.manifests}"
   }
 }
 
@@ -184,7 +205,8 @@ resource "template_dir" "addons" {
   source_dir = "${lookup(local.addon_template_dirs, local.addons[count.index], "${module.addons_dir.value}/${local.addons[count.index]}/manifests")}"
   destination_dir = "${var.gen_dir}/${contains(local.selected, local.addons[count.index]) ? "assets/addons" : "tmp"}/${local.addons[count.index]}/manifests"
 
-  vars = "${merge(map("addon_name",local.addons[count.index]), local.standard,local.defaultconfig[local.addons[count.index]],local.generatedconfig[local.addons[count.index]],local.config[contains(local.selected, local.addons[count.index]) ? local.addons[count.index] : "dummy"])}"
+  #vars = "${merge(map("addon_name",local.addons[count.index]), local.standard, local.defaultconfig[local.addons[count.index]],local.generatedconfig[local.addons[count.index]],local.config[contains(local.selected, local.addons[count.index]) ? "empty" : "dummy"])}"
+  vars = "${merge(map("addon_name",local.addons[count.index]), local.standard, local.defaultconfig[local.addons[count.index]],local.generatedconfig[local.addons[count.index]],local.config[contains(local.selected, local.addons[count.index]) ? lookup(local.subst, local.addons[count.index], local.addons[count.index]) : "dummy"])}"
 }
 
 resource "null_resource" "deploy" {
@@ -198,6 +220,10 @@ resource "null_resource" "deploy" {
   provisioner "local-exec" {
     command  = "${contains(local.selected, local.addons[count.index]) ? "${path.module}/scripts/copy_deploy '${var.gen_dir}/addons/${local.addons[count.index]}' '${lookup(local.deploy,local.addons[count.index],"")}'" : "echo ${local.addons[count.index]} inactive"}"
   }
+}
+
+output "vars-dex" {
+  value = "${merge(map("addon_name",local.addons[local.index_dex]), local.standard,local.defaultconfig[local.addons[local.index_dex]],local.generatedconfig[local.addons[local.index_dex]],local.config[contains(local.selected, local.addons[local.index_dex]) ? lookup(local.subst,local.addons[local.index_dex],local.addons[local.index_dex]) : "dummy"])}"
 }
 
 #output "addon-generated" {

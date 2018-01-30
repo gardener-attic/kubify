@@ -104,6 +104,11 @@ module "lego_version" {
   optional = true
   values=[ "${var.lego_version}","${lookup(var.versions,"lego_version","")}", "${local.lego_version}" ]
 }
+module "dex_version" {
+  source="../defaults"
+  optional = true
+  values=[ "${var.dex_version}","${lookup(var.versions,"dex_version","")}", "${local.dex_version}" ]
+}
 module "garden_apiserver_image" {
   source="../defaults"
   optional = true
@@ -145,6 +150,7 @@ output "versions" {
       kubernetes_hyperkube_patch = "${module.kubernetes_hyperkube_patch.value}"
       nginx_version = "${module.nginx_version.value}"
       lego_version = "${module.lego_version.value}"
+      dex_version = "${module.dex_version.value}"
       garden_apiserver_image = "${module.garden_apiserver_image.value}"
       garden_apiserver_version = "${module.garden_apiserver_version.value}"
       garden_controller_image = "${module.garden_controller_image.value}"
@@ -196,6 +202,9 @@ output "nginx_version" {
 }
 output "lego_version" {
   value = "${module.lego_version.value}"
+}
+output "dex_version" {
+  value = "${module.dex_version.value}"
 }
 output "garden_apiserver_image" {
   value = "${module.garden_apiserver_image.value}"

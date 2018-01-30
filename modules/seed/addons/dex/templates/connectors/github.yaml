@@ -1,0 +1,26 @@
+- type: github
+  # Required field for connector id.
+  id: ${id}
+  # Required field for connector name.
+  name: ${name}
+  config:
+    # Credentials can be string literals or pulled from the environment.
+    clientID: ${client_id}
+    clientSecret: ${client_secret}
+    redirectURI: ${redirectURI}
+    # Optional organizations and teams, communicated through the "groups" scope.
+    #
+    # NOTE: This is an EXPERIMENTAL config option and will likely change.
+    #
+    # Legacy 'org' field. 'org' and 'orgs' cannot be used simultaneously. A user
+    # MUST be a member of the following org to authenticate with dex.
+    # org: my-organization
+    #
+    # Dex queries the following organizations for group information if the
+    # "groups" scope is provided. Group claims are formatted as "(org):(team)".
+    # For example if a user is part of the "engineering" team of the "coreos"
+    # org, the group claim would include "coreos:engineering".
+    #
+    # A user MUST be a member of at least one of the following orgs to
+    # authenticate with dex.
+    orgs: ${orgs}

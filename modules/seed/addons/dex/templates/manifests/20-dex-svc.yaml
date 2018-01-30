@@ -1,0 +1,20 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    component: identity
+    k8s-app: identity
+  name: identity-service
+  namespace: ${namespace}
+spec:
+  ports:
+  - name: identity
+    port: ${dex_port}
+    protocol: TCP
+    targetPort: ${dex_port}
+  selector:
+    component: identity
+    k8s-app: identity
+  sessionAffinity: None
+  type: ClusterIP

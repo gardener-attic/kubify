@@ -1,0 +1,15 @@
+- type: saml
+  id: ${id}
+  name: ${name}
+  config:
+    redirectURI: ${redirectURI}
+
+    ssoURL: ${ssoURL}
+    ssoIssuer: ${ssoIssuer}
+    caData: ${ca_crt_b64}
+    entityIssuer: ${entityIssuer}
+
+    emailAttr: email
+    usernameAttr: display_name
+    groupsAttr: type
+    nameIDPolicyFormat: unspecified

@@ -31,3 +31,5 @@ The following addons are supported so far:
 |fluentd-elasticsearch| Fluentd, Kibana, ElasticSearch logging stack|
 |monitoring| Prometheus, Alertmanager, Grafana monitoring stack|
 |guestbook|Application Deployment Example|
+|[dex](addons/dex.md)|[Identity Provider](https://github.com/coreos/dex/blob/master/README.md)|
+|gardener|[Kubernetes Cluster Management](https://github.com/gardener/gardener/blob/master/README.md)|

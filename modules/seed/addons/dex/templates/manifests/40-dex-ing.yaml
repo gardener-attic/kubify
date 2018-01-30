@@ -1,0 +1,24 @@
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "true"
+    ingress.kubernetes.io/use-port-in-redirects: "true"
+    kubernetes.io/tls-acme: "true"
+    kubernetes.io/ingress.class: "nginx"
+  name: identity-ingress
+  namespace: ${namespace}
+spec:
+  rules:
+  - host: ${identity}
+    http:
+      paths:
+      - backend:
+          serviceName: identity-service
+          servicePort: ${dex_port}
+        path: /
+  tls:
+  - hosts:
+    - ${identity}
+    secretName: identity-tls
