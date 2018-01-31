@@ -112,11 +112,16 @@ resource "openstack_networking_secgroup_rule_v2" "cluster_tcp_all" {
   security_group_id = "${openstack_networking_secgroup_v2.cluster.id}"
 }
 
+resource "openstack_compute_servergroup_v2" "nodes" {
+  name     = "${var.prefix}-servergroup"
+  policies = ["anti-affinity"]
+}
 
 module "iaas_info" {
   source = "../../../../modules/mapvar"
   value = {
     network_id        = "${openstack_networking_network_v2.cluster.id}"
+    server_group_id   = "${openstack_compute_servergroup_v2.nodes.id}"
   }
 }
 

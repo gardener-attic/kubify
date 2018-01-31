@@ -58,11 +58,6 @@ module "tags" {
   }
 }
 
-resource "openstack_compute_servergroup_v2" "nodes" {
-  name     = "${var.prefix}-servergroup"
-  policies = ["anti-affinity"]
-}
-
 resource "openstack_compute_instance_v2" "storage" {
   count           = "${module.storage.value * var.node_count}"
   name            = "${var.prefix}-${var.node_type}-${count.index}"
@@ -75,7 +70,7 @@ resource "openstack_compute_instance_v2" "storage" {
   force_delete = true
 
   scheduler_hints {
-    group = "${openstack_compute_servergroup_v2.nodes.id}"
+    group = "${lookup(var.iaas_info, "server_group_id")}"
   }
 
   metadata = "${merge(module.tags.value, map("Name", "${var.prefix}-${var.node_type}-${count.index}"))}"
@@ -117,7 +112,7 @@ resource "openstack_compute_instance_v2" "nostorage" {
   force_delete = true
 
   scheduler_hints {
-    group = "${openstack_compute_servergroup_v2.nodes.id}"
+    group = "${lookup(var.iaas_info, "server_group_id")}"
   }
 
   metadata = "${merge(module.tags.value, map("Name", "${var.prefix}-${var.node_type}-${count.index}"))}"
