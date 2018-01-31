@@ -7,7 +7,7 @@ metadata:
     tier: control-plane
     k8s-app: kube-controller-manager
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
       tier: control-plane
