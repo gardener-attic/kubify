@@ -32,6 +32,13 @@ rules:
       - ""
     resources:
       - configmaps
+    verbs:
+      - list
+      - watch
+      - update
+  - apiGroups:
+      - ""
+    resources:
       - endpoints
       - nodes
       - pods
