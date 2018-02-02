@@ -174,6 +174,8 @@ locals {
     etcd_client_ca_crt_b64 = "${module.etcd-client.ca_cert_b64}"
     etcd_client_crt_b64 = "${module.etcd-client.cert_pem_b64}"
     etcd_client_key_b64 = "${module.etcd-client.private_key_pem_b64}"
+
+    nodes_cidr = "${var.nodes_cidr}"
   }
 
   empty_dir =  "${path.module}/templates/empty"

@@ -253,6 +253,9 @@ module "iaas_info" {
 output "iaas_info" {
   value = "${module.iaas_info.value}"
 }
+output "nodes_cidr" {
+  value = "${module.nodes_cidr.value}"
+}
 output "subnet_id" {
   value = "${aws_subnet.nodes.id}"
 }

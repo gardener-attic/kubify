@@ -128,6 +128,9 @@ output "iaas_info" {
 output "subnet_id" {
   value = "${azurerm_subnet.subnet.id}"
 }
+output "nodes_cidr" {
+  value = "${module.subnet_cidr.value}"
+}
 output "security_group_id" {
   value = "${azurerm_network_security_group.nodes.id}"
 }

@@ -115,6 +115,7 @@ module "seed" {
   oidc_groups_claim = "${var.oidc_groups_claim}"
   
   master_count = "${module.master_config.count}"
+  nodes_cidr = "${module.iaas.nodes_cidr}"
   service_cidr = "${var.service_cidr}"
   pod_cidr = "${var.pod_cidr}"
   cloud_provider = "${module.iaas.cloud_provider}"

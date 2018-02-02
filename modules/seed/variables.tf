@@ -78,6 +78,9 @@ variable "api_dns_name" {
   type = "string"
 }
 
+variable "nodes_cidr" {
+  type = "string"
+}
 variable "service_cidr" {
   type = "string"
 }

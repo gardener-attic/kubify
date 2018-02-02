@@ -131,6 +131,9 @@ output "iaas_info" {
 output "subnet_id" {
   value = "${openstack_networking_subnet_v2.cluster.id}"
 }
+output "nodes_cidr" {
+  value = "${module.subnet_cidr.value}"
+}
 output "security_group_id" {
   value = "${openstack_networking_secgroup_v2.cluster.id}"
 }
