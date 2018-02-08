@@ -129,6 +129,16 @@ module "garden_controller_version" {
   optional = true
   values=[ "${var.garden_controller_version}","${lookup(var.versions,"garden_controller_version","")}", "${local.garden_controller_version}" ]
 }
+module "external_dns_image" {
+  source="../defaults"
+  optional = true
+  values=[ "${var.external_dns_image}","${lookup(var.versions,"external_dns_image","")}", "${local.external_dns_image}" ]
+}
+module "external_dns_version" {
+  source="../defaults"
+  optional = true
+  values=[ "${var.external_dns_version}","${lookup(var.versions,"external_dns_version","")}", "${local.external_dns_version}" ]
+}
 
 #
 # always provide a config map value
@@ -155,6 +165,8 @@ output "versions" {
       garden_apiserver_version = "${module.garden_apiserver_version.value}"
       garden_controller_image = "${module.garden_controller_image.value}"
       garden_controller_version = "${module.garden_controller_version.value}"
+      external_dns_image = "${module.external_dns_image.value}"
+      external_dns_version = "${module.external_dns_version.value}"
   }
 }
 
@@ -217,4 +229,10 @@ output "garden_controller_image" {
 }
 output "garden_controller_version" {
   value = "${module.garden_controller_version.value}"
+}
+output "external_dns_image" {
+  value = "${module.external_dns_image.value}"
+}
+output "external_dns_version" {
+  value = "${module.external_dns_version.value}"
 }

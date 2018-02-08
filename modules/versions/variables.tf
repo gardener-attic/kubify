@@ -77,3 +77,9 @@ variable "garden_controller_image" {
 variable "garden_controller_version" {
  default = ""
 }
+variable "external_dns_image" {
+  default = ""
+}
+variable "external_dns_version" {
+  default = ""
+}

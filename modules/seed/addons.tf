@@ -72,6 +72,17 @@ module "gardener" {
   ca_key = "${module.apiserver.ca_key}"
 }
 
+module "external-dns" {
+  source = "addons/external-dns"
+  active = "${contains(local.selected,"external-dns")}"
+  config = "${local.configured["external-dns"]}"
+
+  versions = "${var.versions}"
+
+  dns_access_info = "${module.dns_access_info.value}"
+  domain_filters = "${var.domain_name}"
+}
+
 #
 # generic addon handling
 #
@@ -92,7 +103,7 @@ module "iaas-addons" {
 
 locals {
   # this an explicit array to keep a distinct order for the multi-resource
-  addons = [ "dashboard", "nginx-ingress", "logging", "kube-lego", "heapster", "monitoring", "guestbook", "cluster", "dex", "gardener" ]
+  addons = [ "dashboard", "nginx-ingress", "logging", "kube-lego", "heapster", "monitoring", "guestbook", "cluster", "dex", "gardener", "external-dns" ]
 
   index_dex = "${index(local.addons,"dex")}"
 
@@ -107,6 +118,7 @@ locals {
      "cluster" = { }
      "dex" = { }
      "gardener" = { }
+     "external-dns" = { }
   }
 
   defaults = {
@@ -115,6 +127,7 @@ locals {
      }
      "nginx-ingress" = {
         version = "${module.versions.nginx_version}"
+        namespace = "nginx-ingress"
      }
      "logging" = {}
      "heapster" = {}
@@ -123,20 +136,23 @@ locals {
      }
      "guestbook" = {}
      "monitoring" = "${module.monitoring.defaults}"
+     "cluster" = {}
      "dex" = "${module.dex.defaults}"
      "gardener" = "${module.gardener.defaults}"
-     "cluster" = {}
+     "external-dns" = "${module.external-dns.defaults}"
   }
 
   generated = {
     "monitoring" = "${module.monitoring.generated}"
     "dex" = "${module.dex.generated}"
     "gardener" = "${module.gardener.generated}"
+    "external-dns" = "${module.external-dns.generated}"
   }
   deploy = {
     "monitoring" = "${module.monitoring.deploy}"
     "dex" = "${module.dex.deploy}"
     "gardener" = "${module.gardener.deploy}"
+    "external-dns" = "${module.external-dns.deploy}"
   }
   subst = {
     "dex" = "empty"
@@ -149,7 +165,7 @@ locals {
        namespace = ""
      }
   extention = {
-     dummy = "${merge(local.dummy_tmp, module.monitoring.dummy, module.dex.dummy, module.gardener.dummy)}"
+     dummy = "${merge(local.dummy_tmp, module.monitoring.dummy, module.dex.dummy, module.gardener.dummy, module.external-dns.dummy)}"
      empty = { }
   }
 
@@ -182,8 +198,9 @@ locals {
   addon_template_dirs = {
     cluster = "${lookup(local.config["cluster"],"template_dir","${local.empty_dir}")}"
     monitoring = "${module.monitoring.manifests}"
-    gardener = "${module.gardener.manifests}"
     dex = "${module.dex.manifests}"
+    gardener = "${module.gardener.manifests}"
+    external-dns = "${module.external-dns.manifests}"
   }
 }
 

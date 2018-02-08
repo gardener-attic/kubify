@@ -35,7 +35,6 @@ variable "route53_hosted_zone_id" {
 }
 locals {
   hosted_zone_id = "${var.route53_hosted_zone_id == "" ? lookup(var.dns, "hosted_zone_id", "") : var.route53_hosted_zone_id}"
-  dns = "${merge(var.dns, map("hosted_zone_id", local.hosted_zone_id))}"
 }
 
 module "route53" {
@@ -43,7 +42,7 @@ module "route53" {
   defaults = {
     region = "us-east-1"
   }
-  access_info = "${local.dns}"
+  access_info = "${merge(var.dns, map("hosted_zone_id", local.hosted_zone_id))}"
 
   access_key = "${var.route53_access_key}"
   secret_key = "${var.route53_secret_key}"
@@ -54,6 +53,21 @@ module "s3_etcd_backup" {
   defaults = "${module.route53.access_info}"
   access_info = "${var.etcd_backup}"
 }
+
+module "dns_route53_overwrite" {
+  source = "../../modules/condmap"
+  if = "${lookup(var.dns,"dns_type") == "route53"}"
+  then = "${module.route53.access_info}"
+  else = { }
+}
+
+locals {
+  dns = "${merge(var.dns, module.dns_route53_overwrite.value)}"
+}
+
+#output "dns" {
+#  value = "${local.dns}"
+#}
 
 provider "aws" {
   alias      = "route53"

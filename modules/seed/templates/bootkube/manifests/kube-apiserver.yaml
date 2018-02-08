@@ -43,6 +43,7 @@ ${oidc_dropin}        - --admission-control=NamespaceLifecycle,LimitRanger,Servi
         - --etcd-keyfile=/etc/kubernetes/secrets/etcd-client.key
         - --etcd-quorum-read=true
         - --etcd-servers=https://${etcd_service_ip}:2379
+        - --event-ttl=48h0m0s
         - --insecure-port=0
         - --kubelet-client-certificate=/etc/kubernetes/secrets/apiserver.crt
         - --kubelet-client-key=/etc/kubernetes/secrets/apiserver.key
