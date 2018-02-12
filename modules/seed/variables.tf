@@ -19,6 +19,9 @@ variable "versions" {
 variable "cluster_name" {
   type="string"
 }
+variable "cluster_type" {
+  type="string"
+}
 variable "addons" {
   type="map"
 }
@@ -129,6 +132,10 @@ variable "oidc_username_claim" {
 }
 variable "oidc_groups_claim" {
   default = "groups"
+}
+
+variable "cluster-lb" {
+  default = "false"
 }
 
 variable "addon_dirs" {

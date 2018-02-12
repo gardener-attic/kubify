@@ -84,11 +84,11 @@ spec:
         ${zone_filters}
         - --source=service
         - --source=ingress
-        - --dns-ignore="*.${ingress}"
+        - --dns-ignore=*.${ingress}
         - --cidr-ignore=${nodes_cidr}
         - --provider=aws
         - --aws-zone-type=public # only look at public hosted zones (valid values are public, private or no value for both)
         - --registry=txt
-        - --txt-owner-id=${cluster_name}
-        - --txt-prefix=k8sdns-${cluster_name}
+        - --txt-owner-id=${cluster_name}-${cluster_type}
+        - --txt-prefix=k8sdns-
         ${env}

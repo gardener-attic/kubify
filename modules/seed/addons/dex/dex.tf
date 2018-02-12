@@ -39,9 +39,18 @@ module "versions" {
   versions = "${var.versions}"
 }
 
+variable "cluster-lb" {
+  default = "false"
+}
+
 module "dex" {
   source = "../../../flag"
   option = "${var.active}"
+}
+
+locals {
+  external-dns = "${var.cluster-lb}"
+  dns-controller = "${local.external-dns ? "dns-controller" : "none"}"
 }
 
 #
@@ -135,6 +144,7 @@ locals {
 
   dummy = {
     namespace = "${var.namespace}"
+    dns-controller = ""
     dex_port = "5556"
     kubectl_client_id = ""
     kubectl_client_secret = ""
@@ -144,6 +154,7 @@ locals {
 
   default_values = {
     namespace = "${var.namespace}"
+    dns-controller = "${local.dns-controller}"
     dex_port = "5556"
     version = "${module.versions.dex_version}"
     kubectl_client_id = "${local.kubectl_client_id}"

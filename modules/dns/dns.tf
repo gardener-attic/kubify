@@ -39,6 +39,11 @@ variable "active" {
 }
 
 
+module "active" {
+  source = "../flag"
+  option = "${var.active}"
+}
+
 module "dns" {
   source = "../value_check"
   value = "${lookup(var.config,"dns_type")}"
@@ -53,7 +58,7 @@ module "route53_dns" {
 module "route53" {
   source = "./route53"
 
-  active = "${var.active * module.route53_dns.if_active}"
+  active = "${module.active.if_active * module.route53_dns.if_active}"
 
   target = "${var.target}"
   type = "${var.type}"

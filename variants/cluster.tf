@@ -35,6 +35,7 @@ variable "route53_hosted_zone_id" {
 }
 locals {
   hosted_zone_id = "${var.route53_hosted_zone_id == "" ? lookup(var.dns, "hosted_zone_id", "") : var.route53_hosted_zone_id}"
+  dns = "${merge(var.dns, map("hosted_zone_id", local.hosted_zone_id))}"
 }
 
 module "route53" {
@@ -42,10 +43,17 @@ module "route53" {
   defaults = {
     region = "us-east-1"
   }
-  access_info = "${merge(var.dns, map("hosted_zone_id", local.hosted_zone_id))}"
+  access_info = "${local.dns}"
 
   access_key = "${var.route53_access_key}"
   secret_key = "${var.route53_secret_key}"
+}
+
+module "dns" {
+  source = "../../modules/condmap"
+  if = "${lookup(local.dns,"dns_type","") == "route53"}"
+  then = "${merge(local.dns,module.route53.access_info)}"
+  else = "${local.dns}"
 }
 
 module "s3_etcd_backup" {
@@ -53,21 +61,6 @@ module "s3_etcd_backup" {
   defaults = "${module.route53.access_info}"
   access_info = "${var.etcd_backup}"
 }
-
-module "dns_route53_overwrite" {
-  source = "../../modules/condmap"
-  if = "${lookup(var.dns,"dns_type") == "route53"}"
-  then = "${module.route53.access_info}"
-  else = { }
-}
-
-locals {
-  dns = "${merge(var.dns, module.dns_route53_overwrite.value)}"
-}
-
-#output "dns" {
-#  value = "${local.dns}"
-#}
 
 provider "aws" {
   alias      = "route53"
@@ -125,6 +118,10 @@ variable "cluster_type" {
 variable "bastion" {
   type = "map"
   default = { }
+}
+
+variable "cluster-lb" {
+  type = "string"
 }
 
 #
@@ -384,12 +381,14 @@ module "instance" {
 
   access_info = "${local.access_info}"
   etcd_backup = "${var.etcd_backup}"
-  dns = "${local.dns}"
+  cluster-lb = "${var.cluster-lb}"
+  dns = "${module.dns.value}"
   ca_cert_pem = "${var.ca_cert_pem}"
   ca_key_pem = "${var.ca_key_pem}"
   cluster_name = "${var.cluster_name}"
   cluster_type = "${var.cluster_type}"
   bastion = "${var.bastion}"
+  cluster-lb = "${var.cluster-lb}"
   worker = "${var.worker}"
   master = "${var.master}"
   worker_count = "${var.worker_count}"

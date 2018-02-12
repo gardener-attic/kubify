@@ -36,6 +36,10 @@ variable "bastion" {
   default = { }
 }
 
+variable "cluster-lb" {
+  type = "string"
+}
+
 #
 # node config for worker and master
 #

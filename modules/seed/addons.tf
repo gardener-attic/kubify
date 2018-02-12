@@ -34,6 +34,18 @@ module "addons_dir" {
 # manifesttemplate processing of the addon
 #
 
+module "nginx-ingress" {
+  source = "addons/nginx-ingress"
+  active = "${contains(local.selected,"nginx-ingress")}"
+  cluster-lb = "${var.cluster-lb}"
+  config = "${local.configured["nginx-ingress"]}"
+
+  versions = "${var.versions}"
+  standard = "${local.standard}"
+
+  selected = "${local.selected}"
+}
+
 module "monitoring" {
   source = "addons/monitoring"
   active = "${contains(local.selected,"monitoring")}"
@@ -51,6 +63,7 @@ module "monitoring" {
 module "dex" {
   source = "addons/dex"
   active = "${contains(local.selected,"dex")}"
+  cluster-lb = "${var.cluster-lb}"
   config = "${local.configured["dex"]}"
 
   versions = "${var.versions}"
@@ -125,10 +138,7 @@ locals {
      "dashboard" = {
        basic_auth_b64 = "${module.dashboard_creds.b64}"
      }
-     "nginx-ingress" = {
-        version = "${module.versions.nginx_version}"
-        namespace = "nginx-ingress"
-     }
+     "nginx-ingress" = "${module.nginx-ingress.defaults}"
      "logging" = {}
      "heapster" = {}
      "kube-lego" = {
@@ -143,12 +153,14 @@ locals {
   }
 
   generated = {
+    "nginx-ingress" = "${module.nginx-ingress.generated}"
     "monitoring" = "${module.monitoring.generated}"
     "dex" = "${module.dex.generated}"
     "gardener" = "${module.gardener.generated}"
     "external-dns" = "${module.external-dns.generated}"
   }
   deploy = {
+    "nginx-ingress" = "${module.nginx-ingress.deploy}"
     "monitoring" = "${module.monitoring.deploy}"
     "dex" = "${module.dex.deploy}"
     "gardener" = "${module.gardener.deploy}"
@@ -165,7 +177,7 @@ locals {
        namespace = ""
      }
   extention = {
-     dummy = "${merge(local.dummy_tmp, module.monitoring.dummy, module.dex.dummy, module.gardener.dummy, module.external-dns.dummy)}"
+     dummy = "${merge(local.dummy_tmp, module.monitoring.dummy, module.dex.dummy, module.gardener.dummy, module.external-dns.dummy, module.nginx-ingress.dummy)}"
      empty = { }
   }
 
@@ -181,6 +193,7 @@ locals {
     deployment_version = "apps/v1beta2"
 
     cluster_name = "${var.cluster_name}"
+    cluster_type = "${var.cluster_type}"
     ingress = "${var.ingress_base_domain}"
 
     identity = "${var.identity_domain}"
@@ -196,6 +209,7 @@ locals {
 
   empty_dir =  "${path.module}/templates/empty"
   addon_template_dirs = {
+    nginx-ingress = "${module.nginx-ingress.manifests}"
     cluster = "${lookup(local.config["cluster"],"template_dir","${local.empty_dir}")}"
     monitoring = "${module.monitoring.manifests}"
     dex = "${module.dex.manifests}"

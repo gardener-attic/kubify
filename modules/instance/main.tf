@@ -92,6 +92,8 @@ module "seed" {
   source = "../seed"
 
   cluster_name = "${var.cluster_name}"
+  cluster_type = "${var.cluster_type}"
+  cluster-lb = "${var.cluster-lb}"
   addons = "${var.addons}"
 
   gen_dir = "${module.cluster.gen_dir}"

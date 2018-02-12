@@ -106,6 +106,13 @@ module "route53" {
   secret_key = "\${var.route53_secret_key}"
 }
 
+module "dns" {
+  source = "../../modules/condmap"
+  if = "\${lookup(local.dns,"dns_type","") == "route53"}"
+  then = "\${merge(local.dns,module.route53.access_info)}"
+  else = "\${local.dns}"
+}
+
 module "s3_etcd_backup" {
   source = "../../modules/access/aws"
   defaults = "\${module.route53.access_info}"
@@ -147,7 +154,8 @@ module "instance" {
 
   access_info = "\${local.access_info}"
   etcd_backup = "\${var.etcd_backup}"
-  dns = "\${local.dns}"
+  cluster-lb = "\${var.cluster-lb}"
+  dns = "\${module.dns.value}"
 $(print_args)
 }
 

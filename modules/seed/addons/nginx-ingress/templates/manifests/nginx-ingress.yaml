@@ -4,7 +4,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: nginx-ingress
+  name: ${namespace}
 ---
 #
 # service account
@@ -15,7 +15,7 @@ metadata:
   labels:
     app: nginx-ingress
   name: nginx-ingress
-  namespace: nginx-ingress
+  namespace: ${namespace}
 ---
 #
 # permissions
@@ -26,7 +26,6 @@ metadata:
   labels:
     app: nginx-ingress
   name: nginx-ingress
-  namespace: nginx-ingress
 rules:
   - apiGroups:
       - ""
@@ -97,7 +96,7 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: nginx-ingress
-    namespace: nginx-ingress
+    namespace: ${namespace}
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: Role
@@ -105,7 +104,7 @@ metadata:
   labels:
     app: nginx-ingress
   name: nginx-ingress
-  namespace: nginx-ingress
+  namespace: ${namespace}
 rules:
   - apiGroups:
       - ""
@@ -151,7 +150,7 @@ metadata:
   labels:
     app: nginx-ingress
   name: nginx-ingress
-  namespace: nginx-ingress
+  namespace: ${namespace}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -159,19 +158,19 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: nginx-ingress
-    namespace: nginx-ingress
-
+    namespace: ${namespace}
 ---
 apiVersion: v1
 kind: Service
 metadata:
   annotations:
+    ${annotations}
   labels:
     app: nginx-ingress
   name: nginx-ingress-controller
-  namespace: nginx-ingress
+  namespace: ${namespace}
 spec:
-  type: "ClusterIP"
+  type: ${service_type}
   selector:
     app: nginx-ingress
     component: "controller"
@@ -191,7 +190,7 @@ metadata:
   labels:
     app: nginx-ingress
   name: nginx-default-backend
-  namespace: nginx-ingress
+  namespace: ${namespace}
 spec:
   ports:
     - port: 80
@@ -208,7 +207,7 @@ metadata:
   labels:
     app: nginx-ingress
   name: nginx-ingress-controller
-  namespace: nginx-ingress
+  namespace: ${namespace}
 data:
   enable-vts-status: "false"
   server-name-hash-bucket-size: "256"
@@ -219,7 +218,7 @@ metadata:
   labels:
     app: nginx-ingress
   name: nginx-ingress-controller
-  namespace: nginx-ingress
+  namespace: ${namespace}
 spec:
   updateStrategy:
     type: RollingUpdate
@@ -248,7 +247,8 @@ spec:
             - /nginx-ingress-controller
             - --default-backend-service=nginx-ingress/nginx-default-backend
             - --ingress-class=nginx
-            - --configmap=nginx-ingress/nginx-ingress-controller
+            - --configmap=${namespace}/nginx-ingress-controller
+            ${publish_service}
           env:
             - name: POD_NAME
               valueFrom:
@@ -280,7 +280,7 @@ spec:
           resources:
             {}
             
-      hostNetwork: true
+      hostNetwork: ${host_network}
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       serviceAccountName: nginx-ingress
@@ -293,7 +293,7 @@ metadata:
   labels:
     app: nginx-ingress
   name: nginx-default-backend
-  namespace: nginx-ingress
+  namespace: ${namespace}
 spec:
   replicas: 1
   template:
