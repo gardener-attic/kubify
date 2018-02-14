@@ -1,0 +1,38 @@
+apiVersion: machine.sapcloud.io/v1alpha1
+kind: AWSMachineClass
+metadata:
+  name: standard-worker # Name of aws machine class goes here
+  namespace: ${namespace}
+spec:
+  location: ${location} # Name of aws machine class goes here
+  resourceGroup: ${resource_group} # Name of the resource group to which the node should be bound
+  subnetInfo:
+    vnetName: ${vnet} # The V-Net to which the node should belong
+    subnetName:   ${subnet} # The subnet to which the node should belong
+  tags: ${tags}
+  properties:
+    availabilitySet: ${availability_set}
+    hardwareProfile:
+      vmSize: ${flavor}
+    storageProfile:
+      imageReference:
+        publisher: ${publisher}
+        offer: ${offer}
+        sku: ${sku}
+        version: ${version}
+      osDisk:
+        caching: None
+        diskSizeGB: ${root_volume_size}
+        creationOption: FromImage
+    osProfile:
+      adminUserName: ${admin_user}
+      linuxConfiguration:
+        disablePasswordAuthentication: true
+      ssh:
+        publicKeys:
+          path:
+          keyData: "${public_key}"
+  secretRef: # Secret pointing to a secret which contains the provider secret and cloudconfig
+    namespace: ${namespace}  # Namespace
+    name: worker-nodes  # Name of the secret
+

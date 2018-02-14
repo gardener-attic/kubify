@@ -58,8 +58,8 @@ module "bastion_config" {
 
   defaults = {
     update_mode = "${var.node_update_mode}"
-    count = "${var.worker_count}"
-    assign_fips = "${var.assign_worker_fips}"
+    count = "1"
+    assign_fips = "true"
     user_name = "ubuntu"
   }
 }
@@ -88,13 +88,32 @@ data "archive_file" "helper_scripts" {
   source_dir = "${path.module}/resources/bin"
 }
 
+module "addon_dns" {
+  source = "../condmap"
+  if = "${module.worker_config.count == 0}"
+  then = {
+    external_dns = { }
+  }
+  else = { }
+}
+module "addon_machine" {
+  source = "../condmap"
+  if = "${module.worker_config.count == 0}"
+  then = {
+    machine = {
+      worker_count = 1
+    }
+  }
+  else = { }
+}
+
 module "seed" {
   source = "../seed"
 
   cluster_name = "${var.cluster_name}"
   cluster_type = "${var.cluster_type}"
-  cluster-lb = "${var.cluster-lb}"
-  addons = "${var.addons}"
+  cluster-lb = "${var.cluster-lb || module.worker_config.count == 0}"
+  addons = "${merge(module.addon_dns.value, module.addon_machine.value, var.addons)}"
 
   gen_dir = "${module.cluster.gen_dir}"
 
@@ -150,6 +169,9 @@ module "seed" {
 
   dns = "${var.dns}"
   identity_domain = "${module.cluster.identity}"
+
+  iaas_config = "${var.iaas_config}"
+  worker_info = "${module.worker.vm_info}"
 }
 
 output "gen_dir" {

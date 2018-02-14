@@ -122,6 +122,7 @@ module "iaas_info" {
   value = {
     network_id        = "${openstack_networking_network_v2.cluster.id}"
     server_group_id   = "${openstack_compute_servergroup_v2.nodes.id}"
+    security_group = "${openstack_networking_secgroup_v2.cluster.name}"
   }
 }
 

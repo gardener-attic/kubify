@@ -83,3 +83,9 @@ variable "external_dns_image" {
 variable "external_dns_version" {
   default = ""
 }
+variable "machine_controller_image" {
+  default = ""
+}
+variable "machine_controller_version" {
+  default = ""
+}

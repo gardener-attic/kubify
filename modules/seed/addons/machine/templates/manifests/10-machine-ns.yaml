@@ -1,0 +1,18 @@
+#
+# namespace
+#
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ${namespace}
+---
+#
+# service account
+#
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app: machine-controller
+  name: machine-controller
+  namespace: ${namespace}

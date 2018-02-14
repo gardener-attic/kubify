@@ -173,3 +173,11 @@ variable "etcd_backup" {
 variable "access_info" {
   type = "map"
 }
+
+variable "worker_info" {
+  type = "map"
+}
+variable "iaas_config" {
+  type = "map"
+}
+

@@ -58,6 +58,10 @@ module "tags" {
   }
 }
 
+locals {
+  tags = "${merge(module.tags.value)}"
+}
+
 resource "openstack_compute_instance_v2" "storage" {
   count           = "${module.storage.value * var.node_count}"
   name            = "${var.prefix}-${var.node_type}-${count.index}"
@@ -73,7 +77,7 @@ resource "openstack_compute_instance_v2" "storage" {
     group = "${lookup(var.iaas_info, "server_group_id")}"
   }
 
-  metadata = "${merge(module.tags.value, map("Name", "${var.prefix}-${var.node_type}-${count.index}"))}"
+  metadata = "${merge(local.tags, map("Name", "${var.prefix}-${var.node_type}-${count.index}"))}"
 
   block_device {
     uuid                  = "${element(module.roll.image_list, count.index)}"
@@ -115,7 +119,7 @@ resource "openstack_compute_instance_v2" "nostorage" {
     group = "${lookup(var.iaas_info, "server_group_id")}"
   }
 
-  metadata = "${merge(module.tags.value, map("Name", "${var.prefix}-${var.node_type}-${count.index}"))}"
+  metadata = "${merge(local.tags, map("Name", "${var.prefix}-${var.node_type}-${count.index}"))}"
 
   block_device {
     uuid                  = "${element(module.roll.image_list, count.index)}"
@@ -163,3 +167,17 @@ output "storage" {
 output "short_user_data" {
   value = "false"
 }
+
+
+output "vm_info" {
+  value = {
+    cloud_init = "${var.cloud_init}"
+    flavor = "${var.flavor_name}"
+    keypair = "${var.key}"
+    image = "${var.image_name}"
+    networkid = "${lookup(var.iaas_info, "network_id")}"
+    security_group = "${var.security_group}"
+    tags = "${jsonencode(local.tags)}"
+  }
+}
+

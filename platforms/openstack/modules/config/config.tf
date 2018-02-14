@@ -102,6 +102,11 @@ module "insecure" {
   value="${lookup(local.simple,"insecure",var.insecure)}"
   
 }
+module "cacert" {
+  source="../../../../modules/variable"
+  value="${lookup(local.simple,"cacert",var.cacert)}"
+  
+}
 module "fip_pool_name" {
   source="../../../../modules/variable"
   value="${lookup(local.simple,"fip_pool_name",var.fip_pool_name)}"
@@ -145,6 +150,7 @@ locals {
       auth_url = "${module.auth_url.value}"
       region = "${module.region.value}"
       insecure = "${module.insecure.value}"
+      cacert = "${module.cacert.value}"
       fip_pool_name = "${module.fip_pool_name.value}"
       lbaas_subnet_id = "${module.lbaas_subnet_id.value}"
       lbaas_pool_name = "${module.lbaas_pool_name.value}"
@@ -174,6 +180,7 @@ output "simple" {
       auth_url = "${module.auth_url.value}"
       region = "${module.region.value}"
       insecure = "${module.insecure.value}"
+      cacert = "${module.cacert.value}"
       fip_pool_name = "${module.fip_pool_name.value}"
       lbaas_subnet_id = "${module.lbaas_subnet_id.value}"
       lbaas_pool_name = "${module.lbaas_pool_name.value}"
@@ -222,6 +229,9 @@ output "region" {
 }
 output "insecure" {
   value = "${module.insecure.value}"
+}
+output "cacert" {
+  value = "${module.cacert.value}"
 }
 output "fip_pool_name" {
   value = "${module.fip_pool_name.value}"

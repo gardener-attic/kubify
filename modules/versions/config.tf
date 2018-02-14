@@ -139,6 +139,16 @@ module "external_dns_version" {
   optional = true
   values=[ "${var.external_dns_version}","${lookup(var.versions,"external_dns_version","")}", "${local.external_dns_version}" ]
 }
+module "machine_controller_image" {
+  source="../defaults"
+  optional = true
+  values=[ "${var.machine_controller_image}","${lookup(var.versions,"machine_controller_image","")}", "${local.machine_controller_image}" ]
+}
+module "machine_controller_version" {
+  source="../defaults"
+  optional = true
+  values=[ "${var.machine_controller_version}","${lookup(var.versions,"machine_controller_version","")}", "${local.machine_controller_version}" ]
+}
 
 #
 # always provide a config map value
@@ -167,6 +177,8 @@ output "versions" {
       garden_controller_version = "${module.garden_controller_version.value}"
       external_dns_image = "${module.external_dns_image.value}"
       external_dns_version = "${module.external_dns_version.value}"
+      machine_controller_image = "${module.machine_controller_image.value}"
+      machine_controller_version = "${module.machine_controller_version.value}"
   }
 }
 
@@ -235,4 +247,10 @@ output "external_dns_image" {
 }
 output "external_dns_version" {
   value = "${module.external_dns_version.value}"
+}
+output "machine_controller_image" {
+  value = "${module.machine_controller_image.value}"
+}
+output "machine_controller_version" {
+  value = "${module.machine_controller_version.value}"
 }

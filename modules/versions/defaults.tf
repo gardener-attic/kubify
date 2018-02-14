@@ -40,4 +40,7 @@ locals {
 
   external_dns_image         = "mandelsoft/external-dns"
   external_dns_version       = "v0.4.8-ms-3"
+
+  machine_controller_image   = "eu.gcr.io/gardener-project/gardener/machine-controller-manager"
+  machine_controller_version = "0.1.0-0f9d4de017c78f550f1153b83dc70807855df396"
 }

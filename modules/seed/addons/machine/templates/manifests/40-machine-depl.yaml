@@ -1,0 +1,31 @@
+apiVersion: ${deployment_version}
+kind: Deployment
+metadata:
+  name: machine-controller-manager
+  namespace: ${namespace}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: machine-controller
+  template:
+    metadata:
+      labels:
+        app: machine-controller
+    spec:
+      serviceAccountName: machine-controller
+      containers:
+      - name: machine-controller-manager
+        image: eu.gcr.io/gardener-project/gardener/machine-controller-manager:${version}
+        imagePullPolicy: IfNotPresent
+        command:
+          - ./machine-controller-manager
+          - --control-kubeconfig=inClusterConfig
+#          - --target-kubeconfig=inClusterConfig
+          - --namespace=${namespace}
+          - --v=2
+        resources:
+          requests:
+            cpu: 5m
+            memory: 50Mi
+

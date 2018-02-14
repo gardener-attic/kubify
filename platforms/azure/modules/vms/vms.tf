@@ -49,6 +49,10 @@ resource "azurerm_managed_disk" "data" {
 
 locals {
   separator = "/"
+  tags = {
+    "Cluster" = "${var.cluster_name}"
+    "Role"    = "${var.node_type}"
+  }
 }
 
 resource "azurerm_virtual_machine" "storage" {
@@ -88,11 +92,7 @@ resource "azurerm_virtual_machine" "storage" {
     lun           = 0
   }
 
-  tags {
-    "Name"    = "${var.prefix}-${var.node_type}-${count.index}-${var.vm_version + element(module.roll.revision_list,count.index)}"
-    "Cluster" = "${var.cluster_name}"
-    "Role"    = "${var.node_type}"
-  }
+  tags = "${merge(local.tags,map("Name","${var.prefix}-${var.node_type}-${count.index}-${var.vm_version + element(module.roll.revision_list,count.index)}")}"
 
   os_profile_linux_config {
     disable_password_authentication = true
@@ -135,11 +135,7 @@ resource "azurerm_virtual_machine" "nostorage" {
     disk_size_gb  = "${var.root_volume_size}"
   }
 
-  tags {
-    "Name"    = "${var.prefix}-${var.node_type}-${count.index}-${var.vm_version + element(module.roll.revision_list,count.index)}"
-    "Cluster" = "${var.cluster_name}"
-    "Role"    = "${var.node_type}"
-  }
+  tags = "${merge(local.tags,map("Name","${var.prefix}-${var.node_type}-${count.index}-${var.vm_version + element(module.roll.revision_list,count.index)}")}"
 
   os_profile_linux_config {
     disable_password_authentication = true
@@ -181,4 +177,23 @@ output "storage" {
 
 output "short_user_data" {
   value = "false"
+}
+
+
+output "vm_info" {
+  value = {
+    cloud_init = "${var.cloud_init}"
+    flavor = "${var.flavor_name}"
+    image = "${var.image_name}"
+    subnet_name  = "${lookup(var.iaas_info,"subnet_name")}"
+    vnet_name  = "${lookup(var.iaas_info,"vnet_name")}"
+
+    resource_group = "${module.resource_group_name.value}"
+    availability_set = "${azurerm_availability_set.nodes.id}}"
+    admin_user = "${var.admin_user}"
+
+    security_group = "${var.security_group}"
+    root_volume_size = "${var.root_volume_size}"
+    tags = "${jsonencode(local.tags)}"
+  }
 }

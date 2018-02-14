@@ -122,6 +122,7 @@ variable "bastion" {
 
 variable "cluster-lb" {
   type = "string"
+  default = "false"
 }
 
 #

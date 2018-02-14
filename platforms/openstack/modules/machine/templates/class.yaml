@@ -1,0 +1,18 @@
+apiVersion: machine.sapcloud.io/v1alpha1
+kind: OpenStackMachineClass
+metadata:
+  name: standard-worker # Name of aws machine class goes here
+  namespace: ${namespace}
+spec:
+  flavorName: ${flavor} # Name of the machine flavor
+  keyName:   ${keypair} # Name of the ssh key pair
+  imageName: ${image} # Machine image name
+  networkID: ${networkid} # Network ID where the machine should be placed
+  securityGroups:
+  - ${secgrp} # List of security groups which should be used for this machine
+  region: ${region} # Region where to place the machine
+  availabilityZone: ${az} # Availability zone where to place the machine
+  tags: ${tags}
+  secretRef: # Secret pointing to a secret which contains the provider secret and cloudconfig
+    namespace: ${namespace}  # Namespace
+    name: worker-nodes  # Name of the secret

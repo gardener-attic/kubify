@@ -55,6 +55,9 @@ variable "region" {
 variable "insecure" {
   default = true
 }
+variable "cacert" {
+  default = ""
+}
 
 variable "fip_pool_name" {
   default = ""

@@ -96,6 +96,17 @@ module "external-dns" {
   domain_filters = "${var.domain_name}"
 }
 
+module "machine" {
+  source = "addons/machine"
+  active = "${contains(local.selected,"machine")}"
+  config = "${local.configured["machine"]}"
+
+  versions = "${var.versions}"
+
+  iaas_config = "${var.iaas_config}"
+  vm_info = "${var.worker_info}"
+}
+
 #
 # generic addon handling
 #
@@ -116,7 +127,20 @@ module "iaas-addons" {
 
 locals {
   # this an explicit array to keep a distinct order for the multi-resource
-  addons = [ "dashboard", "nginx-ingress", "logging", "kube-lego", "heapster", "monitoring", "guestbook", "cluster", "dex", "gardener", "external-dns" ]
+  addons = [
+    "dashboard",
+    "nginx-ingress",
+    "logging",
+    "kube-lego",
+    "heapster",
+    "monitoring",
+    "guestbook",
+    "cluster",
+    "dex",
+    "gardener",
+    "external-dns",
+    "machine"
+  ]
 
   index_dex = "${index(local.addons,"dex")}"
 
@@ -132,6 +156,7 @@ locals {
      "dex" = { }
      "gardener" = { }
      "external-dns" = { }
+     "machine" = { }
   }
 
   defaults = {
@@ -150,6 +175,7 @@ locals {
      "dex" = "${module.dex.defaults}"
      "gardener" = "${module.gardener.defaults}"
      "external-dns" = "${module.external-dns.defaults}"
+     "machine" = "${module.machine.defaults}"
   }
 
   generated = {
@@ -158,6 +184,7 @@ locals {
     "dex" = "${module.dex.generated}"
     "gardener" = "${module.gardener.generated}"
     "external-dns" = "${module.external-dns.generated}"
+    "machine" = "${module.machine.generated}"
   }
   deploy = {
     "nginx-ingress" = "${module.nginx-ingress.deploy}"
@@ -165,6 +192,7 @@ locals {
     "dex" = "${module.dex.deploy}"
     "gardener" = "${module.gardener.deploy}"
     "external-dns" = "${module.external-dns.deploy}"
+    "machine" = "${module.machine.deploy}"
   }
   subst = {
     "dex" = "empty"
@@ -177,7 +205,7 @@ locals {
        namespace = ""
      }
   extention = {
-     dummy = "${merge(local.dummy_tmp, module.monitoring.dummy, module.dex.dummy, module.gardener.dummy, module.external-dns.dummy, module.nginx-ingress.dummy)}"
+     dummy = "${merge(local.dummy_tmp, module.monitoring.dummy, module.dex.dummy, module.gardener.dummy, module.external-dns.dummy, module.nginx-ingress.dummy, module.machine.dummy)}"
      empty = { }
   }
 
@@ -215,6 +243,7 @@ locals {
     dex = "${module.dex.manifests}"
     gardener = "${module.gardener.manifests}"
     external-dns = "${module.external-dns.manifests}"
+    machine = "${module.machine.manifests}"
   }
 }
 

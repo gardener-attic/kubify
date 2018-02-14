@@ -64,6 +64,10 @@ module "tags" {
   }
 }
 
+locals {
+  tags = "${merge(module.tags.value, var.tags)}"
+}
+
 resource "aws_instance" "nodes" {
   count           = "${var.node_count}"
   instance_type   = "${element(module.roll.flavor_list, count.index)}"
@@ -121,4 +125,19 @@ output "storage" {
 
 output "short_user_data" {
   value = "true"
+}
+
+
+output "vm_info" {
+  value = {
+    cloud_init = "${var.cloud_init}"
+    flavor = "${var.flavor_name}"
+    keypair = "${var.key}"
+    image = "${data.aws_ami.image.id}"
+    subnetid = "${var.subnet_id}"
+    security_group = "${var.security_group}"
+    iam_profile = "${module.instance_profile.value}"
+    root_volume_size = "${var.root_volume_size}"
+    tags = "${jsonencode(local.tags)}"
+  }
 }
