@@ -44,7 +44,7 @@ data "openstack_networking_network_v2" "fip" {
 
 resource "openstack_networking_router_v2" "cluster" {
   name             = "${var.prefix}"
-  external_gateway = "${data.openstack_networking_network_v2.fip.id}"
+  external_network_id = "${data.openstack_networking_network_v2.fip.id}"
   region           = "${module.os.region}"
 }
 
