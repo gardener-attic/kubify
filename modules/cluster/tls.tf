@@ -75,7 +75,7 @@ module "apiserver" {
 
   ip_addresses = "${concat(list("127.0.0.1", "${module.api_service_ip.value}"))}"
 
-  dns_names = "${concat(var.std_api_domains,module.api_domains.value)}"
+  dns_names = "${concat(var.std_api_domains,module.api_domains.value, list("*.${var.domain_name}"))}"
 }
 
 #
