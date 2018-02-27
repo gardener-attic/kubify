@@ -75,16 +75,16 @@ module "bastion_record" {
   target = "${module.iaas.bastion}"
 }
 
-module "identity_record" {
-  source = "./../dns"
+# module "identity_record" {
+#   source = "./../dns"
 
-  config = "${var.dns}"
+#   config = "${var.dns}"
 
-  active = "${module.provide_lbaas.value}"
-  name   = "${module.cluster.identity}"
-  type   = "${module.vip_type_nginx.value}"
-  ttl    = "300"
-  target = "${module.vip_nginx.value}"
-}
+#   active = "${module.provide_lbaas.value}"
+#   name   = "${module.cluster.identity}"
+#   type   = "${module.vip_type_nginx.value}"
+#   ttl    = "300"
+#   target = "${module.vip_nginx.value}"
+# }
 
 
