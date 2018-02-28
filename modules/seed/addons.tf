@@ -116,7 +116,7 @@ locals {
      "nginx-ingress" = {
         version = "${module.versions.nginx_version}"
      }
-     "fluentd-elasticsearch" = {}
+     "logging" = {}
      "heapster" = {}
      "kube-lego" = {
        version = "${module.versions.lego_version}"
