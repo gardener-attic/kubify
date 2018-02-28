@@ -92,7 +92,7 @@ module "iaas-addons" {
 
 locals {
   # this an explicit array to keep a distinct order for the multi-resource
-  addons = [ "dashboard", "nginx-ingress", "fluentd-elasticsearch", "kube-lego", "heapster", "monitoring", "guestbook", "cluster", "dex", "gardener" ]
+  addons = [ "dashboard", "nginx-ingress", "logging", "kube-lego", "heapster", "monitoring", "guestbook", "cluster", "dex", "gardener" ]
 
   index_dex = "${index(local.addons,"dex")}"
 
@@ -101,7 +101,7 @@ locals {
      "heapster" = { }
      "nginx-ingress" = { }
      "kube-lego" = { }
-     "fluentd-elasticsearch" = {}
+     "logging" = {}
      "monitoring" = { }
      "guestbook" = { }
      "cluster" = { }

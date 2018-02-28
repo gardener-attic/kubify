@@ -96,9 +96,13 @@ spec:
           readOnly: true
         - name: config-volume
           mountPath: /etc/fluent/config.d
-      nodeSelector:
-        beta.kubernetes.io/fluentd-ds-ready: "true"
+      # nodeSelector:
+      #   beta.kubernetes.io/fluentd-ds-ready: "true"
       terminationGracePeriodSeconds: 30
+      tolerations:
+      - key: node-role.kubernetes.io/master
+        operator: Exists
+        effect: NoSchedule
       volumes:
       - name: varlog
         hostPath:

@@ -1,4 +1,3 @@
-# RBAC authn and authz
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -109,10 +108,10 @@ spec:
         securityContext:
           privileged: true
   volumeClaimTemplates:
-    metadata:
+  - metadata:
       name: elasticsearch-logging
     spec:
       accessModes: [ "ReadWriteOnce" ]
-        resources:
-          requests:
-            storage: 10Gi
+      resources:
+        requests:
+          storage: 10Gi
