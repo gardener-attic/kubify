@@ -159,10 +159,10 @@ output "api_domains" {
   value = "${module.api_domains.value}"
 }
 output "identity" {
-  value = "identity.${module.domain_name.value}"
+  value = "identity.ingress.${module.domain_name.value}"
 }
 output "identity_domains" {
-  value = "${formatlist("identity.%s",module.domain_names.value)}"
+  value = "${formatlist("identity.ingress.%s",module.domain_names.value)}"
 }
 output "ingress" {
   value = "*.${module.ingress.value}"
