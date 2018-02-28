@@ -113,7 +113,7 @@ spec:
       #  command: ['sh', '-c', 'until wget -T 5 -qO- http://prometheus-web:8080/status > /dev/null; do echo waiting for Prometheus; sleep 2; done;']
       containers:
       - name: grafana
-        image: grafana/grafana:5.0.0-beta1
+        image: grafana/grafana:5.0.0-beta5
         imagePullPolicy: IfNotPresent
         env:
         - name: GF_AUTH_BASIC_ENABLED
