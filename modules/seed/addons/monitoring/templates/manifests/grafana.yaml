@@ -113,7 +113,7 @@ spec:
       #  command: ['sh', '-c', 'until wget -T 5 -qO- http://prometheus-web:8080/status > /dev/null; do echo waiting for Prometheus; sleep 2; done;']
       containers:
       - name: grafana
-        image: grafana/grafana:4.6.3
+        image: grafana/grafana:5.0.0-beta5
         imagePullPolicy: IfNotPresent
         env:
         - name: GF_AUTH_BASIC_ENABLED
@@ -144,7 +144,7 @@ spec:
             memory: 200Mi
             cpu: 200m
       - name: grafana-watcher
-        image: quay.io/coreos/grafana-watcher:v0.0.4
+        image: quay.io/coreos/grafana-watcher:v0.0.8
         imagePullPolicy: IfNotPresent
         args:
         - --watch-dir=/config
