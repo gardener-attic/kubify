@@ -1,3 +1,4 @@
+# RBAC authn and authz
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -46,7 +47,7 @@ roleRef:
   apiGroup: ""
 ---
 # Elasticsearch deployment itself
-apiVersion: apps/v1beta2
+apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: elasticsearch-logging
@@ -72,7 +73,7 @@ spec:
     spec:
       serviceAccountName: elasticsearch-logging
       containers:
-      - image: gcr.io/google-containers/elasticsearch:v5.6.4
+      - image: k8s.gcr.io/elasticsearch:v5.6.4
         name: elasticsearch-logging
         resources:
           # need more cpu upon initialization, therefore burstable class
@@ -114,4 +115,4 @@ spec:
       accessModes: [ "ReadWriteOnce" ]
       resources:
         requests:
-          storage: 10Gi
+          storage: 100Gi
