@@ -19,7 +19,7 @@ metadata:
     ingress.kubernetes.io/auth-realm: "Super Secret Authentication Required"
 spec:
   rules:
-  - host: dashboard.${ingress}
+  - host: kubernetes-dashboard.${ingress}
     http:
       paths:
       - path: /
