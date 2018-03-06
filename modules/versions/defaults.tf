@@ -33,8 +33,8 @@ locals {
   lego_version               = "0.1.5"
   dex_version                = "v2.6.1"
 
-  garden_apiserver_image     = "rfranzke/garden-apiserver"
-  garden_apiserver_version   = "latest"
-  garden_controller_image    = "rfranzke/garden-controller-manager"
-  garden_controller_version  = "latest"
+  garden_apiserver_image     = "eu.gcr.io/gardener-project/gardener/apiserver"
+  garden_apiserver_version   = "0.1.0-8446cd54eef1514992757f944850fdc34aa42c83"
+  garden_controller_image    = "eu.gcr.io/gardener-project/gardener/controller-manager"
+  garden_controller_version  = "0.1.0-8446cd54eef1514992757f944850fdc34aa42c83"
 }
