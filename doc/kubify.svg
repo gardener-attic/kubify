@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="90px" height="90px" viewBox="0 0 90 90" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 48.2 (47327) - http://www.bohemiancoding.com/sketch -->
+    <title>logo_kubify</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M41.8864954,0.994901575 C42.8830405,0.514990742 44.5028956,0.516982644 45.4953045,0.994901575 L76.8159138,16.0781121 C77.8124589,16.5580229 78.8208647,17.8257185 79.0659694,18.8995926 L86.8015211,52.7912589 C87.0476474,53.8696088 86.6852538,55.4484075 85.9984855,56.3095876 L64.3239514,83.4885938 C63.6343208,84.3533632 62.1740175,85.0543973 61.0725268,85.0543973 L26.3092731,85.0543973 C25.2031915,85.0543973 23.7446167,84.3497739 23.0578485,83.4885938 L1.38331434,56.3095876 C0.693683723,55.4448182 0.335174016,53.865133 0.580278769,52.7912589 L8.31583044,18.8995926 C8.56195675,17.8212428 9.57347722,16.556031 10.5658861,16.0781121 L41.8864954,0.994901575 Z" id="path-1"></path>
+        <linearGradient x1="75.524124%" y1="50%" x2="15.7480453%" y2="76.0026042%" id="linearGradient-3">
+            <stop stop-color="#FBFDFB" offset="0%"></stop>
+            <stop stop-color="#A7CBA9" offset="100%"></stop>
+        </linearGradient>
+        <path d="M17.6360001,47.6547852 C29.9905031,47.6547852 36.9667969,35.9467773 33.3637695,25 C31.7897872,20.2179007 26.4814903,12.1435192 17.438879,0.776855469 C8.027928,12.0798542 2.6965764,20.1542357 1.44482422,25 C-1.96289062,38.1918945 4.77383904,47.6547852 17.6360001,47.6547852 Z" id="path-4"></path>
+        <linearGradient x1="115.562869%" y1="33.0780653%" x2="26.2214909%" y2="137.552884%" id="linearGradient-6">
+            <stop stop-color="#FFFFFF" offset="0%"></stop>
+            <stop stop-color="#B4D3B5" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="68.0209122%" y1="34.3388194%" x2="50%" y2="88.4561156%" id="linearGradient-7">
+            <stop stop-color="#FFFFFF" offset="0%"></stop>
+            <stop stop-color="#BCD8BD" offset="100%"></stop>
+        </linearGradient>
+        <polygon id="path-8" points="-1.98681641 6.38037109 18 25.7626953 18 42.3969727 -1.98681641 23.9667969"></polygon>
+        <filter x="-50.0%" y="-33.3%" width="180.1%" height="144.4%" filterUnits="objectBoundingBox" id="filter-9">
+            <feOffset dx="-2" dy="-4" in="SourceAlpha" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="2" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feColorMatrix values="0 0 0 0 0.733333333   0 0 0 0 0.843137255   0 0 0 0 0.737254902  0 0 0 1 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+        <linearGradient x1="64.0094789%" y1="27.9333543%" x2="35.3382357%" y2="56.3566623%" id="linearGradient-10">
+            <stop stop-color="#FFFFFF" offset="0%"></stop>
+            <stop stop-color="#BEDABF" offset="100%"></stop>
+        </linearGradient>
+        <polygon id="path-11" points="-1.98681641 22.3803711 18 41.7626953 18 54.96875 -1.98681641 39.9667969"></polygon>
+        <filter x="-45.0%" y="-27.6%" width="170.0%" height="143.0%" filterUnits="objectBoundingBox" id="filter-12">
+            <feOffset dx="-2" dy="-2" in="SourceAlpha" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="2" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feColorMatrix values="0 0 0 0 0.487093856   0 0 0 0 0.671210672   0 0 0 0 0.493033108  0 0 0 1 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+    </defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="logo_kubify">
+            <g id="Rectangle-2" transform="translate(1.000000, 2.000000)">
+                <mask id="mask-2" fill="white">
+                    <use xlink:href="#path-1"></use>
+                </mask>
+                <use id="Mask" fill="#009F76" xlink:href="#path-1"></use>
+                <polygon fill="#000000" opacity="0.289628623" mask="url(#mask-2)" points="-17.5019531 49.296875 44 19.543457 56.8798828 60.6904297 26.90625 96.296875"></polygon>
+            </g>
+            <g id="Group" transform="translate(45.500000, 44.000000) scale(-1, 1) translate(-45.500000, -44.000000) translate(28.000000, 20.000000)">
+                <mask id="mask-5" fill="white">
+                    <use xlink:href="#path-4"></use>
+                </mask>
+                <use id="Oval-2" fill="url(#linearGradient-3)" xlink:href="#path-4"></use>
+                <polygon id="Rectangle" fill="url(#linearGradient-6)" mask="url(#mask-5)" points="-1.98681641 -21.6196289 18 -2.23730469 18 26.3920898 -3.36621094 6.27392578"></polygon>
+                <g id="Rectangle" mask="url(#mask-5)">
+                    <use fill="black" fill-opacity="1" filter="url(#filter-9)" xlink:href="#path-8"></use>
+                    <use fill="url(#linearGradient-7)" fill-rule="evenodd" xlink:href="#path-8"></use>
+                </g>
+                <g id="Rectangle" mask="url(#mask-5)">
+                    <use fill="black" fill-opacity="1" filter="url(#filter-12)" xlink:href="#path-11"></use>
+                    <use fill="url(#linearGradient-10)" fill-rule="evenodd" xlink:href="#path-11"></use>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

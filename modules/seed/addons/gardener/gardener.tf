@@ -50,7 +50,7 @@ variable "namespace" {
   default = "garden"
 }
 variable "api_service_account" {
-  default = "garden-apiserver"
+  default = "gardener-apiserver"
 }
 
 module "gardener" {
@@ -111,10 +111,10 @@ module "server" {
   ca_key = "${var.ca_key}"
 
    dns_names = [
-     "garden-apiserver",
-     "garden-apiserver.${var.namespace}",
-     "garden-apiserver.${var.namespace}.svc",
-     "garden-apiserver.${var.namespace}.svc.cluster.local"
+     "gardener-apiserver",
+     "gardener-apiserver.${var.namespace}",
+     "gardener-apiserver.${var.namespace}.svc",
+     "gardener-apiserver.${var.namespace}.svc.cluster.local"
    ]
 }
 
@@ -122,7 +122,7 @@ locals {
   dummy = {
     namespace = "${var.namespace}"
     api_service_account = "${var.api_service_account}"
-    controller_service_account = "garden-controller-manager"
+    controller_service_account = "gardener-controller-manager"
     apiserver_replicas = 1
     apiserver_image = "${module.versions.garden_apiserver_image}"
     apiserver_version = "${module.versions.garden_apiserver_version}"
@@ -140,7 +140,7 @@ locals {
   default_values = {
     namespace = "${var.namespace}"
     api_service_account = "${var.api_service_account}"
-    controller_service_account = "garden-controller-manager"
+    controller_service_account = "gardener-controller-manager"
     apiserver_replicas = 1
     apiserver_image = "${module.versions.garden_apiserver_image}"
     apiserver_version = "${module.versions.garden_apiserver_version}"
