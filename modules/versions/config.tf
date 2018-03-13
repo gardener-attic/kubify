@@ -149,6 +149,26 @@ module "machine_controller_version" {
   optional = true
   values=[ "${var.machine_controller_version}","${lookup(var.versions,"machine_controller_version","")}", "${local.machine_controller_version}" ]
 }
+module "tiller_image" {
+  source="../defaults"
+  optional = true
+  values=[ "${var.tiller_image}","${lookup(var.versions,"tiller_image","")}", "${local.tiller_image}" ]
+}
+module "tiller_version" {
+  source="../defaults"
+  optional = true
+  values=[ "${var.tiller_version}","${lookup(var.versions,"tiller_version","")}", "${local.tiller_version}" ]
+}
+module "helm_image" {
+  source="../defaults"
+  optional = true
+  values=[ "${var.helm_image}","${lookup(var.versions,"helm_image","")}", "${local.helm_image}" ]
+}
+module "helm_version" {
+  source="../defaults"
+  optional = true
+  values=[ "${var.helm_version}","${lookup(var.versions,"helm_version","")}", "${local.helm_version}" ]
+}
 
 #
 # always provide a config map value
@@ -179,6 +199,10 @@ output "versions" {
       external_dns_version = "${module.external_dns_version.value}"
       machine_controller_image = "${module.machine_controller_image.value}"
       machine_controller_version = "${module.machine_controller_version.value}"
+      tiller_image = "${module.tiller_image.value}"
+      tiller_version = "${module.tiller_version.value}"
+      helm_image = "${module.helm_image.value}"
+      helm_version = "${module.helm_version.value}"
   }
 }
 
@@ -253,4 +277,16 @@ output "machine_controller_image" {
 }
 output "machine_controller_version" {
   value = "${module.machine_controller_version.value}"
+}
+output "tiller_image" {
+  value = "${module.tiller_image.value}"
+}
+output "tiller_version" {
+  value = "${module.tiller_version.value}"
+}
+output "helm_image" {
+  value = "${module.helm_image.value}"
+}
+output "helm_version" {
+  value = "${module.helm_version.value}"
 }

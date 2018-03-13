@@ -115,6 +115,11 @@ resource "template_dir" "bootkube" {
 
     ssl_certs_dir = "${var.host_ssl_certs_dir}"
     pull_secret_b64 = "${var.pull_secret_b64}"
+
+    tiller_version = "${module.versions.tiller_version}"
+    tiller_image = "${module.versions.tiller_image}"
+    helm_version = "${module.versions.helm_version}"
+    helm_image = "${module.versions.helm_image}"
   }
 }
 

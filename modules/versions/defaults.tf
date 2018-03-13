@@ -29,8 +29,7 @@ locals {
   bootkube                   = "quay.io/coreos/bootkube"
   kubernetes_hyperkube       = "gcr.io/google_containers/hyperkube"
   kubernetes_hyperkube_patch = ""
-  nginx_version              = "0.9.0"
-  lego_version               = "0.1.5"
+  nginx_version              = "0.9.0" lego_version               = "0.1.5"
   dex_version                = "v2.6.1"
 
   garden_apiserver_image     = "eu.gcr.io/gardener-project/gardener/apiserver"
@@ -43,4 +42,9 @@ locals {
 
   machine_controller_image   = "eu.gcr.io/gardener-project/gardener/machine-controller-manager"
   machine_controller_version = "0.1.0-0f9d4de017c78f550f1153b83dc70807855df396"
+
+  tiller_version = "v2.7.2"
+  tiller_image = "gcr.io/kubernetes-helm/tiller"
+  helm_version = "v0.2.1"
+  helm_image = "bitnami/helm-crd-controller"
 }

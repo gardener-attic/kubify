@@ -89,3 +89,16 @@ variable "machine_controller_image" {
 variable "machine_controller_version" {
   default = ""
 }
+
+variable "tiller_image" {
+  default = ""
+}
+variable "tiller_version" {
+  default = ""
+}
+variable "helm_image" {
+  default = ""
+}
+variable "helm_version" {
+  default = ""
+}

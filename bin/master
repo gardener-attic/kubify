@@ -829,8 +829,17 @@ doSSH()
   local t="$1"
   shift
   case "$1" in
-    -l) cmd="journalctl -u $2 -f"
-        shift 2;;
+    -l) if [ -z "$2" ]; then
+          if [ "$t" = master ]; then
+            cmd="journalctl -u bootkube -f"
+            shift
+          else
+            Error "service name missing"
+          fi
+        else
+          cmd="journalctl -u $2 -f"
+          shift 2
+        fi;;
   esac
   requireCluster
   if [ $# -eq 0 ]; then
