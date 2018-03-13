@@ -1,0 +1,12 @@
+apiVersion: v1
+entries:
+  gardener:
+  - apiVersion: v1
+    created: 2018-03-13T16:34:26.97133976+01:00
+    description: A Helm chart to deploy the Gardener
+    digest: 3d4cab394541d60bf2ab759dc61a534ea6337a6c017de924b6ef38c067158ff3
+    name: gardener
+    urls:
+    - gardener-0.1.0.tgz
+    version: 0.1.0
+generated: 2018-03-13T16:34:26.967776368+01:00
