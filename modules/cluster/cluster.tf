@@ -131,6 +131,8 @@ locals {
 data "template_file" "cluster-info" {
   template = "${file("${path.module}/templates/cluster-info")}"
   vars {
+    cluster_name = "${var.cluster_name}"
+    cluster_domain = "${module.domain_name.value}"
     bootstrap_etcd_service_ip = "${module.bootstrap_etcd_service_ip.value}"
     etcd_service_ip = "${module.etcd_service_ip.value}"
     api_service_ip = "${module.api_service_ip.value}"

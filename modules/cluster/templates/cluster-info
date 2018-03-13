@@ -1,3 +1,5 @@
+CLUSTER_NAME=${cluster_name}
+CLUSTER_DOMAIN=${cluster_domain}
 BOOTSTRAP_ETCD_SERVICE_IP=${bootstrap_etcd_service_ip}
 ETCD_SERVICE_IP=${etcd_service_ip}
 DNS_SERVICE_IP=${dns_service_ip}
