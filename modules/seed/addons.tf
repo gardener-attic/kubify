@@ -75,6 +75,8 @@ module "gardener" {
   active = "${contains(local.selected,"gardener")}"
   config = "${local.configured["gardener"]}"
 
+  standard = "${local.standard}"
+
   domain_name = "${var.domain_name}"
   etcd_service_ip = "${var.etcd_service_ip}"
   dns = "${merge(module.route53_access_info.value,var.dns)}"

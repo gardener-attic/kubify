@@ -45,6 +45,9 @@ variable "etcd_service_ip" {
 variable "versions" {
   type = "map"
 }
+variable "standard" {
+  type = "map"
+}
 
 variable "namespace" {
   default = "garden"
