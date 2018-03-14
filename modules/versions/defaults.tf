@@ -38,9 +38,9 @@ locals {
   dashboard_version = "v1.8.3"
 
   garden_apiserver_image    = "eu.gcr.io/gardener-project/gardener/apiserver"
-  garden_apiserver_version  = "0.1.0-8446cd54eef1514992757f944850fdc34aa42c83"
+  garden_apiserver_version  = "0.1.0-0628e0bdd679351378c05503cf1de301a79a1b2a"
   garden_controller_image   = "eu.gcr.io/gardener-project/gardener/controller-manager"
-  garden_controller_version = "0.1.0-8446cd54eef1514992757f944850fdc34aa42c83"
+  garden_controller_version = "0.1.0-0628e0bdd679351378c05503cf1de301a79a1b2a"
 
   external_dns_image   = "mandelsoft/external-dns"
   external_dns_version = "v0.4.8-ms-3"
