@@ -169,6 +169,16 @@ module "helm_version" {
   optional = true
   values=[ "${var.helm_version}","${lookup(var.versions,"helm_version","")}", "${local.helm_version}" ]
 }
+module "dashboard_image" {
+  source="../defaults"
+  optional = true
+  values=[ "${var.dashboard_image}","${lookup(var.versions,"dashboard_image","")}", "${local.dashboard_image}" ]
+}
+module "dashboard_version" {
+  source="../defaults"
+  optional = true
+  values=[ "${var.dashboard_version}","${lookup(var.versions,"dashboard_version","")}", "${local.dashboard_version}" ]
+}
 
 #
 # always provide a config map value
@@ -203,6 +213,8 @@ output "versions" {
       tiller_version = "${module.tiller_version.value}"
       helm_image = "${module.helm_image.value}"
       helm_version = "${module.helm_version.value}"
+      dashboard_image = "${module.dashboard_image.value}"
+      dashboard_version = "${module.dashboard_version.value}"
   }
 }
 
@@ -289,4 +301,10 @@ output "helm_image" {
 }
 output "helm_version" {
   value = "${module.helm_version.value}"
+}
+output "dashboard_image" {
+  value = "${module.dashboard_image.value}"
+}
+output "dashboard_version" {
+  value = "${module.dashboard_version.value}"
 }
