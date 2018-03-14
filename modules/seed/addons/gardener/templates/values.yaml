@@ -1,0 +1,93 @@
+# Gardener API server configuration values
+apiserver:
+  enabled: true
+  replicaCount: ${apiserver_replicas}
+  serviceAccountName: ${api_service_account}
+  image:
+    repository: ${apiserver_image}
+    tag: ${apiserver_version}
+  etcd:
+    servers: https://${etcd_service_ip}:2379
+    caBundle: |
+        ${etcd_client_ca_crt_indent8}
+    tls:
+      crt: |
+        ${etcd_client_crt_indent8}
+      key: |
+        ${etcd_client_key_indent8}
+
+  groupPriorityMinimum: 10000
+  versionPriority: 20
+  caBundle: |
+        ${apiserver_ca_crt_indent8}
+  tls:
+    crt: |
+        ${apiserver_crt_indent8}
+    key: |
+        ${apiserver_key_indent8}
+
+# Gardener controller manager configuration values
+controller:
+  enabled: true
+  replicaCount: ${controller_replicas}
+  serviceAccountName: ${controller_service_account}
+  image:
+    repository: ${controller_image}
+    tag: ${controller_version}
+  internalDomain:
+    provider: aws-route53 # aws-route53 or google-clouddns
+    hostedZoneID: ${hosted_zone_id}
+    domain: ${internal_domain}
+    credentials:
+      # for aws-route53 we need 'accessKeyID' and 'secretAccessKey'
+      accessKeyID: ${route53_access_key}
+      secretAccessKey: ${route53_secret_key}
+      # for google-clouddns we need 'serviceaccount.json' field' (service account needs 'DNS administrator' role)
+      # serviceaccount.json: '{"type": "service_account", "project_id": "...", ...}'
+  defaultDomains:
+  - provider: aws-route53 # aws-route53 or google-clouddns
+    hostedZoneID: ${hosted_zone_id}
+    domain: ${internal_domain}
+    credentials:
+      # for aws-route53 we need 'accessKeyID' and 'secretAccessKey'
+      accessKeyID: ${route53_access_key}
+      secretAccessKey: ${route53_secret_key}
+
+  alertingSMTP: []
+  # - to: email-address-to-send-alerts-to
+  #   from: email-address-to-send-alerts-from
+  #   smarthost: smtp-host-used-for-sending
+  #   auth_username: smtp-authentication-username
+  #   auth_identity: smtp-authentication-username
+  #   auth_password: smtp-authentication-password
+  config:
+    clientConnection:
+      acceptContentTypes: application/json
+      contentType: application/json
+      qps: 100
+      burst: 130
+    controllers:
+      shoot:
+        concurrentSyncs: 20
+        syncPeriod: 10m
+        retryDuration: 1440m
+      shootCare:
+        concurrentSyncs: 5
+        syncPeriod: 30s
+      shootMaintenance:
+        concurrentSyncs: 5
+        syncPeriod: 15m
+    leaderElection:
+      leaderElect: true
+      leaseDuration: 15s
+      renewDeadline: 10s
+      retryPeriod: 2s
+      resourceLock: configmaps
+    logLevel: info
+    metrics:
+      interval: 30s
+    server:
+      bindAddress: 0.0.0.0
+      port: ${controller_port}
+
+

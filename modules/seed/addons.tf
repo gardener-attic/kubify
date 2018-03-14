@@ -81,9 +81,9 @@ module "gardener" {
   dns             = "${merge(module.route53_access_info.value,var.dns)}"
   versions        = "${var.versions}"
 
-  tls_dir = "${var.gen_dir}/files/addons/gardener/tls"
-  ca      = "${module.apiserver.ca_cert}"
-  ca_key  = "${module.apiserver.ca_key}"
+  gen_dir = "${var.gen_dir}/files/addons/gardener"
+  ca = "${module.apiserver.ca_cert}"
+  ca_key = "${module.apiserver.ca_key}"
 }
 
 module "external-dns" {

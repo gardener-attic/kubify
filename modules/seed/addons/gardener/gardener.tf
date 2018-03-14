@@ -26,7 +26,7 @@ variable "active" {
   type = "string"
 }
 
-variable "tls_dir" {
+variable "gen_dir" {
   type = "string"
 }
 variable "ca" {
@@ -71,6 +71,11 @@ module "route53_access" {
 } 
 
 locals {
+  tls_dir = "${var.gen_dir}/tls"
+}
+
+
+locals {
   domain = "${lookup(var.config, "domain", var.domain_name)}"
   access_key = "${lookup(var.config, "access_key", module.route53_access.access_key)}"
   secret_key = "${lookup(var.config, "secret_key", module.route53_access.secret_key)}"
@@ -107,7 +112,7 @@ module "server" {
   source = "../../../tls"
   active = "${var.active}"
 
-  file_base = "${var.tls_dir}"
+  file_base = "${local.tls_dir}"
   common_name = "gardener"
   organization = "SAP SE"
   ca = "${var.ca}"
@@ -143,23 +148,49 @@ locals {
   default_values = {
     namespace = "${var.namespace}"
     api_service_account = "${var.api_service_account}"
-    controller_service_account = "gardener-controller-manager"
+    apiserver_ca_crt_indent8 = "${indent(8,base64decode(var.standard["apiserver_ca_crt_b64"]))}"
+    apiserver_crt_indent8 = "${indent(8,module.server.cert_pem)}"
+    apiserver_key_indent8 = "${indent(8,module.server.private_key_pem)}"
+    apiserver_crt_b64 = "${module.server.cert_pem_b64}"
+    apiserver_key_b64 = "${module.server.private_key_pem_b64}"
     apiserver_replicas = 1
     apiserver_image = "${module.versions.garden_apiserver_image}"
     apiserver_version = "${module.versions.garden_apiserver_version}"
+    controller_service_account = "gardener-controller-manager"
     controller_replicas = 1
     controller_image = "${module.versions.garden_controller_image}"
     controller_version = "${module.versions.garden_controller_version}"
     controller_port = 2718
     etcd_service_ip = "${var.etcd_service_ip}"
-    apiserver_crt_b64 = "${module.server.cert_pem_b64}"
-    apiserver_key_b64 = "${module.server.private_key_pem_b64}"
+    etcd_client_ca_crt_indent8 = "${indent(8,base64decode(var.standard["etcd_client_ca_crt_b64"]))}"
+    etcd_client_crt_indent8 = "${indent(8,base64decode(var.standard["etcd_client_crt_b64"]))}"
+    etcd_client_key_indent8 = "${indent(8,base64decode(var.standard["etcd_client_key_b64"]))}"
 
   }
   generated = {
     domain_secret = "${module.domain_secret.value}"
+
+    internal_domain = "${local.garden_domain}"
+    route53_access_key = "${local.access_key}"
+    route53_secret_key = "${local.secret_key}"
+    hosted_zone_id = "${local.hosted_zone_id}"
   }
 }
+
+locals {
+  valuesvars = "${merge(var.standard,local.default_values,local.generated,var.config)}"
+}
+
+data "template_file" "chart_values" {
+  template = "${file("${path.module}/templates/values.yaml")}"
+  vars = "${local.valuesvars}"
+}
+
+resource "local_file" "chart_values" {
+  filename = "${var.gen_dir}/chart-values.yaml"
+  content = "${data.template_file.chart_values.rendered}"
+}
+
 #
 # addon module api
 #
