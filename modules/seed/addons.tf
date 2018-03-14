@@ -165,6 +165,7 @@ locals {
       basic_auth_b64    = "${module.dashboard_creds.b64}"
       dashboard_image   = "${module.versions.dashboard_image}"
       dashboard_version = "${module.versions.dashboard_version}"
+      app_name          = "dashboard"
     }
 
     "nginx-ingress" = "${module.nginx-ingress.defaults}"
@@ -211,6 +212,7 @@ locals {
     email          = ""
     version        = ""
     namespace      = ""
+    app_name       = ""
   }
 
   extention = {
