@@ -80,7 +80,7 @@ module "identity_record" {
 
   config = "${var.dns}"
 
-  active = "${module.provide_lbaas_ingress.value}"
+  active = "${module.provide_lbaas_ingress.value && contains(keys(var.addons),"dex")}"
   name   = "${module.cluster.identity}"
   type   = "${module.vip_type_nginx.value}"
   ttl    = "300"
