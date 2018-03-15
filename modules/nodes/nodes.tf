@@ -443,3 +443,8 @@ output "lbaas_address_type" {
 output "generation" {
   value = "${var.generation}"
 }
+
+output "vm_info" {
+ value = "${module.vms.vm_info}"
+}
+

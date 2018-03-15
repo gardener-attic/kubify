@@ -122,6 +122,7 @@ module "iaas_info" {
   value = {
     network_id        = "${openstack_networking_network_v2.cluster.id}"
     server_group_id   = "${openstack_compute_servergroup_v2.nodes.id}"
+    security_group = "${openstack_networking_secgroup_v2.cluster.name}"
   }
 }
 
@@ -130,6 +131,9 @@ output "iaas_info" {
 }
 output "subnet_id" {
   value = "${openstack_networking_subnet_v2.cluster.id}"
+}
+output "nodes_cidr" {
+  value = "${module.subnet_cidr.value}"
 }
 output "security_group_id" {
   value = "${openstack_networking_secgroup_v2.cluster.id}"

@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 module "addons_dir" {
   source = "../variable"
-  value = "${path.module}/templates/addons"
+  value  = "${path.module}/templates/addons"
 }
 
 #
@@ -34,24 +33,37 @@ module "addons_dir" {
 # manifesttemplate processing of the addon
 #
 
+module "nginx-ingress" {
+  source     = "addons/nginx-ingress"
+  active     = "${contains(local.selected,"nginx-ingress")}"
+  cluster-lb = "${var.cluster-lb}"
+  config     = "${local.configured["nginx-ingress"]}"
+
+  versions = "${var.versions}"
+  standard = "${local.standard}"
+
+  selected = "${local.selected}"
+}
+
 module "monitoring" {
   source = "addons/monitoring"
   active = "${contains(local.selected,"monitoring")}"
 
-  config = "${local.configured["monitoring"]}"
-  cluster_name = "${var.cluster_name}"
+  config              = "${local.configured["monitoring"]}"
+  cluster_name        = "${var.cluster_name}"
   ingress_base_domain = "${var.ingress_base_domain}"
   dashboard_creds_b64 = "${module.dashboard_creds.b64}"
 
   tls_dir = "${var.gen_dir}/files/addons/monitoring/tls"
-  ca = "${module.apiserver.ca_cert}"
-  ca_key = "${module.apiserver.ca_key}"
+  ca      = "${module.apiserver.ca_cert}"
+  ca_key  = "${module.apiserver.ca_key}"
 }
 
 module "dex" {
-  source = "addons/dex"
-  active = "${contains(local.selected,"dex")}"
-  config = "${local.configured["dex"]}"
+  source     = "addons/dex"
+  active     = "${contains(local.selected,"dex")}"
+  cluster-lb = "${var.cluster-lb}"
+  config     = "${local.configured["dex"]}"
 
   versions = "${var.versions}"
   standard = "${local.standard}"
@@ -62,14 +74,38 @@ module "gardener" {
   active = "${contains(local.selected,"gardener")}"
   config = "${local.configured["gardener"]}"
 
-  domain_name = "${var.domain_name}"
+  standard = "${local.standard}"
+
+  domain_name     = "${var.domain_name}"
   etcd_service_ip = "${var.etcd_service_ip}"
-  dns = "${merge(module.route53_access_info.value,var.dns)}"
-  versions = "${var.versions}"
+  dns             = "${merge(module.route53_access_info.value,var.dns)}"
+  versions        = "${var.versions}"
 
   tls_dir = "${var.gen_dir}/files/addons/gardener/tls"
-  ca = "${module.apiserver.ca_cert}"
-  ca_key = "${module.apiserver.ca_key}"
+  ca      = "${module.apiserver.ca_cert}"
+  ca_key  = "${module.apiserver.ca_key}"
+}
+
+module "external-dns" {
+  source = "addons/external-dns"
+  active = "${contains(local.selected,"external-dns")}"
+  config = "${local.configured["external-dns"]}"
+
+  versions = "${var.versions}"
+
+  dns_access_info = "${module.dns_access_info.value}"
+  domain_filters  = "${var.domain_name}"
+}
+
+module "machine" {
+  source = "addons/machine"
+  active = "${contains(local.selected,"machine")}"
+  config = "${local.configured["machine"]}"
+
+  versions = "${var.versions}"
+
+  iaas_config = "${var.iaas_config}"
+  vm_info     = "${var.worker_info}"
 }
 
 #
@@ -87,101 +123,139 @@ variable "slash" {
 
 module "iaas-addons" {
   source = "../variable"
-  value = "${length(var.addon_dirs) > 0 ? "${var.slash}${join("${var.slash} ${var.slash}", var.addon_dirs)}${var.slash}" : ""}"
+  value  = "${length(var.addon_dirs) > 0 ? "${var.slash}${join("${var.slash} ${var.slash}", var.addon_dirs)}${var.slash}" : ""}"
 }
 
 locals {
   # this an explicit array to keep a distinct order for the multi-resource
-  addons = [ "dashboard", "nginx-ingress", "logging", "kube-lego", "heapster", "monitoring", "guestbook", "cluster", "dex", "gardener" ]
+  addons = [
+    "dashboard",
+    "nginx-ingress",
+    "logging",
+    "kube-lego",
+    "heapster",
+    "monitoring",
+    "guestbook",
+    "cluster",
+    "dex",
+    "gardener",
+    "external-dns",
+    "machine",
+  ]
 
   index_dex = "${index(local.addons,"dex")}"
 
   empty = {
-     "dashboard" = { }
-     "heapster" = { }
-     "nginx-ingress" = { }
-     "kube-lego" = { }
-     "logging" = {}
-     "monitoring" = { }
-     "guestbook" = { }
-     "cluster" = { }
-     "dex" = { }
-     "gardener" = { }
+    "dashboard"     = {}
+    "heapster"      = {}
+    "nginx-ingress" = {}
+    "kube-lego"     = {}
+    "logging"       = {}
+    "monitoring"    = {}
+    "guestbook"     = {}
+    "cluster"       = {}
+    "dex"           = {}
+    "gardener"      = {}
+    "external-dns"  = {}
+    "machine"       = {}
   }
 
   defaults = {
-     "dashboard" = {
-       basic_auth_b64 = "${module.dashboard_creds.b64}"
-     }
-     "nginx-ingress" = {
-        version = "${module.versions.nginx_version}"
-     }
-     "logging" = {}
-     "heapster" = {}
-     "kube-lego" = {
-       version = "${module.versions.lego_version}"
-     }
-     "guestbook" = {}
-     "monitoring" = "${module.monitoring.defaults}"
-     "dex" = "${module.dex.defaults}"
-     "gardener" = "${module.gardener.defaults}"
-     "cluster" = {}
+    "dashboard" = {
+      basic_auth_b64    = "${module.dashboard_creds.b64}"
+      dashboard_image   = "${module.versions.dashboard_image}"
+      dashboard_version = "${module.versions.dashboard_version}"
+      app_name          = "dashboard"
+    }
+
+    "nginx-ingress" = "${module.nginx-ingress.defaults}"
+    "logging"       = {}
+    "heapster"      = {}
+
+    "kube-lego" = {
+      version = "${module.versions.lego_version}"
+    }
+
+    "guestbook"    = {}
+    "monitoring"   = "${module.monitoring.defaults}"
+    "cluster"      = {}
+    "dex"          = "${module.dex.defaults}"
+    "gardener"     = "${module.gardener.defaults}"
+    "external-dns" = "${module.external-dns.defaults}"
+    "machine"      = "${module.machine.defaults}"
   }
 
   generated = {
-    "monitoring" = "${module.monitoring.generated}"
-    "dex" = "${module.dex.generated}"
-    "gardener" = "${module.gardener.generated}"
+    "nginx-ingress" = "${module.nginx-ingress.generated}"
+    "monitoring"    = "${module.monitoring.generated}"
+    "dex"           = "${module.dex.generated}"
+    "gardener"      = "${module.gardener.generated}"
+    "external-dns"  = "${module.external-dns.generated}"
+    "machine"       = "${module.machine.generated}"
   }
+
   deploy = {
-    "monitoring" = "${module.monitoring.deploy}"
-    "dex" = "${module.dex.deploy}"
-    "gardener" = "${module.gardener.deploy}"
+    "nginx-ingress" = "${module.nginx-ingress.deploy}"
+    "monitoring"    = "${module.monitoring.deploy}"
+    "dex"           = "${module.dex.deploy}"
+    "gardener"      = "${module.gardener.deploy}"
+    "external-dns"  = "${module.external-dns.deploy}"
+    "machine"       = "${module.machine.deploy}"
   }
+
   subst = {
     "dex" = "empty"
   }
 
   dummy_tmp = {
-       basic_auth_b64 = ""
-       email = ""
-       version = ""
-       namespace = ""
-     }
+    basic_auth_b64 = ""
+    email          = ""
+    version        = ""
+    namespace      = ""
+    app_name       = ""
+  }
+
   extention = {
-     dummy = "${merge(local.dummy_tmp, module.monitoring.dummy, module.dex.dummy, module.gardener.dummy)}"
-     empty = { }
+    dummy = "${merge(local.dummy_tmp, module.monitoring.dummy, module.dex.dummy, module.gardener.dummy, module.external-dns.dummy, module.nginx-ingress.dummy, module.machine.dummy)}"
+    empty = {}
   }
 
   selected = "${keys(var.addons)}"
 
-  configured = "${merge(local.empty, var.addons)}"
-  config = "${merge(local.empty, local.extention, var.addons)}"
-  defaultconfig = "${merge(local.empty, local.defaults)}"
+  configured      = "${merge(local.empty, var.addons)}"
+  config          = "${merge(local.empty, local.extention, var.addons)}"
+  defaultconfig   = "${merge(local.empty, local.defaults)}"
   generatedconfig = "${merge(local.empty, local.generated)}"
 
   standard = {
-    rbac_version = "rbac.authorization.k8s.io/v1beta1"
+    rbac_version       = "rbac.authorization.k8s.io/v1beta1"
     deployment_version = "apps/v1beta2"
 
     cluster_name = "${var.cluster_name}"
-    ingress = "${var.ingress_base_domain}"
+    cluster_type = "${var.cluster_type}"
+    ingress      = "${var.ingress_base_domain}"
 
-    identity = "${var.identity_domain}"
-    apiserver_ca_crt_b64 = "${module.apiserver.ca_cert_b64}"
+    identity               = "${var.identity_domain}"
+    apiserver_ca_crt_b64   = "${module.apiserver.ca_cert_b64}"
     api_aggregator_crt_b64 = "${module.aggregator.cert_pem_b64}"
     api_aggregator_key_b64 = "${module.aggregator.private_key_pem_b64}"
     etcd_client_ca_crt_b64 = "${module.etcd-client.ca_cert_b64}"
-    etcd_client_crt_b64 = "${module.etcd-client.cert_pem_b64}"
-    etcd_client_key_b64 = "${module.etcd-client.private_key_pem_b64}"
+    etcd_client_crt_b64    = "${module.etcd-client.cert_pem_b64}"
+    etcd_client_key_b64    = "${module.etcd-client.private_key_pem_b64}"
+
+    nodes_cidr = "${var.nodes_cidr}"
   }
 
-  empty_dir =  "${path.module}/templates/empty"
+  empty_dir = "${path.module}/templates/empty"
+
   addon_template_dirs = {
-    cluster = "${lookup(local.config["cluster"],"template_dir","${local.empty_dir}")}"
-    monitoring = "${module.monitoring.manifests}"
-    gardener = "${module.gardener.manifests}"
-    dex = "${module.dex.manifests}"
+    nginx-ingress = "${module.nginx-ingress.manifests}"
+    cluster       = "${lookup(local.config["cluster"],"template_dir","${local.empty_dir}")}"
+    monitoring    = "${module.monitoring.manifests}"
+    dex           = "${module.dex.manifests}"
+    gardener      = "${module.gardener.manifests}"
+    external-dns  = "${module.external-dns.manifests}"
+    machine       = "${module.machine.manifests}"
   }
 }
 
@@ -202,7 +276,7 @@ locals {
 resource "template_dir" "addons" {
   count = "${length(local.addons)}"
 
-  source_dir = "${lookup(local.addon_template_dirs, local.addons[count.index], "${module.addons_dir.value}/${local.addons[count.index]}/manifests")}"
+  source_dir      = "${lookup(local.addon_template_dirs, local.addons[count.index], "${module.addons_dir.value}/${local.addons[count.index]}/manifests")}"
   destination_dir = "${var.gen_dir}/${contains(local.selected, local.addons[count.index]) ? "assets/addons" : "tmp"}/${local.addons[count.index]}/manifests"
 
   #vars = "${merge(map("addon_name",local.addons[count.index]), local.standard, local.defaultconfig[local.addons[count.index]],local.generatedconfig[local.addons[count.index]],local.config[contains(local.selected, local.addons[count.index]) ? "empty" : "dummy"])}"
@@ -211,14 +285,15 @@ resource "template_dir" "addons" {
 
 resource "null_resource" "deploy" {
   count = "${length(local.addons)}"
+
   triggers {
-    addon = "${local.addons[count.index]}"
-    active ="${contains(local.selected, local.addons[count.index])}"
-    deploy = "${contains(local.selected, local.addons[count.index]) ? lookup(local.deploy,local.addons[count.index],"") : ""}" 
+    addon  = "${local.addons[count.index]}"
+    active = "${contains(local.selected, local.addons[count.index])}"
+    deploy = "${contains(local.selected, local.addons[count.index]) ? lookup(local.deploy,local.addons[count.index],"") : ""}"
   }
 
   provisioner "local-exec" {
-    command  = "${contains(local.selected, local.addons[count.index]) ? "${path.module}/scripts/copy_deploy '${var.gen_dir}/addons/${local.addons[count.index]}' '${lookup(local.deploy,local.addons[count.index],"")}'" : "echo ${local.addons[count.index]} inactive"}"
+    command = "${contains(local.selected, local.addons[count.index]) ? "${path.module}/scripts/copy_deploy '${var.gen_dir}/addons/${local.addons[count.index]}' '${lookup(local.deploy,local.addons[count.index],"")}'" : "echo ${local.addons[count.index]} inactive"}"
   }
 }
 

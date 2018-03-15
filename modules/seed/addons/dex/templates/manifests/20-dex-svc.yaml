@@ -8,6 +8,8 @@ metadata:
   name: identity-service
   namespace: ${namespace}
 spec:
+  type: ClusterIP
+  sessionAffinity: None
   ports:
   - name: identity
     port: ${dex_port}
@@ -16,5 +18,3 @@ spec:
   selector:
     component: identity
     k8s-app: identity
-  sessionAffinity: None
-  type: ClusterIP

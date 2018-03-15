@@ -19,6 +19,9 @@ variable "versions" {
 variable "cluster_name" {
   type="string"
 }
+variable "cluster_type" {
+  type="string"
+}
 variable "addons" {
   type="map"
 }
@@ -78,6 +81,9 @@ variable "api_dns_name" {
   type = "string"
 }
 
+variable "nodes_cidr" {
+  type = "string"
+}
 variable "service_cidr" {
   type = "string"
 }
@@ -128,6 +134,10 @@ variable "oidc_groups_claim" {
   default = "groups"
 }
 
+variable "cluster-lb" {
+  default = "false"
+}
+
 variable "addon_dirs" {
   type = "list"
   default = []
@@ -163,3 +173,11 @@ variable "etcd_backup" {
 variable "access_info" {
   type = "map"
 }
+
+variable "worker_info" {
+  type = "map"
+}
+variable "iaas_config" {
+  type = "map"
+}
+

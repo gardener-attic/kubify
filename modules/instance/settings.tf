@@ -24,9 +24,17 @@ module "omit_lbaas" {
   source = "../flag"
   option = "${var.omit_lbaas}"
 }
+module "cluster-lb" {
+  source = "../flag"
+  option = "${var.cluster-lb}"
+}
 module "provide_lbaas" {
-  source = "../variable"
-  value = "${module.use_lbaas.flag && ! module.omit_lbaas.flag ? 1 : 0}"
+  source = "../flag"
+  option = "${module.use_lbaas.flag && ! module.omit_lbaas.flag}"
+}
+module "provide_lbaas_ingress" {
+  source = "../flag"
+  option = "${module.provide_lbaas.value && ! module.cluster-lb.value}"
 }
 
 module "vip_nginx" {

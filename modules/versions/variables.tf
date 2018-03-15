@@ -17,63 +17,117 @@
 ###############################################################
 
 variable "image_name" {
- default = ""
-} 
+  default = ""
+}
+
 variable "bastion_image_name" {
- default = ""
-} 
+  default = ""
+}
 
 variable "kubernetes_version" {
- default = ""
+  default = ""
 }
+
 variable "dns_version" {
- default = ""
+  default = ""
 }
+
 variable "flannel_version" {
- default = ""
+  default = ""
 }
+
 variable "cni_version" {
- default = ""
+  default = ""
 }
+
 variable "etcd_version" {
- default = ""
+  default = ""
 }
+
 variable "etcd_operator_version" {
- default = ""
+  default = ""
 }
+
 variable "bootkube_version" {
- default = ""
+  default = ""
 }
 
 variable "kubernetes_hyperkube" {
- default = ""
+  default = ""
 }
+
 variable "bootkube" {
- default = ""
+  default = ""
 }
+
 variable "kubernetes_hyperkube_patch" {
- default = ""
+  default = ""
 }
 
 variable "nginx_version" {
- default = ""
+  default = ""
 }
+
 variable "lego_version" {
- default = ""
+  default = ""
 }
+
 variable "dex_version" {
- default = ""
+  default = ""
 }
 
 variable "garden_apiserver_image" {
- default = ""
+  default = ""
 }
+
 variable "garden_apiserver_version" {
- default = ""
+  default = ""
 }
+
 variable "garden_controller_image" {
- default = ""
+  default = ""
 }
+
 variable "garden_controller_version" {
- default = ""
+  default = ""
+}
+
+variable "external_dns_image" {
+  default = ""
+}
+
+variable "external_dns_version" {
+  default = ""
+}
+
+variable "machine_controller_image" {
+  default = ""
+}
+
+variable "machine_controller_version" {
+  default = ""
+}
+
+variable "tiller_image" {
+  default = ""
+}
+
+variable "tiller_version" {
+  default = ""
+}
+
+variable "helm_image" {
+  default = ""
+}
+
+variable "helm_version" {
+  default = ""
+}
+
+variable "dashboard_image" {
+  default = ""
+}
+
+variable "dashboard_version" {
+  default = ""
 }

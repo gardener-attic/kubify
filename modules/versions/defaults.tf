@@ -30,11 +30,26 @@ locals {
   kubernetes_hyperkube       = "gcr.io/google_containers/hyperkube"
   kubernetes_hyperkube_patch = ""
   nginx_version              = "0.9.0"
-  lego_version               = "0.1.5"
-  dex_version                = "v2.6.1"
 
-  garden_apiserver_image     = "eu.gcr.io/gardener-project/gardener/apiserver"
-  garden_apiserver_version   = "0.1.0-8446cd54eef1514992757f944850fdc34aa42c83"
-  garden_controller_image    = "eu.gcr.io/gardener-project/gardener/controller-manager"
-  garden_controller_version  = "0.1.0-8446cd54eef1514992757f944850fdc34aa42c83"
+  lego_version = "0.1.5"
+  dex_version  = "v2.6.1"
+
+  dashboard_iamge   = "gcr.io/google_containers/kubernetes-dashboard-amd64"
+  dashboard_version = "v1.8.3"
+
+  garden_apiserver_image    = "eu.gcr.io/gardener-project/gardener/apiserver"
+  garden_apiserver_version  = "0.1.0-0628e0bdd679351378c05503cf1de301a79a1b2a"
+  garden_controller_image   = "eu.gcr.io/gardener-project/gardener/controller-manager"
+  garden_controller_version = "0.1.0-0628e0bdd679351378c05503cf1de301a79a1b2a"
+
+  external_dns_image   = "mandelsoft/external-dns"
+  external_dns_version = "v0.4.8-ms-3"
+
+  machine_controller_image   = "eu.gcr.io/gardener-project/gardener/machine-controller-manager"
+  machine_controller_version = "0.1.0-0f9d4de017c78f550f1153b83dc70807855df396"
+
+  tiller_version = "v2.7.2"
+  tiller_image   = "gcr.io/kubernetes-helm/tiller"
+  helm_version   = "v0.2.1"
+  helm_image     = "bitnami/helm-crd-controller"
 }

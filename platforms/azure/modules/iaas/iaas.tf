@@ -119,6 +119,8 @@ module "iaas_info" {
   source = "../../../../modules/mapvar"
   value = {
     resource_group_name = "${azurerm_resource_group.rg.name}"
+    vnet_name = "${azurerm_virtual_network.vnet.name}"
+    subnet_name = "${azurerm_subnet.subnet.name}"
   }
 }
 
@@ -127,6 +129,9 @@ output "iaas_info" {
 }
 output "subnet_id" {
   value = "${azurerm_subnet.subnet.id}"
+}
+output "nodes_cidr" {
+  value = "${module.subnet_cidr.value}"
 }
 output "security_group_id" {
   value = "${azurerm_network_security_group.nodes.id}"

@@ -23,3 +23,8 @@ module "route53_access" {
   access_info = "${module.route53_access_info.value}"
 } 
 
+module "dns_access_info" {
+  source = "../mapvar"
+  value = "${merge(module.route53_access_info.value,var.dns)}"
+}
+

@@ -78,16 +78,27 @@ resource "aws_route" "public" {
 }
 
 
+locals {
+  cluster_tag = "${map("kubernetes.io/cluster/${var.cluster_name}", "1")}"
+  public_tags = {
+    "Name" = "${var.prefix}-public"
+    "Cluster" = "${var.cluster_name}"
+    "kubernetes.io/role/elb" = "use"
+  }
+  private_tags = {
+    "Name" = "${var.prefix}-private"
+    "Cluster" = "${var.cluster_name}"
+    "kubernetes.io/role/internal-elb" = "use"
+  }
+}
+
 # public util subnet
 resource "aws_subnet" "public" {
   vpc_id     = "${aws_vpc.cluster.id}"
   cidr_block = "${module.public_cidr.value}"
   availability_zone = "${module.availability_zone.value}"
 
-  tags {
-    Name = "${var.prefix}-public"
-    Cluster = "${var.cluster_name}"
-  }
+  tags = "${merge(local.public_tags, local.cluster_tag)}"
 }
 resource "aws_route_table_association" "public" {
    subnet_id = "${aws_subnet.public.id}"
@@ -130,11 +141,9 @@ resource "aws_subnet" "private" {
   cidr_block = "${module.private_cidr.value}"
   availability_zone = "${module.availability_zone.value}"
 
-  tags {
-    Name = "${var.prefix}-private"
-    Cluster = "${var.cluster_name}"
-  }
+  tags = "${merge(local.private_tags, local.cluster_tag)}"
 }
+
 resource "aws_route_table_association" "private" {
   subnet_id = "${aws_subnet.private.id}"
   route_table_id = "${aws_route_table.nat.id}"
@@ -252,6 +261,9 @@ module "iaas_info" {
 
 output "iaas_info" {
   value = "${module.iaas_info.value}"
+}
+output "nodes_cidr" {
+  value = "${module.nodes_cidr.value}"
 }
 output "subnet_id" {
   value = "${aws_subnet.nodes.id}"

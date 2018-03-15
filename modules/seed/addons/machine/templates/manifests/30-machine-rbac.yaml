@@ -1,0 +1,120 @@
+---
+#
+# control 
+#
+apiVersion: ${rbac_version}
+kind: ClusterRole
+metadata:
+  name: control:machine-controller-manager
+rules:
+- apiGroups:
+  - machine.sapcloud.io
+  resources:
+  - awsmachineclasses
+  - azuremachineclasses
+  - gcpmachineclasses
+  - openstackmachineclasses
+  - machinedeployments
+  - machines
+  - machinesets
+  verbs:
+  - create
+  - delete
+  - deletecollection
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - secrets
+  - endpoints
+  - events
+  verbs:
+  - create
+  - delete
+  - deletecollection
+  - get
+  - list
+  - patch
+  - update
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: control:machine-controller-manager
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: control:machine-controller-manager
+subjects:
+- kind: ServiceAccount
+  name: machine-controller
+  namespace: ${namespace}
+
+---
+#
+# target 
+#
+apiVersion: ${rbac_version}
+kind: ClusterRole
+metadata:
+  name: target:machine-controller-manager
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  - endpoints
+  - replicationcontrollers
+  - pods
+  verbs:
+  - create
+  - delete
+  - deletecollection
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - pods/eviction
+  verbs:
+  - create
+- apiGroups:
+  - extensions
+  - apps
+  resources:
+  - replicasets
+  - statefulsets
+  - daemonsets
+  - deployments
+  verbs:
+  - create
+  - delete
+  - deletecollection
+  - get
+  - list
+  - patch
+  - update
+  - watch
+---
+apiVersion: ${rbac_version}
+kind: ClusterRoleBinding
+metadata:
+  name: target:machine-controller-manager
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: target:machine-controller-manager
+subjects:
+- kind: ServiceAccount
+  name: machine-controller
+  namespace: ${namespace}
+

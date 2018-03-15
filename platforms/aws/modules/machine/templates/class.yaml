@@ -1,0 +1,25 @@
+apiVersion: machine.sapcloud.io/v1alpha1
+kind: AWSMachineClass
+metadata:
+  name: standard-worker # Name of aws machine class goes here
+  namespace: ${namespace}
+spec:
+  ami: ${image} # Machine image name
+  machineType: ${flavor} # Name of the machine flavor
+  region: ${region} # Region where to place the machine
+  keyName:   ${keypair} # Name of the ssh key pair
+  iam:
+    name: ${iam_profile} # instance profile
+  networkInterfaces:
+    - subnetID: ${subnetid} # Subnet ID where the machine should be placed
+      securityGroupID:
+        - ${secgrp} # List of security groups which should be used for this machine
+  tags: ${tags}
+  blockDevices:
+    - ebs:
+        volumeSize: ${root_volume_size}
+        volumeType: gp2
+  secretRef: # Secret pointing to a secret which contains the provider secret and cloudconfig
+    namespace: ${namespace}  # Namespace
+    name: worker-nodes  # Name of the secret
+

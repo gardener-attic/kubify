@@ -187,7 +187,7 @@ module "worker" {
   provide_fips       = "${module.worker_config.assign_fips}"
   node_labels        = [ "node-role.kubernetes.io/node" ]
 
-  provide_lbaas      = "${module.provide_lbaas.value}"
+  provide_lbaas      = "${module.provide_lbaas_ingress.value}"
   lbaas_ports        = "${var.nginx_ports}"
   lbaas_description  = "NGINX Loadbalancer" 
 }

@@ -129,6 +129,56 @@ module "garden_controller_version" {
   optional = true
   values=[ "${var.garden_controller_version}","${lookup(var.versions,"garden_controller_version","")}", "${local.garden_controller_version}" ]
 }
+module "external_dns_image" {
+  source="../defaults"
+  optional = true
+  values=[ "${var.external_dns_image}","${lookup(var.versions,"external_dns_image","")}", "${local.external_dns_image}" ]
+}
+module "external_dns_version" {
+  source="../defaults"
+  optional = true
+  values=[ "${var.external_dns_version}","${lookup(var.versions,"external_dns_version","")}", "${local.external_dns_version}" ]
+}
+module "machine_controller_image" {
+  source="../defaults"
+  optional = true
+  values=[ "${var.machine_controller_image}","${lookup(var.versions,"machine_controller_image","")}", "${local.machine_controller_image}" ]
+}
+module "machine_controller_version" {
+  source="../defaults"
+  optional = true
+  values=[ "${var.machine_controller_version}","${lookup(var.versions,"machine_controller_version","")}", "${local.machine_controller_version}" ]
+}
+module "tiller_image" {
+  source="../defaults"
+  optional = true
+  values=[ "${var.tiller_image}","${lookup(var.versions,"tiller_image","")}", "${local.tiller_image}" ]
+}
+module "tiller_version" {
+  source="../defaults"
+  optional = true
+  values=[ "${var.tiller_version}","${lookup(var.versions,"tiller_version","")}", "${local.tiller_version}" ]
+}
+module "helm_image" {
+  source="../defaults"
+  optional = true
+  values=[ "${var.helm_image}","${lookup(var.versions,"helm_image","")}", "${local.helm_image}" ]
+}
+module "helm_version" {
+  source="../defaults"
+  optional = true
+  values=[ "${var.helm_version}","${lookup(var.versions,"helm_version","")}", "${local.helm_version}" ]
+}
+module "dashboard_image" {
+  source="../defaults"
+  optional = true
+  values=[ "${var.dashboard_image}","${lookup(var.versions,"dashboard_image","")}", "${local.dashboard_image}" ]
+}
+module "dashboard_version" {
+  source="../defaults"
+  optional = true
+  values=[ "${var.dashboard_version}","${lookup(var.versions,"dashboard_version","")}", "${local.dashboard_version}" ]
+}
 
 #
 # always provide a config map value
@@ -155,6 +205,16 @@ output "versions" {
       garden_apiserver_version = "${module.garden_apiserver_version.value}"
       garden_controller_image = "${module.garden_controller_image.value}"
       garden_controller_version = "${module.garden_controller_version.value}"
+      external_dns_image = "${module.external_dns_image.value}"
+      external_dns_version = "${module.external_dns_version.value}"
+      machine_controller_image = "${module.machine_controller_image.value}"
+      machine_controller_version = "${module.machine_controller_version.value}"
+      tiller_image = "${module.tiller_image.value}"
+      tiller_version = "${module.tiller_version.value}"
+      helm_image = "${module.helm_image.value}"
+      helm_version = "${module.helm_version.value}"
+      dashboard_image = "${module.dashboard_image.value}"
+      dashboard_version = "${module.dashboard_version.value}"
   }
 }
 
@@ -217,4 +277,34 @@ output "garden_controller_image" {
 }
 output "garden_controller_version" {
   value = "${module.garden_controller_version.value}"
+}
+output "external_dns_image" {
+  value = "${module.external_dns_image.value}"
+}
+output "external_dns_version" {
+  value = "${module.external_dns_version.value}"
+}
+output "machine_controller_image" {
+  value = "${module.machine_controller_image.value}"
+}
+output "machine_controller_version" {
+  value = "${module.machine_controller_version.value}"
+}
+output "tiller_image" {
+  value = "${module.tiller_image.value}"
+}
+output "tiller_version" {
+  value = "${module.tiller_version.value}"
+}
+output "helm_image" {
+  value = "${module.helm_image.value}"
+}
+output "helm_version" {
+  value = "${module.helm_version.value}"
+}
+output "dashboard_image" {
+  value = "${module.dashboard_image.value}"
+}
+output "dashboard_version" {
+  value = "${module.dashboard_version.value}"
 }
