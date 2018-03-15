@@ -26,6 +26,7 @@ data "template_file" "kubelet_conf" {
     kubelet_cert_b64 = "${module.kubelet.cert_pem_b64}"
     kubelet_key_b64 = "${module.kubelet.private_key_pem_b64}"
     cluster_name = "${var.cluster_name}"
+    cluster_type = "${var.cluster_type}"
   }
 }
 
