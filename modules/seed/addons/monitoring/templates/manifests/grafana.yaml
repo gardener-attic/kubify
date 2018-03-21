@@ -106,11 +106,6 @@ spec:
         app: grafana
         role: monitoring
     spec:
-      # This feature requires 1.6 Kubernetes. Its needed otherwise Grafana won't fetch the needed metadata from Prometheus
-      #initContainers:
-      #- name: init-prometheus
-      #  image: busybox:1.27
-      #  command: ['sh', '-c', 'until wget -T 5 -qO- http://prometheus-web:8080/status > /dev/null; do echo waiting for Prometheus; sleep 2; done;']
       containers:
       - name: grafana
         image: grafana/grafana:5.0.0-beta5
