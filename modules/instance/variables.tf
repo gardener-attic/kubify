@@ -267,6 +267,10 @@ variable "nginx_ports" {
   default = [ "80", "443" ]
 }
 
+variable "deploy_tiller" {
+  default = "true"
+}
+
 ###############################################################
 # process related inputs
 ###############################################################

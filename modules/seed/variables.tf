@@ -170,6 +170,9 @@ variable "assets_inst_dir" {
 variable "etcd_backup" {
   type = "map"
 }
+variable "deploy_tiller" {
+  default = "true"
+}
 variable "access_info" {
   type = "map"
 }

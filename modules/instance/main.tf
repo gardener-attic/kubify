@@ -152,6 +152,7 @@ module "seed" {
   etcd_backup = "${var.etcd_backup}"
 
   use_lbaas = "${var.use_lbaas}"
+  deploy_tiller = "${var.deploy_tiller}"
 
   addon_dirs = "${module.iaas.addon-dirs}"
   addon_trigger = "${module.iaas.addon-trigger}"

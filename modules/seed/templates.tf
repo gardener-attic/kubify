@@ -115,11 +115,6 @@ resource "template_dir" "bootkube" {
 
     ssl_certs_dir = "${var.host_ssl_certs_dir}"
     pull_secret_b64 = "${var.pull_secret_b64}"
-
-    tiller_version = "${module.versions.tiller_version}"
-    tiller_image = "${module.versions.tiller_image}"
-    helm_version = "${module.versions.helm_version}"
-    helm_image = "${module.versions.helm_image}"
   }
 }
 
@@ -139,11 +134,32 @@ module "dashboard_creds" {
   default = "${module.dashboard_user.value}:${bcrypt(module.dashboard_password.value)}"
 }
 
-module "distict_manifests" {
+module "distinct_manifests" {
   source = "../variable"
   value = "${var.gen_dir}/addons/distinct/manifests"
 }
 
+module "tiller" {
+  source = "../flag"
+  option = "${var.deploy_tiller || contains(keys(var.addons),"gardener")}"
+}
+
+data "template_file" "tiller" {
+  count    = "${module.tiller.if_active}"
+  template = "${file("${path.module}/templates/misc/kube-helm.yaml")}"
+
+  vars {
+    tiller_version = "${module.versions.tiller_version}"
+    tiller_image = "${module.versions.tiller_image}"
+    helm_version = "${module.versions.helm_version}"
+    helm_image = "${module.versions.helm_image}"
+  }
+}
+resource "local_file" "tiller" {
+  count    = "${module.tiller.if_active}"
+  content  = "${data.template_file.tiller.rendered}"
+  filename = "${module.distinct_manifests.value}/kube-helm.yaml"
+}
 
 #
 # copy all resources into a single location for archive file generation
@@ -152,6 +168,7 @@ resource "null_resource" "manifests" {
   depends_on = ["template_dir.bootkube" ]
   triggers {
     bootkube = "${template_dir.bootkube.id}"
+    tiller   = "${join("",local_file.tiller.*.id)}"
     backup   = "${module.etcd_backup_id.value}"
     iaas     = "${var.addon_trigger}"
     script   = "${sha256(file("${path.module}/scripts/prepare_assets.sh"))}"

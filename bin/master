@@ -70,7 +70,7 @@ Error()
 doPrepare()
 {
   cd "$ROOT"
-  if [ k8s/variables.tf -nt k8s/variants/cluster.tf -o k8s/variants/create.sh -nt k8s/variants/cluster.tf ]; then
+  if [ k8s/modules/instance/variables.tf -nt k8s/variants/cluster.tf -o k8s/variants/create.sh -nt k8s/variants/cluster.tf ]; then
     echo "regenerating cluster interface -> please update the template project"
     k8s/variants/create.sh
   fi

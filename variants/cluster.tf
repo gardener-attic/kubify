@@ -351,6 +351,10 @@ variable "nginx_ports" {
   default = [ "80", "443" ]
 }
 
+variable "deploy_tiller" {
+  default = "true"
+}
+
 ###############################################################
 # process related inputs
 ###############################################################
@@ -441,6 +445,7 @@ module "instance" {
   host_ssl_certs_dir = "${var.host_ssl_certs_dir}"
   api_ports = "${var.api_ports}"
   nginx_ports = "${var.nginx_ports}"
+  deploy_tiller = "${var.deploy_tiller}"
   bootkube = "${var.bootkube}"
   master_state = "${var.master_state}"
   worker_state = "${var.worker_state}"

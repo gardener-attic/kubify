@@ -85,7 +85,7 @@ data "template_file" "s3_etcd_backup_spec" {
 resource "local_file" "s3_etcd_backup_secret" {
   count    = "${module.s3_etcd_backup.flag}"
   content  = "${data.template_file.s3_secret.rendered}"
-  filename = "${module.distict_manifests.value}/etcd-backup-secret.yaml"
+  filename = "${module.distinct_manifests.value}/etcd-backup-secret.yaml"
 }
 
 resource "local_file" "s3_etcd_backup_spec" {
