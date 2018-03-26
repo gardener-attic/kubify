@@ -332,6 +332,13 @@ Besides those mandatory settings there are various optional settings.
 ##### Addons
 
 Several [addons](doc/addons.md) can be chosen for optional deployment.
+For addons [helm deployment manifests](https://github.com/bitnami-labs/helm-crd/blob/master/README.md) are supported.
+Therefore the standard control plane is extended by the helm controller and tiller deployment.
+
+|Name|Meaning|
+|--|--|
+|addons|map with addon and their configuration settings (see [addons](doc/addons.md))
+|deploy_tiller|addons may now use helm manifests. If this is not requited the tiller/helm operator deployment can be disabled. (default: true)|
 
 ##### General settings
 
@@ -381,6 +388,7 @@ With every new release more preconfigured settings are delivered with Kubify.
 |oidc_groups_claim|OIDC configuration for API server, default: `groups`|
 |service_cidr|Kubenetes cluster ip range (services) (default: 10.241.0.0/17)|
 |pod_cidr|Kubenetes pod ip range (default: 10.241.128.0/17)|
+|event_ttl|Time to live for events (default: 48h0m0s)|
 
 ##### VM update
 
