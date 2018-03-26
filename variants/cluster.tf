@@ -355,6 +355,10 @@ variable "deploy_tiller" {
   default = "true"
 }
 
+variable "event_ttl" {
+  default = "48h0m0s"
+}
+
 ###############################################################
 # process related inputs
 ###############################################################
@@ -446,6 +450,7 @@ module "instance" {
   api_ports = "${var.api_ports}"
   nginx_ports = "${var.nginx_ports}"
   deploy_tiller = "${var.deploy_tiller}"
+  event_ttl = "${var.event_ttl}"
   bootkube = "${var.bootkube}"
   master_state = "${var.master_state}"
   worker_state = "${var.worker_state}"

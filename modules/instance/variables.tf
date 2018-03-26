@@ -271,6 +271,10 @@ variable "deploy_tiller" {
   default = "true"
 }
 
+variable "event_ttl" {
+  default = "48h0m0s"
+}
+
 ###############################################################
 # process related inputs
 ###############################################################

@@ -113,6 +113,7 @@ resource "template_dir" "bootkube" {
     etcd_mounts = "${module.etcd_mount.value}"
     etcd_initcontainers = "${module.etcd_initcontainers.value}"
 
+    event_ttl = "${var.event_ttl}"
     ssl_certs_dir = "${var.host_ssl_certs_dir}"
     pull_secret_b64 = "${var.pull_secret_b64}"
   }

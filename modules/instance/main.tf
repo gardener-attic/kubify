@@ -151,6 +151,7 @@ module "seed" {
   etcd_backup_file = "${var.etcd_backup_file}"
   etcd_backup = "${var.etcd_backup}"
 
+  event_ttl = "${var.event_ttl}"
   use_lbaas = "${var.use_lbaas}"
   deploy_tiller = "${var.deploy_tiller}"
 

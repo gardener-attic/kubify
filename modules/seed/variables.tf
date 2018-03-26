@@ -156,6 +156,9 @@ variable "pull_secret_b64" {
 variable "cluster_info" {
   type = "string"
 }
+variable "event_ttl" {
+  type = "string"
+}
 
 variable "etcd_backup_file" {
   type="string"
