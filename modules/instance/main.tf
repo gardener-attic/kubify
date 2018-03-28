@@ -34,6 +34,7 @@ module "cluster"{
   base_domain  = "${module.base_domain.value}"
   domain_name  = "${module.domain_name.value}"
   additional_domains = "${var.additional_domains}"
+  additional_api_domains = "${var.additional_api_domains}"
   pull_secret = "${module.pull_secret.content}"
 }
 

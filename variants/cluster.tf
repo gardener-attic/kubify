@@ -230,6 +230,10 @@ variable "additional_domains" {
   type = "list"
   default = []
 }
+variable "additional_api_domains" {
+  type = "list"
+  default = []
+}
 
 variable "dns_nameservers" {
   type = "list"
@@ -425,6 +429,7 @@ module "instance" {
   base_domain = "${var.base_domain}"
   domain_name = "${var.domain_name}"
   additional_domains = "${var.additional_domains}"
+  additional_api_domains = "${var.additional_api_domains}"
   dns_nameservers = "${var.dns_nameservers}"
   flavor_name = "${var.flavor_name}"
   bastion_image_name = "${var.bastion_image_name}"

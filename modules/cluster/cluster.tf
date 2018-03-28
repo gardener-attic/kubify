@@ -58,6 +58,10 @@ variable "additional_domains" {
   type = "list"
   default =  []
 }
+variable "additional_api_domains" {
+  type = "list"
+  default =  []
+}
 variable "service_cidr" {
   type = "string"
 }
