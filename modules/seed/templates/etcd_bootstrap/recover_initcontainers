@@ -5,14 +5,16 @@
     - /bin/sh 
     - -ec
     - |
-      etcdctl snapshot restore \
+      test -f /var/etcd-backupdir/${backup_file} \
+      && etcdctl snapshot restore \
       /var/etcd-backupdir/${backup_file} \
       --data-dir=/var/etcd/data \
       --name=boot-etcd \
       --initial-cluster=boot-etcd=https://${bootstrap_etcd_service_ip}:12380 \
       --initial-cluster-token=bootkube \
       --initial-advertise-peer-urls=https://${bootstrap_etcd_service_ip}:12380 \
-      --skip-hash-check=true 
+      --skip-hash-check=true \
+      && mv /var/etcd-backupdir/${backup_file} /var/etcd-backupdir/${backup_file}.bak
     env:
     - name: ETCDCTL_API
       value: "3"

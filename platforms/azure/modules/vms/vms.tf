@@ -164,6 +164,10 @@ output "ips" {
   value = ["${module.ips.value}"]
 }
 
+output "disk_vm_ips" {
+  value = ["${module.ips.value}"]
+}
+
 output "count" {
   value = ["${var.node_count}"]
 }

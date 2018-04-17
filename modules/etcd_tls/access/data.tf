@@ -17,16 +17,26 @@ variable "tls" {
   type = "map"
 }
 
+variable "tls_dir" {
+  default = ""
+}
+
 module "peer" {
   source = "../../tls/access"
   tls = "${var.tls["peer"]}"
+  file_base = "${length(var.tls_dir)>0 ? "${var.tls_dir}/peer": ""}"
 }
 
 module "server" {
   source = "../../tls/access"
   tls = "${var.tls["server"]}"
+  file_base = "${length(var.tls_dir)>0 ? "${var.tls_dir}/server": ""}"
 }
 
+
+output "trigger" {
+  value = "${join(",",list(module.peer.trigger,module.server.trigger))}"
+}
 
 # server
 

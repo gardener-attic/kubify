@@ -23,8 +23,7 @@ data "openstack_images_image_v2" "image" {
   most_recent = true
 }
 
-output "image_name" {
-  value  = "${var.image_name}"
+output "image_name" { value  = "${var.image_name}"
 }
 
 module "storage" {
@@ -152,6 +151,12 @@ output "ids" {
 }
 output "ips" {
   value = ["${module.ips.value}"]
+}
+output "disk_vm_ips" {
+  value = "${openstack_compute_instance_v2.storage.*.network.0.fixed_ip_v4}"
+}
+output "nodisk_vm_ips" {
+  value = "${openstack_compute_instance_v2.nostorage.*.network.0.fixed_ip_v4}"
 }
 
 output "count" {

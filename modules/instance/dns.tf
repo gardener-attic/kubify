@@ -57,6 +57,7 @@ module "ingress_record" {
   config = "${var.dns}"
 
   active = "${module.provide_lbaas_ingress.value}"
+  name_count = "${module.configure_additional_dns.flag ? 1 + length(var.additional_domains) : 1}"
   names  = "${slice(module.cluster.ingress_domains, 0,  (module.configure_additional_dns.flag ? 1 + length(var.additional_domains) : 1))}"
   type   = "${module.vip_type_nginx.value}"
   ttl    = "300"
@@ -85,6 +86,20 @@ module "identity_record" {
   type   = "${module.vip_type_nginx.value}"
   ttl    = "300"
   target = "${module.vip_nginx.value}"
+}
+
+module "dns_records" {
+  source = "./../dns"
+
+  config = "${var.dns}"
+
+  active = "${module.selfhosted_etcd.if_not_active}"
+  #active = "false"
+  entry_count  = "${module.master_config.count}"
+  targets = "${module.master.disk_vm_ips}"
+  names   = "${module.cluster.etcd_domains}"
+  type   = "${module.vip_type_nginx.value}"
+  ttl    = "300"
 }
 
 

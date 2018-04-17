@@ -74,20 +74,40 @@ module "etcd_operator_version" {
   optional = true
   values=[ "${var.etcd_operator_version}","${lookup(var.versions,"etcd_operator_version","")}", "${local.etcd_operator_version}" ]
 }
+module "etcd_backup_version" {
+  source="../defaults"
+  optional = true
+  values=[ "${var.etcd_backup_version}","${lookup(var.versions,"etcd_backup_version","")}", "${local.etcd_backup_version}" ]
+}
+module "etcd_backup_image" {
+  source="../defaults"
+  optional = true
+  values=[ "${var.etcd_backup_image}","${lookup(var.versions,"etcd_backup_image","")}", "${local.etcd_backup_image}" ]
+}
 module "bootkube_version" {
   source="../defaults"
   optional = true
   values=[ "${var.bootkube_version}","${lookup(var.versions,"bootkube_version","")}", "${local.bootkube_version}" ]
 }
+module "bootkube_image" {
+  source="../defaults"
+  optional = true
+  values=[ "${var.bootkube_image}","${lookup(var.versions,"bootkube_image","")}", "${local.bootkube_image}" ]
+}
+module "static_bootkube_version" {
+  source="../defaults"
+  optional = true
+  values=[ "${var.static_bootkube_version}","${lookup(var.versions,"static_bootkube_version","")}", "${local.static_bootkube_version}" ]
+}
+module "static_bootkube_image" {
+  source="../defaults"
+  optional = true
+  values=[ "${var.static_bootkube_image}","${lookup(var.versions,"static_bootkube_image","")}", "${local.static_bootkube_image}" ]
+}
 module "kubernetes_hyperkube" {
   source="../defaults"
   optional = true
   values=[ "${var.kubernetes_hyperkube}","${lookup(var.versions,"kubernetes_hyperkube","")}", "${local.kubernetes_hyperkube}" ]
-}
-module "bootkube" {
-  source="../defaults"
-  optional = true
-  values=[ "${var.bootkube}","${lookup(var.versions,"bootkube","")}", "${local.bootkube}" ]
 }
 module "kubernetes_hyperkube_patch" {
   source="../defaults"
@@ -194,9 +214,13 @@ output "versions" {
       cni_version = "${module.cni_version.value}"
       etcd_version = "${module.etcd_version.value}"
       etcd_operator_version = "${module.etcd_operator_version.value}"
+      etcd_backup_version = "${module.etcd_backup_version.value}"
+      etcd_backup_image = "${module.etcd_backup_image.value}"
       bootkube_version = "${module.bootkube_version.value}"
+      bootkube_image = "${module.bootkube_image.value}"
+      static_bootkube_version = "${module.static_bootkube_version.value}"
+      static_bootkube_image = "${module.static_bootkube_image.value}"
       kubernetes_hyperkube = "${module.kubernetes_hyperkube.value}"
-      bootkube = "${module.bootkube.value}"
       kubernetes_hyperkube_patch = "${module.kubernetes_hyperkube_patch.value}"
       nginx_version = "${module.nginx_version.value}"
       lego_version = "${module.lego_version.value}"
@@ -245,14 +269,26 @@ output "etcd_version" {
 output "etcd_operator_version" {
   value = "${module.etcd_operator_version.value}"
 }
+output "etcd_backup_version" {
+  value = "${module.etcd_backup_version.value}"
+}
+output "etcd_backup_image" {
+  value = "${module.etcd_backup_image.value}"
+}
 output "bootkube_version" {
   value = "${module.bootkube_version.value}"
 }
+output "bootkube_image" {
+  value = "${module.bootkube_image.value}"
+}
+output "static_bootkube_version" {
+  value = "${module.static_bootkube_version.value}"
+}
+output "static_bootkube_image" {
+  value = "${module.static_bootkube_image.value}"
+}
 output "kubernetes_hyperkube" {
   value = "${module.kubernetes_hyperkube.value}"
-}
-output "bootkube" {
-  value = "${module.bootkube.value}"
 }
 output "kubernetes_hyperkube_patch" {
   value = "${module.kubernetes_hyperkube_patch.value}"

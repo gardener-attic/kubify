@@ -23,6 +23,7 @@
       Group=root
       ExecStartPre=/bin/mkdir -p /etc/kubernetes/manifests/.
       ExecStart=/usr/bin/rkt run \
+        --insecure-options=image \
         --trust-keys-from-https \
         --volume assets,kind=host,source=${assets_inst_dir} \
         --mount volume=assets,target=/assets \

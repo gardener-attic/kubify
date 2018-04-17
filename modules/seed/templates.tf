@@ -79,11 +79,16 @@ locals {
   oidc_dropin = "${module.use_oidc.if_active ? indent(8,join("\n",formatlist("- %s",compact(split("\n",data.template_file.oidc.rendered))))) : ""}"
 }
 
-resource "template_dir" "bootkube" {
-  source_dir = "${path.module}/templates/bootkube"
-  destination_dir = "${var.gen_dir}/bootkube"
+locals {
+  etcd_servers_by_service = "https://${var.etcd_service_ip}:2379}"
+  etcd_servers_by_dns = "${join(",",formatlist("https://%s:2379",var.etcd_domains))}"
+  etcd_servers = "${module.selfhosted_etcd.if_active ? local.etcd_servers_by_service : local.etcd_servers_by_dns}"
+  etcd_members = "${formatlist("%s=https://%s:2380", var.etcd_names, var.etcd_domains)}"
+  etcd_predecessors = "${concat(list(""),formatlist("https://%s:2379",var.etcd_domains))}"
+}
 
-  vars {
+locals {
+  bootkube_vars {
     cluster_name = "${var.cluster_name}"
     oidc_dropin = "${local.oidc_dropin}"
     kubernetes_version = "${module.versions.kubernetes_version}"
@@ -102,6 +107,9 @@ resource "template_dir" "bootkube" {
     etcd_client_ca_crt_b64 = "${module.etcd-client.ca_cert_b64}"
     etcd_client_crt_b64 = "${module.etcd-client.cert_pem_b64}"
     etcd_client_key_b64 = "${module.etcd-client.private_key_pem_b64}"
+    etcd_servers = "${local.etcd_servers}"
+    etcd0_domain = "${var.etcd_domains[0]}"
+    etcd_base_domain = "${var.etcd_base_domain}"
     service_account_pub_b64 = "${base64encode(var.service_account_public_key_pem)}"
     service_account_key_b64 = "${base64encode(var.service_account_private_key_pem)}"
     controller_manager_ca_crt_b64 = "${module.apiserver.ca_cert_b64}"
@@ -131,6 +139,32 @@ resource "template_dir" "bootkube" {
 
     oidc_ca_secret = "${local.oidc_ca_secret}"
   }
+}
+
+module "selfhosted_etcd" {
+  source = "../flag"
+  option = "${var.selfhosted_etcd}"
+}
+
+resource "template_dir" "bootkube-common" {
+  source_dir = "${path.module}/templates/bootkube/common"
+  destination_dir = "${var.gen_dir}/bootkube/common"
+
+  vars = "${local.bootkube_vars}"
+}
+resource "template_dir" "bootkube-self" {
+  count = "${module.selfhosted_etcd.if_active}"
+  source_dir = "${path.module}/templates/bootkube/self"
+  destination_dir = "${var.gen_dir}/bootkube/self"
+
+  vars = "${local.bootkube_vars}"
+}
+resource "template_dir" "bootkube-single" {
+  count = "${module.selfhosted_etcd.if_not_active}"
+  source_dir = "${path.module}/templates/bootkube/single"
+  destination_dir = "${var.gen_dir}/bootkube/single"
+
+  vars = "${local.bootkube_vars}"
 }
 
 module "dashboard_user" {
@@ -180,15 +214,17 @@ resource "local_file" "tiller" {
 # copy all resources into a single location for archive file generation
 #
 resource "null_resource" "manifests" {
-  depends_on = ["template_dir.bootkube" ]
+  depends_on = ["template_dir.bootkube-common" ]
   triggers {
-    bootkube = "${template_dir.bootkube.id}"
+    bootkube = "${template_dir.bootkube-common.id}"
+    single   = "${join("",template_dir.bootkube-single.*.id)}"
+    self     = "${join("",template_dir.bootkube-self.*.id)}"
     tiller   = "${join("",local_file.tiller.*.id)}"
     backup   = "${module.etcd_backup_id.value}"
     iaas     = "${var.addon_trigger}"
     script   = "${sha256(file("${path.module}/scripts/prepare_assets.sh"))}"
     #command  = "${path.module}/scripts/prepare_assets.sh \"${var.gen_dir}/assets\" \"${var.gen_dir}/bootkube\" ${join(" ",formatlist("${var.gen_dir}/addons/%s",concat(local.selected,list("distinct"))))} \"${module.iaas-addons.value}\""
-    command  = "${path.module}/scripts/prepare_assets.sh \"${var.gen_dir}/assets\" \"${var.gen_dir}/bootkube\" \"${var.gen_dir}/addons/distinct\" \"${module.iaas-addons.value}\""
+    command  = "${path.module}/scripts/prepare_assets.sh \"${var.gen_dir}/assets\" \"${var.gen_dir}/bootkube\"/* \"${var.gen_dir}/addons/distinct\" \"${module.iaas-addons.value}\""
   }
 
   provisioner "local-exec" {
@@ -201,8 +237,9 @@ resource "null_resource" "manifests" {
 }
 
 resource "null_resource" "archive_deps" {
-  depends_on = [ "template_dir.bootkube", "local_file.cluster_info", "local_file.kubelet_conf", "module.kubelet", "module.apiserver", "module.etcd", "module.etcd-client", "null_resource.etcd_backup" ]
+  depends_on = [ "template_dir.bootkube-common", "local_file.cluster_info", "local_file.kubelet_conf", "module.kubelet", "module.apiserver", "module.etcd", "module.etcd-client", "null_resource.etcd_backup" ]
   triggers {
+    secrets = "${module.etcd.trigger},${module.etcd-client.trigger}"
     cluster_info = "${local_file.cluster_info.id}"
     addon_deploy   = "${join(",",null_resource.deploy.*.id)}"
     addons   = "${join(",",template_dir.addons.*.id)}"
@@ -221,6 +258,33 @@ data "archive_file" "bootkube" {
   source_dir = "${element(list("${var.gen_dir}/assets", null_resource.archive_deps.id),0)}"
 }
 
+data "archive_file" "etcdtls" {
+  count = "${module.selfhosted_etcd.if_not_active}"
+  type        = "zip"
+  output_path = "${var.gen_dir}/etcdtls.zip"
+  source_dir = "${element(list("${var.gen_dir}/etcdtls", null_resource.archive_deps.id),0)}"
+}
+
+data "template_file" "static_etcd" {
+  count = "${var.master_count * module.selfhosted_etcd.if_not_active}"
+  template = "${file("${path.module}/templates/etcd_bootstrap/static_etcd.yaml")}"
+  vars {
+    service_name = "${var.etcd_service_name}"
+    service_ip = "${var.etcd_service_ip}"
+    name = "${var.etcd_names[count.index]}"
+    version = "${module.versions.etcd_version}"
+    endpoints = "${local.etcd_servers_by_dns}"
+    predecessor = "${local.etcd_predecessors[count.index]}"
+    domain = "${var.etcd_domains[count.index]}"
+    initial_cluster = "${join(",",slice(local.etcd_members,0,count.index+1))}"
+
+    recover_volumes = "${count.index == 0 ? module.etcd_volumes.value : ""}"
+    recover_args = "${count.index == 0 ? module.etcd_initial.value : ""}"
+    recover_mounts = "${count.index == 0 ? module.etcd_mount.value : ""}"
+    recover_initcontainers = "${count.index == 0 ? module.etcd_initcontainers.value : ""}"
+  }
+}
+
 data "template_file" "kubelet_env" {
   template = "${file("${path.module}/templates/kubelet.env")}"
 
@@ -229,6 +293,16 @@ data "template_file" "kubelet_env" {
     kubelet_image_tag = "${module.versions.kubernetes_version}${module.versions.kubernetes_hyperkube_patch}"
     kubelet_image = "${module.versions.kubernetes_hyperkube}"
   }
+}
+
+output "etcdtls_sha" {
+  value = "${join("",data.archive_file.etcdtls.*.output_sha)}"
+}
+output "etcdtls_path" {
+  value = "${join("",data.archive_file.etcdtls.*.output_path)}"
+}
+output "etcd_manifests" {
+  value = "${data.template_file.static_etcd.*.rendered}"
 }
 
 resource "local_file" "kubelet_env" {

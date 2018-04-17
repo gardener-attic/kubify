@@ -199,6 +199,9 @@ variable "keep_recovery_version" {
 variable "provision_bootkube" {
   default = false
 }
+variable "setup_etcd" {
+  default = true
+}
 variable "root_certs_file" {
   type = "string"
   default = ""
@@ -369,6 +372,10 @@ variable "event_ttl" {
   default = "48h0m0s"
 }
 
+variable "selfhosted_etcd" {
+  default = "true"
+}
+
 ###############################################################
 # process related inputs
 ###############################################################
@@ -427,6 +434,7 @@ module "instance" {
   recover_cluster = "${var.recover_cluster}"
   keep_recovery_version = "${var.keep_recovery_version}"
   provision_bootkube = "${var.provision_bootkube}"
+  setup_etcd = "${var.setup_etcd}"
   root_certs_file = "${var.root_certs_file}"
   pull_secret_file = "${var.pull_secret_file}"
   dashboard_user = "${var.dashboard_user}"
@@ -464,6 +472,7 @@ module "instance" {
   nginx_ports = "${var.nginx_ports}"
   deploy_tiller = "${var.deploy_tiller}"
   event_ttl = "${var.event_ttl}"
+  selfhosted_etcd = "${var.selfhosted_etcd}"
   bootkube = "${var.bootkube}"
   master_state = "${var.master_state}"
   worker_state = "${var.worker_state}"

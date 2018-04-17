@@ -48,15 +48,32 @@ variable "etcd_operator_version" {
   default = ""
 }
 
+variable "etcd_backup_version" {
+  default = ""
+}
+
+variable "etcd_backup_image" {
+  default = ""
+}
+
 variable "bootkube_version" {
   default = ""
 }
 
-variable "kubernetes_hyperkube" {
+variable "bootkube_image" {
   default = ""
 }
 
-variable "bootkube" {
+variable "static_bootkube_version" {
+  default = ""
+}
+
+variable "static_bootkube_image" {
+  default = ""
+}
+
+
+variable "kubernetes_hyperkube" {
   default = ""
 }
 

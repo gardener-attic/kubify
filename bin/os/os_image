@@ -47,6 +47,24 @@ while [ $# -gt 0 ]; do
    esac
 done
 
+ROOT="$(pwd)"
+while [ "$ROOT" != / ]; do
+  if [ -d "$ROOT/k8s" -a -f "$ROOT/terraform.tfvars" ]; then
+    break
+  else
+    ROOT="$(dirname "$ROOT")"
+  fi
+done
+
+OSRC="$ROOT/gen/osrc"
+if [ ! -f "$OSRC" ]; then
+  OSRC="$ROOT/osrc"
+fi
+if [ -f "$OSRC" ]; then
+  echo "sourcing $OSRC..."
+  source "$OSRC"
+fi
+
 version=${1:-$default}
 #version=${1:-1576.4.0}
 if [ ! -f $image ]; then

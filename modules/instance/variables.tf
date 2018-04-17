@@ -115,6 +115,9 @@ variable "keep_recovery_version" {
 variable "provision_bootkube" {
   default = false
 }
+variable "setup_etcd" {
+  default = true
+}
 variable "root_certs_file" {
   type = "string"
   default = ""
@@ -283,6 +286,10 @@ variable "deploy_tiller" {
 
 variable "event_ttl" {
   default = "48h0m0s"
+}
+
+variable "selfhosted_etcd" {
+  default = "true"
 }
 
 ###############################################################

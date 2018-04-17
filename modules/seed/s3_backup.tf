@@ -48,19 +48,19 @@ locals {
 }
 
 data "template_file" "s3_credentials" {
-  count    = "${module.s3_etcd_backup.flag}"
+  count    = "${module.s3_etcd_backup.if_active}"
   template = "${file("${path.module}/templates/etcd_backup/s3/credentials")}"
   vars     = "${local.s3_backup_vars}"
 }
 
 data "template_file" "s3_config" {
-  count    = "${module.s3_etcd_backup.flag}"
+  count    = "${module.s3_etcd_backup.if_active}"
   template = "${file("${path.module}/templates/etcd_backup/s3/config")}"
   vars     = "${local.s3_backup_vars}"
 }
 
 data "template_file" "s3_secret" {
-  count    = "${module.s3_etcd_backup.flag}"
+  count    = "${module.s3_etcd_backup.if_active}"
   template = "${file("${path.module}/templates/etcd_backup/s3/secret.yaml")}"
 
   vars {
@@ -72,7 +72,7 @@ data "template_file" "s3_secret" {
 }
 
 data "template_file" "s3_etcd_backup_spec" {
-  count    = "${module.s3_etcd_backup.flag}"
+  count    = "${module.s3_etcd_backup.if_active}"
   template = "${file("${path.module}/templates/etcd_backup/s3/spec.json")}"
 
   vars {
@@ -83,19 +83,19 @@ data "template_file" "s3_etcd_backup_spec" {
 }
 
 resource "local_file" "s3_etcd_backup_secret" {
-  count    = "${module.s3_etcd_backup.flag}"
+  count    = "${module.s3_etcd_backup.if_active}"
   content  = "${data.template_file.s3_secret.rendered}"
   filename = "${module.distinct_manifests.value}/etcd-backup-secret.yaml"
 }
 
 resource "local_file" "s3_etcd_backup_spec" {
-  count    = "${module.s3_etcd_backup.flag}"
-  content  = "${data.template_file.s3_etcd_backup_spec.rendered}"
+  count    = "${module.s3_etcd_backup.if_active}"
+  content  = "{ \"spec\": { \n${data.template_file.s3_etcd_backup_spec.rendered}}}"
   filename = "${module.etcd_backup_spec.value}"
 }
 
 resource "aws_s3_bucket" "s3_etcd_backup" {
-  count         = "${module.s3_etcd_backup_bucket.if_defaulted * module.s3_etcd_backup.flag}"
+  count         = "${module.s3_etcd_backup_bucket.if_defaulted * module.s3_etcd_backup.if_active}"
   provider      = "aws.s3_etcd_backup"
   bucket        = "${module.s3_etcd_backup_bucket.value}"
   acl           = "private"
@@ -111,4 +111,26 @@ module "s3_etcd_backup_id" {
   source   = "../defaults"
   optional = true
   values   = "${formatlist("%s.%s",local_file.s3_etcd_backup_secret.*.id,local_file.s3_etcd_backup_spec.*.id)}"
+}
+
+
+//
+// explicit backup side car for static etcd deployment
+//
+data "template_file" "s3_backup_sidecar" {
+  count    = "${module.s3_etcd_backup.if_active}"
+  template = "${file("${path.module}/templates/etcd_backup/s3/sidecar.yaml")}"
+  vars {
+    backup_version   = "${module.versions.etcd_backup_version}"
+    backup_image     = "${module.versions.etcd_backup_image}"
+    service_ip       = "${var.etcd_service_ip}"
+    bucket           = "${module.s3_etcd_backup_bucket.value}"
+    prefix           = "${module.s3_etcd_backup_prefix.value}"
+  }
+}
+
+resource "local_file" "s3_etcd_backup_sidecar" {
+  count    = "${module.selfhosted_etcd.if_not_active * module.s3_etcd_backup.if_active}"
+  content  = "${data.template_file.s3_backup_sidecar.rendered}"
+  filename = "${module.distinct_manifests.value}/kube-etcd-backup-sidecar.yaml"
 }

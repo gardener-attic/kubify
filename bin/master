@@ -978,6 +978,10 @@ genECScript()
 {
   local ip="$(terraform output etcd_service_ip 2>/dev/null)"
   local endpoint="--endpoints https://$ip:2379"
+  if [ "$1" == -l ]; then
+    endpoint="--endpoints https://127.0.0.1:2379"
+    shift
+  fi
   cat <<EOF
 TMP="/tmp/ec\$\$"
 trap cleanup EXIT
@@ -994,7 +998,7 @@ echo "\$CERT" >"\$TMP/etcd-client.crt"
 echo "\$KEY" >"\$TMP/etcd-client.key"
 echo "\$CA" >"\$TMP/ca.crt"
 echo endpoint is $endpoint
-docker run -i --rm -v "\$TMP":/tls quay.io/coreos/etcd:v3.2 /bin/sh -c "export ETCDCTL_API=3 && /usr/local/bin/etcdctl --cert /tls/etcd-client.crt --key /tls/etcd-client.key --cacert /tls/ca.crt $endpoint $*"
+docker run -i --net=host --rm -v "\$TMP":/tls quay.io/coreos/etcd:v3.2 /bin/sh -c "export ETCDCTL_API=3 && /usr/local/bin/etcdctl --cert /tls/etcd-client.crt --key /tls/etcd-client.key --cacert /tls/ca.crt $endpoint $*"
 EOF
 }
 

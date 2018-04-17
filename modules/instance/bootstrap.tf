@@ -21,6 +21,82 @@ module "provision" {
   source = "./../flag"
   option= "${var.provision_bootkube}"
 }
+module "setup_etcd" {
+  source = "./../flag"
+  option= "${var.setup_etcd}"
+}
+
+resource "null_resource" "etcd_provision" {
+  count = "${module.master_config.count * module.selfhosted_etcd.if_not_active}"
+  triggers {
+    sha = "${module.seed.etcdtls_sha}"
+    master = "${module.master.ids[count.index]}"
+    manifest = "${module.seed.etcd_manifests[count.index]}"
+  }
+
+  connection {
+    host = "${module.master.ips[count.index]}"
+    type     = "ssh"
+    user     = "core"
+    private_key = "${module.iaas.private_key}"
+
+    bastion_host = "${module.bastion_host.value}"
+    bastion_user = "${module.bastion_user.value}"
+    bastion_private_key = "${module.iaas.private_key}"
+  }
+
+  provisioner "file" {
+    content = "${file(module.seed.etcdtls_path)}"
+    destination = "etcdtls.zip"
+  }
+  provisioner "file" {
+    content = "${module.seed.etcd_manifests[count.index]}"
+    destination = "kube-etcd.yaml"
+  }
+}
+output "etcd_provision" {
+  value = {
+    master = "${module.master_config.count}"
+    selfhosted = "${module.selfhosted_etcd.if_not_active}"
+    active = "${signum(var.bootkube + module.recover_cluster.if_active + module.provision.if_active)}"
+    count = "${module.master_config.count * module.selfhosted_etcd.if_not_active * signum(var.bootkube + module.recover_cluster.if_active + module.provision.if_active)}"
+  }
+}
+
+resource "null_resource" "etcd_setup" {
+  depends_on = [ "null_resource.etcd_provision" ]
+  count = "${module.master_config.count * module.selfhosted_etcd.if_not_active * module.setup_etcd.if_active}"
+
+  triggers {
+    provision = "${element(null_resource.etcd_provision.*.id,count.index)}"
+    version = "1"
+  }
+
+  connection {
+    host = "${module.master.ips[count.index]}"
+    type     = "ssh"
+    user     = "core"
+    private_key = "${module.iaas.private_key}"
+
+    bastion_host = "${module.bastion_host.value}"
+    bastion_user = "${module.bastion_user.value}"
+    bastion_private_key = "${module.iaas.private_key}"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "rm -rf etcdtls && unzip etcdtls.zip -d etcdtls",
+      "sudo mkdir -p /etc/kubernetes/static-secrets",
+      "sudo mv etcdtls/* /etc/kubernetes/static-secrets",
+    ]
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo cp kube-etcd.yaml /etc/kubernetes/manifests",
+    ]
+  }
+}
 
 resource "null_resource" "master_provision" {
   count = "${signum(var.bootkube + module.recover_cluster.if_active + module.provision.if_active)}"
@@ -32,7 +108,7 @@ resource "null_resource" "master_provision" {
   }
 
   connection {
-    host = "${element(module.master.ips, 0)}"
+    host = "${module.master.ips[0]}"
     type     = "ssh"
     user     = "core"
     private_key = "${module.iaas.private_key}"
@@ -68,7 +144,7 @@ resource "null_resource" "master_setup" {
   }
 
   connection {
-    host = "${element(module.master.ips, 0)}"
+    host = "${module.master.ips[0]}"
     type     = "ssh"
     user     = "core"
     private_key = "${module.iaas.private_key}"
@@ -115,7 +191,7 @@ resource "null_resource" "test" {
   }
 
   connection {
-    host = "${element(module.master.ips, 0)}"
+    host = "${module.master.ips[0]}"
     type     = "ssh"
     user     = "core"
     private_key = "${module.iaas.private_key}"

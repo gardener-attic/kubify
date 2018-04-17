@@ -28,9 +28,11 @@ module "aggregator" {
 module "etcd" {
   source = "../etcd_tls/access"
   tls = "${var.tls_etcd}"
+  tls_dir = "${module.selfhosted_etcd.if_active ? "" : "${var.gen_dir}/etcdtls/etcd"}" 
 }
 module "etcd-client" {
   source = "../tls/access"
   tls = "${var.tls_etcd_client}"
+  file_base = "${module.selfhosted_etcd.if_active ? "" : "${var.gen_dir}/etcdtls/etcd-client"}" 
 }
 

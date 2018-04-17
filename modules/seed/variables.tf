@@ -80,6 +80,15 @@ variable "tls_etcd_client" {
 variable "api_dns_name" {
   type = "string"
 }
+variable "etcd_names" {
+  type = "list"
+}
+variable "etcd_domains" {
+  type = "list"
+}
+variable "etcd_base_domain" {
+  type = "string"
+}
 
 variable "nodes_cidr" {
   type = "string"
@@ -95,6 +104,9 @@ variable "bootstrap_etcd_service_ip" {
   type = "string"
 }
 variable "etcd_service_ip" {
+  type = "string"
+}
+variable "etcd_service_name" {
   type = "string"
 }
 variable "dns_service_ip" {
@@ -178,6 +190,9 @@ variable "assets_inst_dir" {
 }
 variable "etcd_backup" {
   type = "map"
+}
+variable "selfhosted_etcd" {
+  default = "true"
 }
 variable "deploy_tiller" {
   default = "true"

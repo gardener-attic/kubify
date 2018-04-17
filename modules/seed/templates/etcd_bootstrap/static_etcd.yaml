@@ -1,0 +1,92 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ${name}
+  namespace: kube-system
+  labels:
+    app: etcd
+    etcd_cluster: ${service_name}
+    etcd_node:  ${name}
+spec:
+${recover_initcontainers}
+  containers:
+  - name: etcd
+    image: quay.io/coreos/etcd:${version}
+    imagePullPolicy: IfNotPresent
+    command:
+     - /bin/sh
+     - -ec
+     - "flock /var/lock/etcd.lock -c \"
+        STATE=existing\n
+        set -x\n
+        if [ \\$(basename ${name} -0000) != ${name} ]; then \n
+          if [ ! -d /var/etcd/kube-system-${name} ]; then\n
+            STATE=new\n
+          fi\n
+        else\n
+          if [ ! -d /var/etcd/kube-system-${name} ]; then\n
+            while ! ( ETCDCTL_API=3 etcdctl --endpoints=${predecessor}
+                        get foo
+                        --cert=/etc/kubernetes/secrets/etcd-client.crt
+                        --key=/etc/kubernetes/secrets/etcd-client.key
+                        --cacert=/etc/kubernetes/secrets/etcd-client-ca.crt 
+                    )\ndo\n\tsleep 3\ndone\n
+            while ! ( ETCDCTL_API=3 etcdctl --endpoints=${predecessor}
+                       member add ${name}
+                       --peer-urls=https://${domain}:2380
+                       --cert=/etc/kubernetes/secrets/etcd-client.crt
+                       --key=/etc/kubernetes/secrets/etcd-client.key
+                       --cacert=/etc/kubernetes/secrets/etcd-client-ca.crt\n
+                    )\ndo\n\tsleep 3\ndone\n
+          fi\n
+        fi\n
+        /usr/local/bin/etcd
+          --data-dir=/var/etcd/kube-system-${name}
+          --name=${name}
+          --listen-client-urls=https://0.0.0.0:2379
+          --listen-peer-urls=https://0.0.0.0:2380
+          --advertise-client-urls=https://${service_ip}:2379
+          --peer-client-cert-auth=true
+          --client-cert-auth=true
+          --peer-trusted-ca-file=/etc/kubernetes/secrets/etcd/peer-ca.crt
+          --peer-cert-file=/etc/kubernetes/secrets/etcd/peer.crt
+          --peer-key-file=/etc/kubernetes/secrets/etcd/peer.key
+          --trusted-ca-file=/etc/kubernetes/secrets/etcd/server-ca.crt
+          --cert-file=/etc/kubernetes/secrets/etcd/server.crt
+          --key-file=/etc/kubernetes/secrets/etcd/server.key
+          --initial-cluster-state=\\$STATE
+          --initial-cluster-token=${service_name}
+          --initial-advertise-peer-urls=https://${domain}:2380
+          --initial-cluster=${initial_cluster}\""
+
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+
+    volumeMounts:
+${recover_mounts}
+    - mountPath: /var/etcd
+      name: etcd-data
+    - mountPath: /var/lock
+      name: var-lock
+    - mountPath: /etc/kubernetes/secrets
+      name: secrets
+      readOnly: true
+  volumes:
+${recover_volumes}
+  - name: etcd-data
+    hostPath:
+      path: /var/etcd
+      type: ""
+  - name: var-lock
+    hostPath:
+      path: /var/lock
+      type: ""
+  - name: secrets
+    hostPath:
+      path: /etc/kubernetes/static-secrets
+  dnsPolicy: Default
+  hostNetwork: true
+  hostname: ${name}
+  subdomain: ${service_name}
+  restartPolicy: Always
+  terminationGracePeriodSeconds: 30

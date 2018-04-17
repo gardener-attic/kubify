@@ -13,8 +13,17 @@
 # limitations under the License.
 
 
+variable "entry_count" {
+  default = 0
+}
+variable "name_count" {
+  default = 1
+}
 variable "target" {
-  type = "string"
+  default = ""
+}
+variable "targets" {
+  default = []
 }
 variable "type" {
   type = "string"
@@ -52,10 +61,19 @@ locals {
 
 resource "aws_route53_record" "record" {
   provider = "aws.route53"
-  count    = "${var.active * length(local.names)}"
+  count    = "${var.active * var.name_count * (1 - signum(var.entry_count))}" 
   zone_id  = "${module.route53_dns_hostedzone.value}"
   name     = "${element(local.names,count.index)}"
   type     = "${var.type}"
   ttl      = "${var.ttl}"
   records  = ["${var.target}"]
+}
+resource "aws_route53_record" "records" {
+  provider = "aws.route53"
+  count    = "${var.active * var.entry_count }"
+  zone_id  = "${module.route53_dns_hostedzone.value}"
+  name     = "${var.names[count.index]}"
+  type     = "${var.type}"
+  ttl      = "${var.ttl}"
+  records  = ["${element(var.targets,count.index)}"]
 }

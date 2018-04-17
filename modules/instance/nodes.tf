@@ -63,6 +63,15 @@ module "worker_config" {
   }
 }
 
+module "selfhosted_etcd" {
+  source = "../flag"
+  option = "${var.selfhosted_etcd}"
+}
+
+module "bootkube_image" {
+  source = "../variable"
+  value = "${module.selfhosted_etcd.value ?  "${module.versions.bootkube_image}:${module.versions.bootkube_version}" : "${module.versions.static_bootkube_image}:${module.versions.static_bootkube_version}"}"
+}
 
 #####################################
 # master nodes
@@ -116,7 +125,8 @@ module "master" {
 
   assets_inst_dir    = "${module.cluster.assets_inst_dir}"
   bootkube_inst_dir  = "${module.cluster.bootkube_inst_dir}"
-  bootkube_image     = "${module.versions.bootkube}:${module.versions.bootkube_version}"
+  bootkube_image     = "${module.bootkube_image.value}"
+  selfhosted_etcd   = "${var.selfhosted_etcd}"
   #provide_fips        = "${module.use_bastion.value ? "${var.assign_master_fips}" : "single"}"
   provide_fips       = "${module.master_config.assign_fips}"
 

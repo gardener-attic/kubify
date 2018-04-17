@@ -115,6 +115,9 @@ output "ids" {
 output "ips" {
   value = ["${aws_instance.nodes.*.private_ip}"]
 }
+output "disk_vm_ips" {
+  value = ["${aws_instance.nodes.*.private_ip}"]
+}
 
 output "count" {
   value = ["${var.node_count}"]

@@ -67,7 +67,7 @@ module "etcd_peer" {
   ca = "${var.ca}"
   ca_key = "${var.ca_key}"
 
-  dns_names = "${compact(concat(var.dns_names,module.dns_names.value))}"
+  dns_names = "${compact(distinct(concat(var.dns_names,module.dns_names.value)))}"
   ip_addresses = "${compact(concat(list(var.service_ip),var.ip_addresses))}"
 }
 

@@ -36,6 +36,8 @@ module "cluster"{
   additional_domains = "${var.additional_domains}"
   additional_api_domains = "${var.additional_api_domains}"
   pull_secret = "${module.pull_secret.content}"
+  master_count = "${module.master_config.count}"
+  selfhosted_etcd = "${var.selfhosted_etcd}"
 }
 
 module "root_certs" {
@@ -149,11 +151,13 @@ module "seed" {
   dns_service_ip = "${module.cluster.dns_service_ip}"
   bootstrap_etcd_service_ip = "${module.cluster.bootstrap_etcd_service_ip}"
   etcd_service_ip = "${module.cluster.etcd_service_ip}"
+  etcd_service_name = "${module.cluster.etcd_service_name}"
   host_ssl_certs_dir = "${var.host_ssl_certs_dir}"
 
   assets_inst_dir = "${module.cluster.assets_inst_dir}"
   etcd_backup_file = "${var.etcd_backup_file}"
   etcd_backup = "${var.etcd_backup}"
+  selfhosted_etcd = "${var.selfhosted_etcd}"
 
   event_ttl = "${var.event_ttl}"
   use_lbaas = "${var.use_lbaas}"
@@ -173,6 +177,9 @@ module "seed" {
   access_info = "${var.access_info}"
   cluster_info = "${module.cluster.cluster-info}"
 
+  etcd_names = "${module.cluster.etcd_names}"
+  etcd_domains = "${module.cluster.etcd_domains}"
+  etcd_base_domain = "${module.cluster.etcd_base_domain}"
   dns = "${var.dns}"
   identity_domain = "${module.cluster.identity}"
 

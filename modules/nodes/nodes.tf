@@ -112,6 +112,9 @@ variable "bootkube_inst_dir" {
 variable "bootkube_image" {
   default = ""
 }
+variable "selfhosted_etcd" {
+  default = ""
+}
 variable "setup_volume_script" {
   default = ""
 }
@@ -420,6 +423,9 @@ output "ids" {
 }
 output "ips" {
   value = "${module.vms.ips}"
+}
+output "disk_vm_ips" {
+  value = "${module.vms.disk_vm_ips}"
 }
 output "fips" {
   value = "${module.vms.fips}"

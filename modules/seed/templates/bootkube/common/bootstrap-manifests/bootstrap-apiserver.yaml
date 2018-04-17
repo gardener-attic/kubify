@@ -22,7 +22,7 @@ spec:
     - --etcd-certfile=/etc/kubernetes/secrets/etcd-client.crt
     - --etcd-keyfile=/etc/kubernetes/secrets/etcd-client.key
     - --etcd-quorum-read=true
-    - --etcd-servers=https://${etcd_service_ip}:2379,https://127.0.0.1:12379
+    - --etcd-servers=https://${etcd_service_ip}:2379,https://127.0.0.1:12379,https://${etcd0_domain}:2379
     - --insecure-port=0
     - --kubelet-client-certificate=/etc/kubernetes/secrets/apiserver.crt
     - --kubelet-client-key=/etc/kubernetes/secrets/apiserver.key

@@ -1,0 +1,23 @@
+  initContainers:
+  - name: recovery
+    image: quay.io/coreos/etcd:${etcd_version}
+    command:
+    - /bin/sh 
+    - -ec
+    - |
+      test -f /var/etcd-backupdir/${backup_file} \
+      && etcdctl snapshot restore \
+      /var/etcd-backupdir/${backup_file} \
+        --data-dir=/var/etcd/data \
+        --name=${name} \
+        --initial-cluster=${initial_cluster} \
+        --initial-cluster-token=${name} \
+        --initial-advertise-peer-urls=https://${domain}:2380 \
+        --skip-hash-check=true \
+      && mv /var/etcd-backupdir/${backup_file} /var/etcd-backupdir/${backup_file}.bak
+    env:
+    - name: ETCDCTL_API
+      value: "3"
+    volumeMounts:
+${etcd_mount}
+${etcd_backup_mount}

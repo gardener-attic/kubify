@@ -17,6 +17,45 @@ variable "tls" {
   type = "map"
 }
 
+variable "file_base" {
+  default = ""
+}
+
+module "save" {
+  source = "../../flag"
+  option = "${length(var.file_base) > 0}"
+}
+
+resource "local_file" "ca" {
+  count = "${module.save.if_active}"
+  content = "${lookup(var.tls,"ca_cert")}"
+  filename = "${var.file_base}-ca.crt"
+}
+#resource "local_file" "ca-key" {
+#  count = "${module.save.if_active}"
+#  content = "${lookup(var.tls,"ca_key")}"
+#  filename = "${var.file_base}-ca.key"
+#}
+resource "local_file" "cert" {
+  count = "${module.save.if_active}"
+  content = "${lookup(var.tls,"cert_pem")}"
+  filename = "${var.file_base}.crt"
+}
+resource "local_file" "key" {
+  count = "${module.save.if_active}"
+  content = "${lookup(var.tls,"private_key_pem")}"
+  filename = "${var.file_base}.key"
+}
+resource "local_file" "pub" {
+  count = "${module.save.if_active}"
+  content = "${lookup(var.tls,"public_key_pem")}"
+  filename = "${var.file_base}.pub"
+}
+
+output "trigger" {
+  value = "${join(",",concat(local_file.ca.*.id,local_file.cert.*.id,local_file.key.*.id,local_file.pub.*.id))}"
+}
+
 output "private_key_pem" {
   value = "${lookup(var.tls,"private_key_pem")}"
 }

@@ -21,6 +21,8 @@ variable "ca_cert_pem" {
 variable "ca_key_pem" {
   default = ""
 }
+variable "master_count" {
+}
 
 variable "cluster_name" {
   type = "string"
@@ -75,6 +77,9 @@ variable "bootkube_inst_dir" {
 
 variable "pull_secret" {
   default = ""
+}
+variable "selfhosted_etcd" {
+  type = "string"
 }
 
 locals {
@@ -147,6 +152,18 @@ data "template_file" "cluster-info" {
   }
 }
 
+module "etcd_base_domain" {
+  source = "../variable"
+  value = "${var.selfhosted_etcd ? "${var.etcd_name}.kube-system.svc" : "etcd.${module.domain_name.value}"}"
+}
+
+resource "null_resource" "etcd" {
+  count = 3
+  triggers {
+    name = "${format("%s-%04d",var.etcd_name,count.index)}"
+  }
+}
+
 output "cluster-info" {
   value = "${data.template_file.cluster-info.rendered}"
 }
@@ -178,6 +195,15 @@ output "ingress_domains" {
 }
 output "ingress_base_domain" {
   value = "${module.ingress.value}"
+}
+output "etcd_base_domain" {
+  value = "${module.etcd_base_domain.value}"
+}
+output "etcd_names" {
+  value = "${null_resource.etcd.*.triggers.name}"
+}
+output "etcd_domains" {
+  value = "${formatlist("%s.%s",null_resource.etcd.*.triggers.name,module.etcd_base_domain.value)}"
 }
 
 module "api_service_ip" {
@@ -218,6 +244,9 @@ output "bootstrap_etcd_service_ip" {
 }
 output "etcd_service_ip" {
   value = "${module.etcd_service_ip.value}"
+}
+output "etcd_service_name" {
+  value = "${var.etcd_name}"
 }
 
 output "assets_gen_dir" {

@@ -1,0 +1,6 @@
+#!/bin/bash -e
+
+sudo rm /etc/kubernetes/manifests/kube-etcd.yaml
+docker kill $(docker ps -q)
+docker rm  $(docker ps -aq)
+sudo rm -Rf /var/etcd/kube-system-kube-etcd-00*

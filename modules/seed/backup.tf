@@ -32,3 +32,5 @@ module "etcd_backup_id" {
   source = "../variable"
   value = "${module.pv_etcd_backup_id.value},${module.s3_etcd_backup_id.value}"
 }
+
+

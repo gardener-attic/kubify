@@ -9,7 +9,7 @@ check()
   MSG="$1"
   shift
   while ! "$@" >/dev/null 2>&1; do
-    if [ -m "$MSG" ]; then
+    if [ -n "$MSG" ]; then
       echo "waiting for $MSG..."
       MSG=
     fi
@@ -46,12 +46,16 @@ if [ $(( $n / 2  * 2)) == $n ]; then
   n=1
 fi
 
-echo "scaling etcd cluster"
-ks patch EtcdCluster kube-etcd --type merge -p '{ "spec": { "size": '$n' } }'
+if ks get EtcdCluster >/dev/null; then
+  echo "scaling etcd cluster"
+  ks patch EtcdCluster kube-etcd --type merge -p '{ "spec": { "size": '$n' } }'
 
-if [ -f "$BACKUP" ]; then
-  echo "configure etcd cluster backup"
-  ks patch EtcdCluster kube-etcd --type merge -p "$(cat "$BACKUP")"
+  if [ -f "$BACKUP" ]; then
+    echo "configure etcd cluster backup"
+    ks patch EtcdCluster kube-etcd --type merge -p "$(cat "$BACKUP")"
+  else
+    echo "no etcd cluster backup configured"
+  fi
 else
-  echo "no etcd cluster backup configured"
+  echo "no self hosting etcd enabled"
 fi

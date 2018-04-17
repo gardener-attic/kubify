@@ -27,7 +27,7 @@ data "template_file" "pv_etcd_backup_spec" {
 
 resource "local_file" "pv_etcd_backup_spec" {
   count = "${module.pv_etcd_backup.flag}"
-  content = "${data.template_file.pv_etcd_backup_spec.rendered}"
+  content  = "{ \"spec\": { \n${data.template_file.pv_etcd_backup_spec.rendered}}}"
   filename = "${module.etcd_backup_spec.value}"
 }
 
