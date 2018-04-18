@@ -269,9 +269,9 @@ data "template_file" "static_etcd" {
   count = "${var.master_count * module.selfhosted_etcd.if_not_active}"
   template = "${file("${path.module}/templates/etcd_bootstrap/static_etcd.yaml")}"
   vars {
+    name = "${var.etcd_names[count.index]}"
     service_name = "${var.etcd_service_name}"
     service_ip = "${var.etcd_service_ip}"
-    name = "${var.etcd_names[count.index]}"
     version = "${module.versions.etcd_version}"
     endpoints = "${local.etcd_servers_by_dns}"
     predecessor = "${local.etcd_predecessors[count.index]}"

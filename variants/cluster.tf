@@ -199,6 +199,9 @@ variable "keep_recovery_version" {
 variable "provision_bootkube" {
   default = false
 }
+variable "provision_helper" {
+  default = false
+}
 variable "setup_etcd" {
   default = true
 }
@@ -434,6 +437,7 @@ module "instance" {
   recover_cluster = "${var.recover_cluster}"
   keep_recovery_version = "${var.keep_recovery_version}"
   provision_bootkube = "${var.provision_bootkube}"
+  provision_helper = "${var.provision_helper}"
   setup_etcd = "${var.setup_etcd}"
   root_certs_file = "${var.root_certs_file}"
   pull_secret_file = "${var.pull_secret_file}"

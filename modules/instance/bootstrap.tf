@@ -21,9 +21,17 @@ module "provision" {
   source = "./../flag"
   option= "${var.provision_bootkube}"
 }
+module "provision_helper" {
+  source = "./../flag"
+  option= "${var.provision_helper}"
+}
 module "setup_etcd" {
   source = "./../flag"
   option= "${var.setup_etcd}"
+}
+module "bootkube" {
+  source = "./../flag"
+  option= "${var.bootkube}"
 }
 
 resource "null_resource" "etcd_provision" {
@@ -35,7 +43,7 @@ resource "null_resource" "etcd_provision" {
   }
 
   connection {
-    host = "${module.master.ips[count.index]}"
+    host = "${module.master.disk_vm_ips[count.index]}"
     type     = "ssh"
     user     = "core"
     private_key = "${module.iaas.private_key}"
@@ -58,14 +66,14 @@ output "etcd_provision" {
   value = {
     master = "${module.master_config.count}"
     selfhosted = "${module.selfhosted_etcd.if_not_active}"
-    active = "${signum(var.bootkube + module.recover_cluster.if_active + module.provision.if_active)}"
-    count = "${module.master_config.count * module.selfhosted_etcd.if_not_active * signum(var.bootkube + module.recover_cluster.if_active + module.provision.if_active)}"
+    active = "${signum(module.bootkube.if_active + module.recover_cluster.if_active + module.provision.if_active)}"
+    count = "${module.master_config.count * module.selfhosted_etcd.if_not_active * signum(module.bootkube.if_active + module.recover_cluster.if_active + module.provision.if_active)}"
   }
 }
 
 resource "null_resource" "etcd_setup" {
   depends_on = [ "null_resource.etcd_provision" ]
-  count = "${module.master_config.count * module.selfhosted_etcd.if_not_active * module.setup_etcd.if_active}"
+  count = "${module.master_config.count * module.selfhosted_etcd.if_not_active * signum(module.bootkube.if_active + module.recover_cluster.if_active) * module.setup_etcd.if_active}"
 
   triggers {
     provision = "${element(null_resource.etcd_provision.*.id,count.index)}"
@@ -73,7 +81,7 @@ resource "null_resource" "etcd_setup" {
   }
 
   connection {
-    host = "${module.master.ips[count.index]}"
+    host = "${module.master.disk_vm_ips[count.index]}"
     type     = "ssh"
     user     = "core"
     private_key = "${module.iaas.private_key}"
@@ -98,17 +106,17 @@ resource "null_resource" "etcd_setup" {
   }
 }
 
-resource "null_resource" "master_provision" {
-  count = "${signum(var.bootkube + module.recover_cluster.if_active + module.provision.if_active)}"
+resource "null_resource" "helper_provision" {
+  count = "${signum(module.bootkube.if_active + module.recover_cluster.if_active + module.provision.if_active + module.provision_helper.if_active ) + ( module.master_config.count -1 ) * module.provision_helper.if_active}"
   triggers {
     recover = "${module.recovery_version.value}"
     sha = "${module.seed.bootkube_sha}"
     version = "${module.versions.bootkube_version}"
-    master = "${element(module.master.ids,0)}"
+    master = "${element(module.master.ids,count.index)}"
   }
 
   connection {
-    host = "${module.master.ips[0]}"
+    host = "${module.master.disk_vm_ips[count.index]}"
     type     = "ssh"
     user     = "core"
     private_key = "${module.iaas.private_key}"
@@ -118,10 +126,6 @@ resource "null_resource" "master_provision" {
     bastion_private_key = "${module.iaas.private_key}"
   }
 
-  provisioner "file" {
-    content = "${file(module.seed.bootkube_path)}"
-    destination = "bootkube.zip"
-  }
   provisioner "file" {
     content = "${file(data.archive_file.helper_scripts.output_path)}"
     destination = "helper.zip"
@@ -135,16 +139,43 @@ resource "null_resource" "master_provision" {
   }
 }
 
+resource "null_resource" "master_provision" {
+  depends_on = [ "null_resource.helper_provision" ]
+  count = "${signum(module.bootkube.if_active + module.recover_cluster.if_active + module.provision.if_active)}"
+  triggers {
+    recover = "${module.recovery_version.value}"
+    sha = "${module.seed.bootkube_sha}"
+    version = "${module.versions.bootkube_version}"
+    master = "${element(module.master.ids,0)}"
+  }
+
+  connection {
+    host = "${module.master.disk_vm_ips[0]}"
+    type     = "ssh"
+    user     = "core"
+    private_key = "${module.iaas.private_key}"
+
+    bastion_host = "${module.bastion_host.value}"
+    bastion_user = "${module.bastion_user.value}"
+    bastion_private_key = "${module.iaas.private_key}"
+  }
+
+  provisioner "file" {
+    content = "${file(module.seed.bootkube_path)}"
+    destination = "bootkube.zip"
+  }
+}
+
 resource "null_resource" "master_setup" {
   depends_on = [ "null_resource.master_provision" ]
-  count = "${signum(var.bootkube + module.recover_cluster.if_active)}"
+  count = "${signum(module.bootkube.if_active + module.recover_cluster.if_active)}"
 
   triggers {
     provision = "${null_resource.master_provision.id}"
   }
 
   connection {
-    host = "${module.master.ips[0]}"
+    host = "${module.master.disk_vm_ips[0]}"
     type     = "ssh"
     user     = "core"
     private_key = "${module.iaas.private_key}"
@@ -173,7 +204,7 @@ resource "local_file" "reset_bootkube" {
 resource "local_file" "access_info" {
   content     = <<EOF
 master = "${element(module.master.ids,0)}"
-master_ip = "${element(module.master.ips,0)}"
+master_ip = "${element(module.master.disk_vm_ips,0)}"
 bastion_ip = "${module.bastion_host.value}"
 bastion_user = "${module.bastion_user.value}"
 EOF
@@ -184,14 +215,14 @@ resource "null_resource" "test" {
   count = "${var.test}"
   triggers {
     master = "${element(module.master.ids,0)}"
-    master_ip = "${element(module.master.ips,0)}"
+    master_ip = "${element(module.master.disk_vm_ips,0)}"
     bastion_ip = "${module.bastion_host.value}"
     bastion_user = "${module.bastion_user.value}"
     test   = 2
   }
 
   connection {
-    host = "${module.master.ips[0]}"
+    host = "${module.master.disk_vm_ips[0]}"
     type     = "ssh"
     user     = "core"
     private_key = "${module.iaas.private_key}"

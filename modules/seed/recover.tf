@@ -70,6 +70,7 @@ module "etcd_volumes" {
 
 
 data "template_file" "etcd_recover_initcontainers" {
+  count = "${module.selfhosted_etcd.if_active}"
   template = "${file("${path.module}/templates/etcd_bootstrap/recover_initcontainers")}"
   vars {
     etcd_version = "${module.versions.etcd_version}"
@@ -82,9 +83,24 @@ data "template_file" "etcd_recover_initcontainers" {
     backup_file="${local.backup_file}"
   }
 }
+data "template_file" "static_etcd_recover_initcontainers" {
+  count = "${module.selfhosted_etcd.if_not_active}"
+  template = "${file("${path.module}/templates/etcd_bootstrap/static_recover_initcontainers")}"
+  vars {
+    name = "${var.etcd_names[0]}"
+    service_name = "${var.etcd_service_name}"
+    domain = "${var.etcd_domains[0]}"
+    initial_cluster = "${local.etcd_members[0]}"
+    version = "${module.versions.etcd_version}"
+
+    etcd_mount = "${local.etcd_mount}"
+    etcd_backup_mount = "${local.etcd_backup_mount}"
+    backup_file="${local.backup_file}"
+  }
+}
 module "etcd_initcontainers" {
   source = "../variable"
-  value = "${module.recover.if_configured ? data.template_file.etcd_recover_initcontainers.rendered : ""}"
+  value = "${module.recover.if_configured ? element(concat(data.template_file.etcd_recover_initcontainers.*.rendered,data.template_file.static_etcd_recover_initcontainers.*.rendered),0) : ""}"
 }
 
 

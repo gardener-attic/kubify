@@ -27,7 +27,7 @@ if [ -z "$DNS_SERVICE_IP" ]; then
 fi
 
 
-check "etcd dns resolution" dig +short @$DNS_SERVICE_IP kube-etcd-0000.kube-etcd.kube-system.svc.cluster.local
+check "etcd dns resolution" nslookup kube-etcd-0000.kube-etcd.kube-system.svc.cluster.local $DNS_SERVICE_IP
 IP="$(dig +short @$DNS_SERVICE_IP kube-etcd-0000.kube-etcd.kube-system.svc.cluster.local)"
 echo "IP for etcd 0 is $IP"
 

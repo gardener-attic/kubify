@@ -25,13 +25,13 @@ ${recover_initcontainers}
           fi\n
         else\n
           if [ ! -d /var/etcd/kube-system-${name} ]; then\n
-            while ! ( ETCDCTL_API=3 etcdctl --endpoints=${predecessor}
+            while ! ( etcdctl --endpoints=${predecessor}
                         get foo
                         --cert=/etc/kubernetes/secrets/etcd-client.crt
                         --key=/etc/kubernetes/secrets/etcd-client.key
                         --cacert=/etc/kubernetes/secrets/etcd-client-ca.crt 
                     )\ndo\n\tsleep 3\ndone\n
-            while ! ( ETCDCTL_API=3 etcdctl --endpoints=${predecessor}
+            while ! ( etcdctl --endpoints=${predecessor}
                        member add ${name}
                        --peer-urls=https://${domain}:2380
                        --cert=/etc/kubernetes/secrets/etcd-client.crt
@@ -59,11 +59,13 @@ ${recover_initcontainers}
           --initial-advertise-peer-urls=https://${domain}:2380
           --initial-cluster=${initial_cluster}\""
 
+    env:
+    - name: ETCDCTL_API
+      value: "3"
     terminationMessagePath: /dev/termination-log
     terminationMessagePolicy: File
 
     volumeMounts:
-${recover_mounts}
     - mountPath: /var/etcd
       name: etcd-data
     - mountPath: /var/lock

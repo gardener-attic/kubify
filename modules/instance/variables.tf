@@ -115,6 +115,9 @@ variable "keep_recovery_version" {
 variable "provision_bootkube" {
   default = false
 }
+variable "provision_helper" {
+  default = false
+}
 variable "setup_etcd" {
   default = true
 }
