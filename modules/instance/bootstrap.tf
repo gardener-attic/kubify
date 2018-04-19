@@ -43,7 +43,7 @@ resource "null_resource" "etcd_provision" {
   }
 
   connection {
-    host = "${module.master.disk_vm_ips[count.index]}"
+    host = "${module.master.ips[count.index]}"
     type     = "ssh"
     user     = "core"
     private_key = "${module.iaas.private_key}"
@@ -81,7 +81,7 @@ resource "null_resource" "etcd_setup" {
   }
 
   connection {
-    host = "${module.master.disk_vm_ips[count.index]}"
+    host = "${module.master.ips[count.index]}"
     type     = "ssh"
     user     = "core"
     private_key = "${module.iaas.private_key}"
@@ -116,7 +116,7 @@ resource "null_resource" "helper_provision" {
   }
 
   connection {
-    host = "${module.master.disk_vm_ips[count.index]}"
+    host = "${module.master.ips[count.index]}"
     type     = "ssh"
     user     = "core"
     private_key = "${module.iaas.private_key}"
@@ -150,7 +150,7 @@ resource "null_resource" "master_provision" {
   }
 
   connection {
-    host = "${module.master.disk_vm_ips[0]}"
+    host = "${module.master.ips[0]}"
     type     = "ssh"
     user     = "core"
     private_key = "${module.iaas.private_key}"
@@ -175,7 +175,7 @@ resource "null_resource" "master_setup" {
   }
 
   connection {
-    host = "${module.master.disk_vm_ips[0]}"
+    host = "${module.master.ips[0]}"
     type     = "ssh"
     user     = "core"
     private_key = "${module.iaas.private_key}"
@@ -204,7 +204,7 @@ resource "local_file" "reset_bootkube" {
 resource "local_file" "access_info" {
   content     = <<EOF
 master = "${element(module.master.ids,0)}"
-master_ip = "${element(module.master.disk_vm_ips,0)}"
+master_ip = "${element(module.master.ips,0)}"
 bastion_ip = "${module.bastion_host.value}"
 bastion_user = "${module.bastion_user.value}"
 EOF
@@ -215,14 +215,14 @@ resource "null_resource" "test" {
   count = "${var.test}"
   triggers {
     master = "${element(module.master.ids,0)}"
-    master_ip = "${element(module.master.disk_vm_ips,0)}"
+    master_ip = "${element(module.master.ips,0)}"
     bastion_ip = "${module.bastion_host.value}"
     bastion_user = "${module.bastion_user.value}"
     test   = 2
   }
 
   connection {
-    host = "${module.master.disk_vm_ips[0]}"
+    host = "${module.master.ips[0]}"
     type     = "ssh"
     user     = "core"
     private_key = "${module.iaas.private_key}"

@@ -33,8 +33,8 @@ variable "indent" {
 }
 
 module "content" {
-  source  = "../variable"
-  value   = "${file(var.path == "" ? "${path.module}/resources/empty" : var.path)}"
+  source = "../b64var"
+  value = "${file(var.path == "" ? "${path.module}/resources/empty" : var.path)}"
   default = "${var.default}"
 }
 

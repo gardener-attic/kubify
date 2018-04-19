@@ -419,13 +419,10 @@ output "vm_version" {
   value = "${var.vm_version}"
 }
 output "ids" {
-  value = "${module.vms.ids}"
+  value = "${slice(concat(module.vms.ids,split(" ",format("%*s",var.node_count,""))),0,var.node_count)}"
 }
 output "ips" {
-  value = "${module.vms.ips}"
-}
-output "disk_vm_ips" {
-  value = "${module.vms.disk_vm_ips}"
+  value = "${slice(concat(module.vms.ips,split(" ",format("%*s",var.node_count,""))),0,var.node_count)}"
 }
 output "fips" {
   value = "${module.vms.fips}"

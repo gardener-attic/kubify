@@ -80,7 +80,7 @@ locals {
 }
 
 locals {
-  etcd_servers_by_service = "https://${var.etcd_service_ip}:2379}"
+  etcd_servers_by_service = "https://${var.etcd_service_ip}:2379"
   etcd_servers_by_dns = "${join(",",formatlist("https://%s:2379",var.etcd_domains))}"
   etcd_servers = "${module.selfhosted_etcd.if_active ? local.etcd_servers_by_service : local.etcd_servers_by_dns}"
   etcd_members = "${formatlist("%s=https://%s:2380", var.etcd_names, var.etcd_domains)}"
@@ -178,7 +178,7 @@ module "dashboard_password" {
   default = "${var.default_password}"
 }
 module "dashboard_creds" {
-  source = "../variable"
+  source = "../b64var"
   value = "${var.dashboard_creds}"
   default = "${module.dashboard_user.value}:${bcrypt(module.dashboard_password.value)}"
 }

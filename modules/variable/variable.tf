@@ -23,8 +23,3 @@ variable "default" {
 output "value" {
   value = "${length(var.value) == 0 ? var.default : var.value}"
 }
-
-output "b64" {
-  value = "${base64encode(length(var.value) == 0 ? var.default : var.value)}"
-}
-

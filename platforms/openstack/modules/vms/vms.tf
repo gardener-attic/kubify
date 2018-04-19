@@ -138,7 +138,7 @@ resource "openstack_compute_instance_v2" "nostorage" {
 
 module "nodes" {
   source = "../../../../modules/listvar"
-  value = "${slice(concat(openstack_compute_instance_v2.storage.*.id, openstack_compute_instance_v2.nostorage.*.id,split(" ",format("%*s",var.node_count,""))),0,var.node_count)}"
+  value = "${concat(openstack_compute_instance_v2.storage.*.id, openstack_compute_instance_v2.nostorage.*.id)}"
 }
 
 module "ips" {

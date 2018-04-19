@@ -96,7 +96,7 @@ module "dns_records" {
   active = "${module.selfhosted_etcd.if_not_active}"
   #active = "false"
   entry_count  = "${module.master_config.count}"
-  targets = "${module.master.disk_vm_ips}"
+  targets = "${module.master.ips}"
   names   = "${module.cluster.etcd_domains}"
   type   = "${module.vip_type_nginx.value}"
   ttl    = "300"
