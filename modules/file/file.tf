@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 variable "path" {
   type = "string"
 }
@@ -20,16 +19,22 @@ variable "path" {
 variable "default" {
   default = ""
 }
+
 variable "prefix" {
   default = ""
 }
+
 variable "suffix" {
   default = ""
 }
 
+variable "indent" {
+  default = 0
+}
+
 module "content" {
-  source = "../variable"
-  value = "${file(var.path == "" ? "${path.module}/resources/empty" : var.path)}"
+  source  = "../variable"
+  value   = "${file(var.path == "" ? "${path.module}/resources/empty" : var.path)}"
   default = "${var.default}"
 }
 
@@ -40,6 +45,11 @@ locals {
 output "content" {
   value = "${local.content}"
 }
+
 output "b64" {
   value = "${module.content.b64}"
+}
+
+output "indented" {
+  value = "${indent(var.indent,local.content)}"
 }

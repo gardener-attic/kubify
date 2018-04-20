@@ -88,8 +88,10 @@ data:
           - __meta_kubernetes_service_name
           regex: alertmanager-client
           action: keep
-        
-    ${prometheus_config}
+
+    scrape_configs:
+    ${prometheus_default_config}
+    ${prometheus_custom_config}
 
 ---
 apiVersion: v1
@@ -98,7 +100,8 @@ metadata:
   name: prometheus-rules
   namespace: kube-system
 data:
-  ${prometheus_rules}
+  ${prometheus_default_rules}
+  ${prometheus_custom_rules}
 ---
 apiVersion: v1
 kind: Secret
