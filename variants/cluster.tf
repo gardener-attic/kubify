@@ -275,6 +275,12 @@ variable "oidc_username_claim" {
 variable "oidc_groups_claim" {
   default = "groups"
 }
+variable "oidc_ca_file" {
+  default = ""
+}
+variable "oidc_use_cluster_ca" {
+  default = false
+}
 
 #
 # flags
@@ -440,6 +446,8 @@ module "instance" {
   oidc_client_id = "${var.oidc_client_id}"
   oidc_username_claim = "${var.oidc_username_claim}"
   oidc_groups_claim = "${var.oidc_groups_claim}"
+  oidc_ca_file = "${var.oidc_ca_file}"
+  oidc_use_cluster_ca = "${var.oidc_use_cluster_ca}"
   use_bastion = "${var.use_bastion}"
   use_lbaas = "${var.use_lbaas}"
   configure_additional_dns = "${var.configure_additional_dns}"

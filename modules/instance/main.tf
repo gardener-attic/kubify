@@ -135,6 +135,9 @@ module "seed" {
   oidc_client_id = "${var.oidc_client_id}"
   oidc_username_claim = "${var.oidc_username_claim}"
   oidc_groups_claim = "${var.oidc_groups_claim}"
+  oidc_ca_file = "${var.oidc_ca_file}"
+  oidc_use_cluster_ca = "${var.oidc_use_cluster_ca}"
+
   
   master_count = "${module.master_config.count}"
   nodes_cidr = "${module.iaas.nodes_cidr}"

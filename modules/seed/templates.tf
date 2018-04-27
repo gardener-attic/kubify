@@ -76,7 +76,7 @@ data "template_file" "oidc" {
 }
 
 locals {
-  oidc_dropin = "${module.use_oidc.if_active ? indent(8,join("\n",formatlist("- %s\n",split("\n",data.template_file.oidc.rendered)))) : ""}"
+  oidc_dropin = "${module.use_oidc.if_active ? indent(8,join("\n",formatlist("- %s",compact(split("\n",data.template_file.oidc.rendered))))) : ""}"
 }
 
 resource "template_dir" "bootkube" {

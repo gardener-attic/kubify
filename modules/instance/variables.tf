@@ -191,6 +191,12 @@ variable "oidc_username_claim" {
 variable "oidc_groups_claim" {
   default = "groups"
 }
+variable "oidc_ca_file" {
+  default = ""
+}
+variable "oidc_use_cluster_ca" {
+  default = false
+}
 
 #
 # flags
