@@ -72,7 +72,7 @@ module "prometheus" {
 
 module "prometheus_config" {
   source = "../../../file"
-  indent = 6
+  indent = 4
   path   = "${lookup(var.config,"prometheus_config_file","")}"
 }
 
@@ -148,19 +148,34 @@ module "alertmanager" {
   dns_names    = ["alertmanager.${var.ingress_base_domain}"]
 }
 
-module "alertmanager_config" {
+module "alertmanager_custom_config" {
   source = "../../../file"
   path   = "${lookup(var.config,"alertmanager_config_file","")}"
 }
 
-data "template_file" "alertmanager_config" {
-  template = "${file("${path.module}/templates/alertmanager-config.yaml")}"
+data "template_file" "alertmanager_default_config" {
+  template = "${file("${path.module}/templates/alertmanager-default-config.yaml")}"
   vars     = {}
 }
 
 locals {
-  alertmanager_default_b64 = "${base64encode(data.template_file.alertmanager_config.rendered)}"
-  alertmanager_config_b64  = "${base64encode(module.alertmanager_config.content==""?data.template_file.alertmanager_config.rendered:module.alertmanager_config.content)}"
+  alertmanager_base_config = "${module.alertmanager_custom_config.content==""?data.template_file.alertmanager_default_config.rendered:module.alertmanager_custom_config.content}"
+}
+
+data "template_file" "alertmanager_base_config_template" {
+  template = "${file("${path.module}/templates/alertmanager-base-config.yaml")}"
+
+  vars = {
+    alertmanager_smtp_host     = "${lookup(var.config,"smtp_host","smtp.example.com:587")}"
+    alertmanager_smtp_from     = "${lookup(var.config,"smtp_from","john.doe@example.com")}"
+    alertmanager_smtp_username = "${lookup(var.config,"smtp_username","admin")}"
+    alertmanager_smtp_password = "${lookup(var.config,"smtp_password","admin")}"
+    alertmanager_config        = "${local.alertmanager_base_config}"
+  }
+}
+
+locals {
+  alertmanager_config_b64 = "${base64encode(data.template_file.alertmanager_base_config_template.rendered)}"
 
   dummy = {
     prometheus_default_config = ""
@@ -195,9 +210,10 @@ locals {
     grafana_crt_b64        = "${module.grafana.cert_pem_b64}"
     grafana_key_b64        = "${module.grafana.private_key_pem_b64}"
 
-    alertmanager_crt_b64     = "${module.alertmanager.cert_pem_b64}"
-    alertmanager_key_b64     = "${module.alertmanager.private_key_pem_b64}"
-    alertmanager_config_b64  = "${local.alertmanager_default_b64}"
+    alertmanager_crt_b64 = "${module.alertmanager.cert_pem_b64}"
+    alertmanager_key_b64 = "${module.alertmanager.private_key_pem_b64}"
+
+    alertmanager_config_b64  = "${local.alertmanager_config_b64}"
     alertmanager_volume_size = "10Gi"
   }
 
@@ -208,7 +224,8 @@ locals {
     prometheus_custom_config  = "${module.prometheus_config.indented}"
     prometheus_default_rules  = "${local.prometheus_default_rules_indent}"
     prometheus_custom_rules   = "${module.prometheus_rules.indented}"
-    alertmanager_config_b64   = "${local.alertmanager_config_b64}"
+
+    alertmanager_config_b64 = "${local.alertmanager_config_b64}"
   }
 }
 
