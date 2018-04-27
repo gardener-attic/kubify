@@ -185,6 +185,7 @@ output "oidc" {
     oidc-client-id  = "${local.kubectl_client_id}"
     oidc-username-claim  = "email"
     oidc-groups-claim  = "groups"
+    oidc-ca-file  = "/etc/kubernetes/secrets/ca.crt"
   }
 }
 

@@ -39,8 +39,8 @@ resource "local_file" "cluster_info" {
 }
 
 module "use_oidc" {
-  source = "../variable"
-  value = "${length("${var.oidc_issuer_subdomain}${var.oidc_issuer_domain}") > 0 ? 1 : module.dex.if_active}"
+  source = "../flag"
+  option = "${length("${var.oidc_issuer_subdomain}${var.oidc_issuer_domain}") > 0 ? 1 : module.dex.if_active}"
 }
 module "oidc_issuer_domain" {
   source = "../variable"
@@ -48,13 +48,26 @@ module "oidc_issuer_domain" {
   default = "${var.oidc_issuer_subdomain}.${var.domain_name}"
 }
 
+module "oidc_ca" {
+  source = "../file"
+  path = "${var.oidc_ca_file}"
+}
+
 locals {
+  oidc_cfg_secret_name = "oidc-ca.crt"
+
+  oidc_ca_secret = "${module.use_oidc.if_active && length(var.oidc_ca_file) > 0 ? "  ${local.oidc_cfg_secret_name}=${module.oidc_ca.b64}" : ""}"
+
+  oidc_cfg_ca_file = "${module.use_oidc.if_active ? (length(var.oidc_ca_file) > 0 ? "/etc/kubernetes/secrets/${local.oidc_cfg_secret_name}" : (var.oidc_use_cluster_ca ? "/etc/kubernetes/secrets/ca.crt": "")) : ""}"
+  oidc_ca_file = "${module.dex.if_active ? module.dex.oidc["oidc-ca-file"] : local.oidc_cfg_ca_file}" 
+  oidc_optional = "${module.use_oidc.if_active && length(local.oidc_ca_file) > 0 ? "--oidc-ca-file=${local.oidc_ca_file}" : ""}"
 }
 
 data "template_file" "oidc" {
   template = "${file("${path.module}/templates/misc/oidc.dropin")}"
 
   vars {
+    oidc-optional = "${local.oidc_optional}"
     oidc-issuer-url = "${module.dex.if_active ? module.dex.oidc["oidc-issuer-url"] : "https://${module.oidc_issuer_domain.value}"}"
     oidc-client-id  = "${module.dex.if_active ? module.dex.oidc["oidc-client-id"] : var.oidc_client_id}"
     oidc-username-claim  = "${module.dex.if_active ? module.dex.oidc["oidc-username-claim"] : var.oidc_username_claim}"
@@ -62,9 +75,8 @@ data "template_file" "oidc" {
   }
 }
 
-module "oidc_dropin" {
-  source = "../variable"
-  value = "${module.use_oidc.value ? data.template_file.oidc.rendered : ""}"
+locals {
+  oidc_dropin = "${module.use_oidc.if_active ? indent(8,join("\n",formatlist("- %s\n",split("\n",data.template_file.oidc.rendered)))) : ""}"
 }
 
 resource "template_dir" "bootkube" {
@@ -73,7 +85,7 @@ resource "template_dir" "bootkube" {
 
   vars {
     cluster_name = "${var.cluster_name}"
-    oidc_dropin = "${module.oidc_dropin.value}"
+    oidc_dropin = "${local.oidc_dropin}"
     kubernetes_version = "${module.versions.kubernetes_version}"
     kubernetes_hyperkube = "${module.versions.kubernetes_hyperkube}"
     kubernetes_hyperkube_patch = "${module.versions.kubernetes_hyperkube_patch}"
@@ -116,6 +128,8 @@ resource "template_dir" "bootkube" {
     event_ttl = "${var.event_ttl}"
     ssl_certs_dir = "${var.host_ssl_certs_dir}"
     pull_secret_b64 = "${var.pull_secret_b64}"
+
+    oidc_ca_secret = "${local.oidc_ca_secret}"
   }
 }
 

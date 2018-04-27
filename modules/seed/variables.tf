@@ -118,6 +118,12 @@ variable "dashboard_creds" {
   default = ""
 }
 
+variable "oidc_ca_file" {
+  default = ""
+}
+variable "oidc_use_cluster_ca" {
+  default = "false"
+}
 variable "oidc_issuer_domain" {
   default = ""
 }
