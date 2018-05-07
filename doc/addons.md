@@ -33,3 +33,72 @@ The following addons are supported so far:
 |guestbook|Application Deployment Example|
 |[dex](addons/dex.md)|[Identity Provider](https://github.com/coreos/dex/blob/master/README.md)|
 |gardener|[Kubernetes Cluster Management](https://github.com/gardener/gardener/blob/master/README.md)|
+
+### Monitoring Addon – Add custom config
+The monitoring stack, which consists of Prometheus, Alertmanager and Grafana, can be extended by injection of custom configuration.
+The custom configuration, provided in static files, will be appended and/or merged to the default configuration.
+
+An exception here is the alertmanager. The config of those component will be overridden by custom config.
+Only some global configuration for smtp will be not overridden.
+
+Config snippet to add to the ``terraform.tfvars``. Everthing is optional (smtp config makes no sense if not provided completly).
+```
+addons = {
+  "monitoring" = {
+    "prometheus_rules_file"    = "<relative/path/to/custom/prometheus/rules.yaml>"
+    "prometheus_config_file"   = "<relative/path/to/custom/prometheus/scrape/config.yaml>"
+    "grafana_config_file"      = "<relative/path/to/custom/grafana/dashboard/config.yaml>"
+    "alertmanager_config_file" = "<relative/path/to/custom/alertmanager/config.yaml>"
+
+    "smtp_host"     = "<global-smtp-host>"
+    "smtp_from"     = "<global-smtp-from>"
+    "smtp_username" = "<global-smtp-user>"
+    "smtp_password" = "<global-smtp-password>"
+  }
+}
+```
+
+#### Example config
+1. **Prometheus scrape configs**
+```yaml
+- job_name: 'test'
+  ...
+- job_name: 'test-2'
+  ...
+```
+2. **Prometheus rules**
+```yaml
+alerts-1.yaml: |
+  groups:
+  - name: test.rules
+    rules:
+    - alert: test
+      expr: ...
+      for: 0s
+  ...
+```
+3. **Grafana Dashboard**
+```yaml
+dashboard-1.json: |-
+  {
+    dashboard: {
+      ...
+    }
+  }
+dashboard-2.json: |-
+  {
+    dashboard: {
+      ...
+    }
+  }
+```
+4. **Alertmanager config**
+```yaml
+route:
+  receiver: dev-null
+  ...
+receivers:
+- name: dev-null
+  ...
+```
+
