@@ -12,7 +12,7 @@ spec:
   revisionHistoryLimit: 2
   selector:
     matchLabels:
-      app: etcd_backup_tool
+      app: etcd-backup
       etcd_cluster: kube-etcd
   strategy:
     type: Recreate
@@ -20,17 +20,19 @@ spec:
     metadata:
       creationTimestamp: null
       labels:
-        app: etcd_backup_tool
+        app: etcd-backup
         etcd_cluster: kube-etcd
-      name: kube-etcd
     spec:
       containers:
       - command:
         - etcdbrctl
         - snapshot
-        - --schedule=*/5* * * *
+        - --cacert=/root/tls/etcd-client-ca.crt
+        - --cert=/root/tls/etcd-client.crt
+        - --key=/root/tls/etcd-client.key
+        - --schedule=*/10 * * * *
         - --max-backups=5
-        - --etcd-endpoints=https://${service_ip}:2379
+        - --endpoints=https://${service_ip}:2379
         - --storage-provider=S3
         - --store-container=${bucket}
         - --store-prefix=${prefix}
@@ -41,6 +43,8 @@ spec:
         volumeMounts:
         - mountPath: /root/.aws/
           name: secret
+        - mountPath: /root/tls/
+          name: etcd-tls
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       terminationGracePeriodSeconds: 30
@@ -49,3 +53,8 @@ spec:
         secret:
           defaultMode: 420
           secretName: etcd-backup
+      - name: etcd-tls
+        secret:
+          defaultMode: 420
+          secretName: etcd-client-tls
+

@@ -94,15 +94,15 @@ module "bootkube_image" {
   optional = true
   values=[ "${var.bootkube_image}","${lookup(var.versions,"bootkube_image","")}", "${local.bootkube_image}" ]
 }
-module "static_bootkube_version" {
+module "self_bootkube_version" {
   source="../defaults"
   optional = true
-  values=[ "${var.static_bootkube_version}","${lookup(var.versions,"static_bootkube_version","")}", "${local.static_bootkube_version}" ]
+  values=[ "${var.self_bootkube_version}","${lookup(var.versions,"self_bootkube_version","")}", "${local.self_bootkube_version}" ]
 }
-module "static_bootkube_image" {
+module "self_bootkube_image" {
   source="../defaults"
   optional = true
-  values=[ "${var.static_bootkube_image}","${lookup(var.versions,"static_bootkube_image","")}", "${local.static_bootkube_image}" ]
+  values=[ "${var.self_bootkube_image}","${lookup(var.versions,"self_bootkube_image","")}", "${local.self_bootkube_image}" ]
 }
 module "kubernetes_hyperkube" {
   source="../defaults"
@@ -218,8 +218,8 @@ output "versions" {
       etcd_backup_image = "${module.etcd_backup_image.value}"
       bootkube_version = "${module.bootkube_version.value}"
       bootkube_image = "${module.bootkube_image.value}"
-      static_bootkube_version = "${module.static_bootkube_version.value}"
-      static_bootkube_image = "${module.static_bootkube_image.value}"
+      self_bootkube_version = "${module.self_bootkube_version.value}"
+      self_bootkube_image = "${module.self_bootkube_image.value}"
       kubernetes_hyperkube = "${module.kubernetes_hyperkube.value}"
       kubernetes_hyperkube_patch = "${module.kubernetes_hyperkube_patch.value}"
       nginx_version = "${module.nginx_version.value}"
@@ -281,11 +281,11 @@ output "bootkube_version" {
 output "bootkube_image" {
   value = "${module.bootkube_image.value}"
 }
-output "static_bootkube_version" {
-  value = "${module.static_bootkube_version.value}"
+output "self_bootkube_version" {
+  value = "${module.self_bootkube_version.value}"
 }
-output "static_bootkube_image" {
-  value = "${module.static_bootkube_image.value}"
+output "self_bootkube_image" {
+  value = "${module.self_bootkube_image.value}"
 }
 output "kubernetes_hyperkube" {
   value = "${module.kubernetes_hyperkube.value}"

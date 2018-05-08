@@ -64,11 +64,11 @@ variable "bootkube_image" {
   default = ""
 }
 
-variable "static_bootkube_version" {
+variable "self_bootkube_version" {
   default = ""
 }
 
-variable "static_bootkube_image" {
+variable "self_bootkube_image" {
   default = ""
 }
 

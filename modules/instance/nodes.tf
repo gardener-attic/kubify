@@ -70,7 +70,7 @@ module "selfhosted_etcd" {
 
 module "bootkube_image" {
   source = "../variable"
-  value = "${module.selfhosted_etcd.value ?  "${module.versions.bootkube_image}:${module.versions.bootkube_version}" : "${module.versions.static_bootkube_image}:${module.versions.static_bootkube_version}"}"
+  value = "${module.selfhosted_etcd.value ?  "${module.versions.self_bootkube_image}:${module.versions.self_bootkube_version}" : "${module.versions.bootkube_image}:${module.versions.bootkube_version}"}"
 }
 
 #####################################
@@ -211,4 +211,7 @@ output "worker_ips" {
 }
 output "worker_count" {
   value = "${module.worker_config.count}"
+}
+output "bootkube_image" {
+  value = "${module.bootkube_image.value}"
 }

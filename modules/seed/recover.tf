@@ -96,8 +96,12 @@ data "template_file" "static_etcd_recover_initcontainers" {
     etcd_mount = "${local.etcd_mount}"
     etcd_backup_mount = "${local.etcd_backup_mount}"
     backup_file="${local.backup_file}"
+
+    crd_key= "/registry/etcd.database.coreos.com/etcdclusters/kube-system/kube-etcd"
+    member_pod_prefix = "/registry/pods/kube-system/kube-etcd-"
   }
 }
+
 module "etcd_initcontainers" {
   source = "../variable"
   value = "${module.recover.if_configured ? element(concat(data.template_file.etcd_recover_initcontainers.*.rendered,data.template_file.static_etcd_recover_initcontainers.*.rendered),0) : ""}"

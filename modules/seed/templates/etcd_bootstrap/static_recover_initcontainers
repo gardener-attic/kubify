@@ -25,3 +25,26 @@
       readOnly: false
     - mountPath: /var/etcd
       name: etcd-data
+  - name: cleanup
+    image: quay.io/coreos/etcd:${version}
+    command:
+    - /bin/sh 
+    - -ec
+    - |
+      (/usr/local/bin/etcd \
+      --listen-client-urls=http://127.0.0.1:32379 \
+      --listen-peer-urls=http://127.0.0.1:32380 \
+      --advertise-client-urls=http://127.0.0.1:32379 \
+      --data-dir=/var/etcd/kube-system-${name} &) && sleep 30 && \
+      etcdctl \
+      --endpoints=http://127.0.0.1:32379 \
+      del ${crd_key}  && \
+      etcdctl \
+      --endpoints=http://127.0.0.1:32379 \
+      del --prefix ${member_pod_prefix}
+    env:
+    - name: ETCDCTL_API
+      value: "3"
+    volumeMounts:
+    - mountPath: /var/etcd
+      name: etcd-data

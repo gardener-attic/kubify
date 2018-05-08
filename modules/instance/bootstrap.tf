@@ -111,7 +111,7 @@ resource "null_resource" "helper_provision" {
   triggers {
     recover = "${module.recovery_version.value}"
     sha = "${module.seed.bootkube_sha}"
-    version = "${module.versions.bootkube_version}"
+    bootkube = "${module.bootkube_image.value}"
     master = "${element(module.master.ids,count.index)}"
   }
 
@@ -145,7 +145,7 @@ resource "null_resource" "master_provision" {
   triggers {
     recover = "${module.recovery_version.value}"
     sha = "${module.seed.bootkube_sha}"
-    version = "${module.versions.bootkube_version}"
+    bootkube = "${module.bootkube_image.value}"
     master = "${element(module.master.ids,0)}"
   }
 
