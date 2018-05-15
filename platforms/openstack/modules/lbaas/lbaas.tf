@@ -24,6 +24,8 @@ variable "description" {
 
 variable "member_subnet_id" {
 }
+variable "router_interface_id" {
+}
 variable "vip_subnet_id" {
   default = ""
 }
@@ -68,7 +70,7 @@ resource "openstack_lb_loadbalancer_v2" "lbaas" {
 }
 resource "openstack_networking_floatingip_v2" "lbaas" {
   count = "${module.pool.flag * module.lbaas.flag}"
-  pool = "${var.vip_pool_name}"
+  pool = "${element(list(var.vip_pool_name,var.router_interface_id),0)}"
   port_id = "${openstack_lb_loadbalancer_v2.lbaas.vip_port_id}"
 }
 

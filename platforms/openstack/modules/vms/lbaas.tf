@@ -43,6 +43,7 @@ module "lbaas" {
 
   vip_subnet_id = "${module.lbaas_subnet_id.value}"
   vip_pool_name = "${module.lbaas_pool_name.value}"
+  router_interface_id = "${lookup(var.iaas_info, "router_interface_id", "")}"
   member_count = "${var.node_count}"
   member_subnet_id = "${var.subnet_id}"
   members = "${module.ips.value}"

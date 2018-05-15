@@ -155,7 +155,8 @@ module "seed" {
   host_ssl_certs_dir = "${var.host_ssl_certs_dir}"
 
   assets_inst_dir = "${module.cluster.assets_inst_dir}"
-  etcd_backup_file = "${var.etcd_backup_file}"
+  recover_redeploy = "${var.recover_redeploy}"
+  etcd_backup_file = "${module.recover_cluster.if_active ? var.etcd_backup_file : ""}"
   etcd_backup = "${var.etcd_backup}"
   selfhosted_etcd = "${var.selfhosted_etcd}"
 

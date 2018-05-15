@@ -64,6 +64,10 @@ The etcd is scaled with the master nodes and uses a persistent volume for their 
 For bootrapped clusters the etcd operator does not support kubernetes volumes, therefore a
 VM volume for master nodes is created and used to back the host path used by the etcd cluster
 
+Alternatively a static setup without the etcd operator is available now. This will become the
+standard setting in the future. It uses static etcd pods on the master nodes using external
+DNS entries for the member URL maintained by terraform, so master VM rolling will work.
+
 ##### API Server
 The API Server can only run on master nodes. It uses the node port 443. This is used to create a load balancer
 for this port and the set of master nodes.
@@ -344,6 +348,7 @@ Therefore the standard control plane is extended by the helm controller and till
 
 |Name|Meaning|
 |--|--|
+|selfhosted_etcd|Boolean property indicating whether the selfhosted etcd should be used, or a static setup. By default set to `true`.|
 |ca_cert_pem|Root certificate to be used for the cluster. By default generated for the dedicated cluster|
 |ca_key_pem|Key for the root certificate. Must always be configured together with `ca_cert_pem`|
 |base_domain|Base domain used for the cluster instead of generating it. The cluster name is still prepended|
@@ -402,10 +407,16 @@ variables.
 
 ##### Recovery
 
+Recovery is supported for both, the self-hosted and the static setup.
+The static setup used an own backup side car. 
+
 |Name|Meaning|
 |--|--|
 |recover_cluster|Enable cluster [recovery mode](#cluster-recovery) if set to `true|
 |etcd_backup_file|Local path to the etcd backup file|
+
+Migration from a sel-hosted etcd to a static etcd setup is possible by changing the
+setting and then starting the recovery from a former backup.
 
 ##### Component versions
 

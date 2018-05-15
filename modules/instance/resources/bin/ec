@@ -12,11 +12,13 @@ fi
 
 
 case "$1" in
-  B) endpoint="--endpoints https://localhost:12379"
+  S) endpoint="--endpoints https://localhost:2379"  // static etcd
      shift;;
-  BS) endpoint="--endpoints https://$BOOTSTRAP_ETCD_SERVICE_IP:12379"
+  B) endpoint="--endpoints https://localhost:12379"  // bootstrap etcd
      shift;;
-  C) endpoint="--endpoints https://$ETCD_SERVICE_IP:2379"
+  BS) endpoint="--endpoints https://$BOOTSTRAP_ETCD_SERVICE_IP:12379" // bootstrap etcd service 
+     shift;;
+  C) endpoint="--endpoints https://$ETCD_SERVICE_IP:2379" // etcd cluster service ip
      shift;;
 esac
 

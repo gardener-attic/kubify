@@ -29,19 +29,20 @@
     image: quay.io/coreos/etcd:${version}
     command:
     - /bin/sh 
-    - -ec
+    - -exc
     - |
       (/usr/local/bin/etcd \
       --listen-client-urls=http://127.0.0.1:32379 \
       --listen-peer-urls=http://127.0.0.1:32380 \
       --advertise-client-urls=http://127.0.0.1:32379 \
       --data-dir=/var/etcd/kube-system-${name} &) && sleep 30 && \
-      etcdctl \
-      --endpoints=http://127.0.0.1:32379 \
-      del ${crd_key}  && \
-      etcdctl \
-      --endpoints=http://127.0.0.1:32379 \
-      del --prefix ${member_pod_prefix}
+      for entry in ${cleanup_keys}; do \
+      echo delete $entry; \
+      etcdctl --endpoints=http://127.0.0.1:32379 del $entry;\
+      done && \
+      for entry in ${cleanup_prefixes}; do \
+      etcdctl --endpoints=http://127.0.0.1:32379 del --prefix $entry; \
+      done
     env:
     - name: ETCDCTL_API
       value: "3"

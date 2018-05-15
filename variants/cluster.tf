@@ -379,6 +379,10 @@ variable "selfhosted_etcd" {
   default = "true"
 }
 
+variable "recover_redeploy" {
+  default = "false"
+}
+
 ###############################################################
 # process related inputs
 ###############################################################
@@ -477,6 +481,7 @@ module "instance" {
   deploy_tiller = "${var.deploy_tiller}"
   event_ttl = "${var.event_ttl}"
   selfhosted_etcd = "${var.selfhosted_etcd}"
+  recover_redeploy = "${var.recover_redeploy}"
   bootkube = "${var.bootkube}"
   master_state = "${var.master_state}"
   worker_state = "${var.worker_state}"

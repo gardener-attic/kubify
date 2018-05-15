@@ -83,6 +83,53 @@ data "template_file" "etcd_recover_initcontainers" {
     backup_file="${local.backup_file}"
   }
 }
+
+module "recover_redeploy" {
+  source = "../flag"
+  option = "${var.recover_redeploy}"
+}
+
+locals {
+  common_cleanup_keys = [
+    "/registry/etcd.database.coreos.com/etcdclusters/kube-system/kube-etcd",
+    "/registry/daemonsets/kube-system/kube-etcd-network-checkpointer",
+    "/registry/deployments/kube-system/etcd-operator",
+    "/registry/deployments/kube-system/kube-etcd-backup-sidecar",
+  ]
+  common_cleanup_prefixes = [
+    "/registry/pods/kube-system/kube-etcd-"
+  ]
+
+  redeploy_keys = [
+    "/registry/daemonsets/kube-system/kube-apiserver",
+    "/registry/daemonsets/kube-system/kube-dns",
+    "/registry/daemonsets/kube-system/kube-proxy",
+    "/registry/daemonsets/kube-system/kube-flannel",
+    "/registry/deployments/kube-system/kube-controller-manager",
+    "/registry/deployments/kube-system/kube-scheduler",
+  ]
+
+  redeploy_prefixes = [
+    "/registry/pods/kube-system/kube-apiserver-",
+    "/registry/pods/kube-system/kube-dns-",
+    "/registry/pods/kube-system/kube-proxy-",
+    "/registry/pods/kube-system/kube-flannel-",
+    "/registry/pods/kube-system/kube-controller-manager-",
+    "/registry/pods/kube-system/kube-scheduler-",
+  ]
+
+  cleanup_keys = "${module.recover_redeploy.value ? join(" ",concat(local.redeploy_keys,local.common_cleanup_keys)) : join(" ",local.common_cleanup_keys)}"
+  cleanup_prefixes = "${module.recover_redeploy.value ? join(" ",concat(local.redeploy_prefixes,local.common_cleanup_prefixes)) : join(" ",local.common_cleanup_prefixes)}"
+  
+}
+
+output "cleanup_prefixes" {
+  value = "${local.cleanup_prefixes}"
+}
+output "cleanup_keys" {
+  value = "${local.cleanup_keys}"
+}
+
 data "template_file" "static_etcd_recover_initcontainers" {
   count = "${module.selfhosted_etcd.if_not_active}"
   template = "${file("${path.module}/templates/etcd_bootstrap/static_recover_initcontainers")}"
@@ -97,8 +144,8 @@ data "template_file" "static_etcd_recover_initcontainers" {
     etcd_backup_mount = "${local.etcd_backup_mount}"
     backup_file="${local.backup_file}"
 
-    crd_key= "/registry/etcd.database.coreos.com/etcdclusters/kube-system/kube-etcd"
-    member_pod_prefix = "/registry/pods/kube-system/kube-etcd-"
+    cleanup_keys= "${local.cleanup_keys}"
+    cleanup_prefixes = "${local.cleanup_prefixes}"
   }
 }
 

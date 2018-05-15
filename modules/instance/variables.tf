@@ -295,6 +295,10 @@ variable "selfhosted_etcd" {
   default = "true"
 }
 
+variable "recover_redeploy" {
+  default = "false"
+}
+
 ###############################################################
 # process related inputs
 ###############################################################

@@ -236,6 +236,29 @@ resource "null_resource" "manifests" {
   }
 }
 
+locals {
+  cleanup_files = [
+      "${var.gen_dir}/assets/etcd/backup.json",
+      "${var.gen_dir}/assets/etcd/bootstrap-etcd-service.json",
+      "${var.gen_dir}/assets/etcd/migrate-etcd-cluster.json",
+      "${var.gen_dir}/assets/bootstrap-manifests/bootstrap-etcd.yaml",
+      "${var.gen_dir}/assets/manifests/etcd-operator.yaml",
+      "${var.gen_dir}/assets/manifests/kube-etcd-network-checkpointer.yaml"
+    ]
+}
+
+resource "null_resource" "cleanup_selfhosted_etcd" {
+  count = "${module.selfhosted_etcd.if_not_active}"
+
+  triggers {
+    command = "rm -Rf ${join(" ",formatlist("\"%s\"",local.cleanup_files))}"
+  }
+
+  provisioner "local-exec" {
+    command = "${self.triggers.command}"
+  }
+}
+
 resource "null_resource" "archive_deps" {
   depends_on = [ "template_dir.bootkube-common", "local_file.cluster_info", "local_file.kubelet_conf", "module.kubelet", "module.apiserver", "module.etcd", "module.etcd-client", "null_resource.etcd_backup" ]
   triggers {
@@ -244,6 +267,7 @@ resource "null_resource" "archive_deps" {
     addon_deploy   = "${join(",",null_resource.deploy.*.id)}"
     addons   = "${join(",",template_dir.addons.*.id)}"
     manifests = "${null_resource.manifests.id}"
+    cleanup = "${join(",",null_resource.cleanup_selfhosted_etcd.*.id)}"
     backup   = "${module.etcd_backup_id.value}"
     recover = "${var.vm_version}"
   }
@@ -262,7 +286,7 @@ data "archive_file" "etcdtls" {
   count = "${module.selfhosted_etcd.if_not_active}"
   type        = "zip"
   output_path = "${var.gen_dir}/etcdtls.zip"
-  source_dir = "${element(list("${var.gen_dir}/etcdtls", null_resource.archive_deps.id),0)}"
+  source_dir = "${element(list("${var.gen_dir}/etcdtls", null_resource.archive_deps.id, module.etcd.trigger, module.etcd-client.trigger),0)}"
 }
 
 data "template_file" "static_etcd" {

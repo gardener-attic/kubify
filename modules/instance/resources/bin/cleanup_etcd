@@ -1,6 +1,13 @@
 #!/bin/bash -e
 
-sudo rm /etc/kubernetes/manifests/kube-etcd.yaml
-docker kill $(docker ps -q)
-docker rm  $(docker ps -aq)
+d()
+{
+  if [ $# -gt 1 ]; then
+    docker "$@"
+  fi
+}
+
+sudo rm -f /etc/kubernetes/manifests/kube-etcd.yaml
+d kill $(docker ps -q)
+d rm $(docker ps -aq)
 sudo rm -Rf /var/etcd/kube-system-kube-etcd-00*

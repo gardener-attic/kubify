@@ -194,6 +194,9 @@ variable "etcd_backup" {
 variable "selfhosted_etcd" {
   default = "true"
 }
+variable "recover_redeploy" {
+  default = "false"
+}
 variable "deploy_tiller" {
   default = "true"
 }
