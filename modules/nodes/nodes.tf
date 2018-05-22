@@ -319,6 +319,10 @@ module "bootstrap_steps" {
 # cloud init
 #
 
+locals {
+  generation = "${var.generation}${var.vm_version == 0 ? "" : "-${var.vm_version}"}"
+}
+
 data "template_file" "cloud_init" {
   template = "${file("${path.module}/templates/cloud-init")}"
 
@@ -331,7 +335,7 @@ data "template_file" "cloud_init" {
     cloud_conf_b64 = "${base64encode(var.cloud_conf)}"
     kubelet_conf_b64 = "${base64encode(var.kubeconfig)}"
     setup_kubeenv_script_b64 = "${base64encode(file("${path.module}/resources/setup_kubeenv"))}"
-    generation = "${var.generation}"
+    generation = "${local.generation}"
   
     #
     # flavored properties
@@ -444,7 +448,7 @@ output "lbaas_address_type" {
 }
 
 output "generation" {
-  value = "${var.generation}"
+  value = "${local.generation}"
 }
 
 output "vm_info" {

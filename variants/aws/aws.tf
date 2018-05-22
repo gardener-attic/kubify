@@ -58,7 +58,7 @@ module "iaas_config" {
 }
 
 provider "aws" {
-#  version = "= 0.2.2"
+#  version = "= 1.7.0"
   access_key   = "${var.aws_access_key}"
   secret_key   = "${var.aws_secret_key}"
   region      = "${var.aws_region}"

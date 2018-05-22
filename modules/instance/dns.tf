@@ -98,7 +98,7 @@ module "dns_records" {
   entry_count  = "${module.master_config.count}"
   targets = "${module.master.ips}"
   names   = "${module.cluster.etcd_domains}"
-  type   = "${module.vip_type_nginx.value}"
+  type   = "A"
   ttl    = "300"
 }
 
