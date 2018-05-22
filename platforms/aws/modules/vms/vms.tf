@@ -42,8 +42,26 @@ module "instance_profile" {
 locals {
   toggle="${var.vm_version % 2}"
 }
+
+#resource "aws_ebs_volume" "nodes" {
+#  count       = "${module.storage.value * var.node_count}"
+#  availability_zone = "${lookup(var.iaas_info,"availability_zone")}"
+#  size        = "${var.volume_size + local.toggle}"
+#  tags {
+#      Name    = "${var.prefix}-${var.node_type}-${count.index}"
+#  }
+#}
+
 resource "aws_ebs_volume" "nodes" {
-  count       = "${module.storage.value * var.node_count}"
+  count       = "${module.storage.value * var.node_count * (1- local.toggle)}"
+  availability_zone = "${lookup(var.iaas_info,"availability_zone")}"
+  size        = "${var.volume_size + local.toggle}"
+  tags {
+      Name    = "${var.prefix}-${var.node_type}-${count.index}"
+  }
+}
+resource "aws_ebs_volume" "nodes_b" {
+  count       = "${module.storage.value * var.node_count * local.toggle}"
   availability_zone = "${lookup(var.iaas_info,"availability_zone")}"
   size        = "${var.volume_size + local.toggle}"
   tags {
@@ -51,31 +69,14 @@ resource "aws_ebs_volume" "nodes" {
   }
 }
 
-#resource "aws_ebs_volume" "nodes_a" {
-#  count       = "${module.storage.value * var.node_count * (1- local.toggle)}"
-#  availability_zone = "${lookup(var.iaas_info,"availability_zone")}"
-#  size        = "${var.volume_size + local.toggle}"
-#  tags {
-#      Name    = "${var.prefix}-${var.node_type}-${count.index}"
-#  }
-#}
-#resource "aws_ebs_volume" "nodes_b" {
-#  count       = "${module.storage.value * var.node_count * local.toggle}"
-#  availability_zone = "${lookup(var.iaas_info,"availability_zone")}"
-#  size        = "${var.volume_size + local.toggle}"
-#  tags {
-#      Name    = "${var.prefix}-${var.node_type}-${count.index}"
-#  }
-#}
-
 module "volumes" {
-  #source = "../../../../modules/condlist"
-  source = "../../../../modules/listvar"
-  value = "${aws_ebs_volume.nodes.*.id}"
+  source = "../../../../modules/condlist"
+  #source = "../../../../modules/listvar"
+  #value = "${aws_ebs_volume.nodes.*.id}"
 
-  #if = "${local.toggle}"
-  #then = "${aws_ebs_volume.nodes_b.*.id}"
-  #else = "${aws_ebs_volume.nodes_a.*.id}"
+  if = "${local.toggle}"
+  then = "${aws_ebs_volume.nodes_b.*.id}"
+  else = "${aws_ebs_volume.nodes.*.id}"
 }
 
 ##########################################
