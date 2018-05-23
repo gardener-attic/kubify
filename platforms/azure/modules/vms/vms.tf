@@ -92,7 +92,7 @@ resource "azurerm_virtual_machine" "storage" {
     lun           = 0
   }
 
-  tags = "${merge(local.tags,map("Name","${var.prefix}-${var.node_type}-${count.index}-${var.vm_version + element(module.roll.revision_list,count.index)}")}"
+  tags = "${merge(local.tags,map("Name","${var.prefix}-${var.node_type}-${count.index}-${var.vm_version + element(module.roll.revision_list,count.index)}"))}"
 
   os_profile_linux_config {
     disable_password_authentication = true
@@ -135,7 +135,7 @@ resource "azurerm_virtual_machine" "nostorage" {
     disk_size_gb  = "${var.root_volume_size}"
   }
 
-  tags = "${merge(local.tags,map("Name","${var.prefix}-${var.node_type}-${count.index}-${var.vm_version + element(module.roll.revision_list,count.index)}")}"
+  tags = "${merge(local.tags,map("Name","${var.prefix}-${var.node_type}-${count.index}-${var.vm_version + element(module.roll.revision_list,count.index)}"))}"
 
   os_profile_linux_config {
     disable_password_authentication = true
