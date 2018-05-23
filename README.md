@@ -68,6 +68,8 @@ Alternatively a static setup without the etcd operator is available now. This wi
 standard setting in the future. It uses static etcd pods on the master nodes using external
 DNS entries for the member URL maintained by terraform, so master VM rolling will work.
 
+There is a [migration path](doc/etcd_migration.md) for switching from self-hosted etcd to static etcd.
+
 ##### API Server
 The API Server can only run on master nodes. It uses the node port 443. This is used to create a load balancer
 for this port and the set of master nodes.
@@ -414,9 +416,9 @@ The static setup used an own backup side car.
 |--|--|
 |recover_cluster|Enable cluster [recovery mode](#cluster-recovery) if set to `true|
 |etcd_backup_file|Local path to the etcd backup file|
+|recover_redeploy|Flag to enforce control plane cleaup and redeploy during recivery. Default is `true`.|
 
-Migration from a sel-hosted etcd to a static etcd setup is possible by changing the
-setting and then starting the recovery from a former backup.
+[Migration](doc/etcd_migration.md) from a self-hosted etcd to a static etcd setup is possible by changing the setting and then starting the recovery from a former backup. The redeploy option must be set to `true` for the etcd migration.
 
 ##### Component versions
 
