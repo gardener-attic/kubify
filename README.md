@@ -485,3 +485,4 @@ used by the migration script. After defining those functions
 it just calls the migration script as regular shell script.
 The utility functions are based on the state manipulation
 sub commands of the `terraform` command.
+
