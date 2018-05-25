@@ -22,7 +22,7 @@ locals {
   flavor = "${lookup(var.vm_info,"flavor")}"
   image = "${lookup(var.vm_info,"image")}"
   subnet = "${lookup(var.vm_info,"subnet_name")}"
-  vnet = "${lookup(var.vm_info,"vnet")}"
+  vnet = "${lookup(var.vm_info,"vnet", "")}"
   resource_group = "${lookup(var.vm_info,"resource_group")}"
   availability_set = "${lookup(var.vm_info,"availability_set")}"
 
@@ -47,7 +47,7 @@ data "template_file" "secret" {
     cloud_init_b64 = "${base64encode(local.cloud_init)}"
     client_id_b64 = "${base64encode(module.azure.client_id)}"
     client_secret_b64 = "${base64encode(module.azure.client_secret)}"
-    substription_id_b64 = "${base64encode(module.azure.substription_id)}"
+    subscription_id_b64 = "${base64encode(module.azure.subscription_id)}"
     tenant_id_b64 = "${base64encode(module.azure.tenant_id)}"
   }
 }
@@ -60,11 +60,12 @@ data "template_file" "class" {
 
     flavor = "${local.flavor}"
     subnet = "${local.subnet}"
-    location = "${module.azure.location}"
+    location = "${module.azure.region}"
     resource_group = "${local.resource_group}"
     availability_set = "${local.availability_set}"
     vnet = "${local.vnet}"
     tags = "${local.tags}"
+    public_key = ""
 
     publisher = "${local.publisher}"
     offer = "${local.offer}"
