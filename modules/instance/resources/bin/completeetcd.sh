@@ -27,6 +27,11 @@ if [ -z "$DNS_SERVICE_IP" ]; then
 fi
 
 
+if [ -f "$BOOT/manifests/kube-etcd-svc.yaml" ]; then
+  echo "applying etcd service"
+  ks apply -f "$BOOT/manifests/kube-etcd-svc.yaml"
+fi
+
 check "etcd dns resolution" nslookup kube-etcd-0000.kube-etcd.kube-system.svc.cluster.local $DNS_SERVICE_IP
 IP="$(dig +short @$DNS_SERVICE_IP kube-etcd-0000.kube-etcd.kube-system.svc.cluster.local)"
 echo "IP for etcd 0 is $IP"
@@ -46,7 +51,7 @@ if [ $(( $n / 2  * 2)) == $n ]; then
   n=1
 fi
 
-if ks get EtcdCluster >/dev/null; then
+if ks get EtcdCluster kube-etcd >/dev/null; then
   echo "scaling etcd cluster"
   ks patch EtcdCluster kube-etcd --type merge -p '{ "spec": { "size": '$n' } }'
 

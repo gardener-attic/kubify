@@ -95,6 +95,7 @@ locals {
     "/registry/daemonsets/kube-system/kube-etcd-network-checkpointer",
     "/registry/deployments/kube-system/etcd-operator",
     "/registry/deployments/kube-system/kube-etcd-backup-sidecar",
+    "/registry/apiextensions.k8s.io/customresourcedefinitions/etcdclusters.etcd.database.coreos.com",
   ]
   common_cleanup_prefixes = [
     "/registry/pods/kube-system/kube-etcd-"
