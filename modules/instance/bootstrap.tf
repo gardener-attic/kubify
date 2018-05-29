@@ -73,7 +73,8 @@ output "etcd_provision" {
 
 resource "null_resource" "etcd_setup" {
   depends_on = [ "null_resource.etcd_provision" ]
-  count = "${module.master_config.count * module.selfhosted_etcd.if_not_active * signum(module.bootkube.if_active + module.recover_cluster.if_active) * module.setup_etcd.if_active}"
+  #count = "${module.master_config.count * module.selfhosted_etcd.if_not_active * signum(module.bootkube.if_active + module.recover_cluster.if_active) * module.setup_etcd.if_active}"
+  count = "${module.master_config.count * module.selfhosted_etcd.if_not_active * module.setup_etcd.if_active}"
 
   triggers {
     provision = "${element(null_resource.etcd_provision.*.id,count.index)}"
@@ -95,6 +96,7 @@ resource "null_resource" "etcd_setup" {
     inline = [
       "rm -rf etcdtls && unzip etcdtls.zip -d etcdtls",
       "sudo mkdir -p /etc/kubernetes/static-secrets",
+      "sudo rm -rf /etc/kubernetes/static-secrets/etcd",
       "sudo mv etcdtls/* /etc/kubernetes/static-secrets",
     ]
   }
