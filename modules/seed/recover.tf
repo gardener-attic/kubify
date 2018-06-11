@@ -76,6 +76,7 @@ data "template_file" "etcd_recover_initcontainers" {
     etcd_version = "${module.versions.etcd_version}"
     crd_key= "/registry/etcd.database.coreos.com/etcdclusters/kube-system/kube-etcd"
     member_pod_prefix = "/registry/pods/kube-system/kube-etcd-"
+    member_depl_prefix = "/registry/deployments/kube-system/kube-etcd-"
 
     bootstrap_etcd_service_ip = "${var.bootstrap_etcd_service_ip}"
     etcd_mount = "${local.etcd_mount}"
