@@ -32,7 +32,8 @@ module "lbaas" {
 }
 
 output "lbaas_address" {
-  value = "${module.lbaas.vip_address}"
+  # forcing to pick first element
+  value = "${length(module.lbaas.vip_address) > 0 ? element(concat(module.lbaas.vip_address, list("")), 0) : ""}"
 }  
 output "lbaas_address_type" {
   value = "${module.lbaas.vip_type}"

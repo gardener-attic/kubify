@@ -22,7 +22,7 @@ locals {
   flavor = "${lookup(var.vm_info,"flavor")}"
   image = "${lookup(var.vm_info,"image")}"
   subnet = "${lookup(var.vm_info,"subnet_name")}"
-  vnet = "${lookup(var.vm_info,"vnet")}"
+  vnet = "${lookup(var.vm_info,"vnet","")}"
   resource_group = "${lookup(var.vm_info,"resource_group")}"
   availability_set = "${lookup(var.vm_info,"availability_set")}"
 
@@ -70,7 +70,7 @@ data "template_file" "class" {
     offer = "${local.offer}"
     sku = "${local.sku}"
     version = "${local.version}"
-
+    public_key = ""
     admin_user = "${local.admin_user}"
     root_volume_size = "${local.root_volume_size}"
 
