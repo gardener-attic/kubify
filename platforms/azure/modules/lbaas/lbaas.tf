@@ -105,7 +105,7 @@ output "vip_type" {
 }
 
 locals {
-  pool_ids = "${compact(concat(azurerm_lb_backend_address_pool.lb.*.id,list("")))}" 
+  pool_ids = "${compact(concat(azurerm_lb_backend_address_pool.lb.*.id,list("")))}"
 }
 output "pool_id" {
   value = "${azurerm_lb_backend_address_pool.lb.*.id}"

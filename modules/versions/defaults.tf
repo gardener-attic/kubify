@@ -17,7 +17,7 @@
 ###############################################################
 
 locals {
-  image_name                 = "coreos-1520.6.0"
+  image_name                 = "azure-latest"
   bastion_image_name         = "ubuntu-16.04"
   kubernetes_version         = "v1.9.3"
   dns_version                = "1.14.5"
