@@ -187,6 +187,7 @@ output "vm_info" {
     image = "${var.image_name}"
     subnet_name  = "${lookup(var.iaas_info,"subnet_name")}"
     vnet_name  = "${lookup(var.iaas_info,"vnet_name")}"
+    public_key = "${var.key}"
 
     resource_group = "${module.resource_group_name.value}"
     availability_set = "${azurerm_availability_set.nodes.id}}"
