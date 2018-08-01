@@ -41,6 +41,9 @@ variable "namespace" {
   default = "nginx-ingress"
 }
 
+variable "vip_ingress" {
+}
+
 module "versions" {
   source = "../../../versions"
   versions = "${var.versions}"
@@ -71,7 +74,7 @@ module "generated" {
   else = { # load balancer/DNS provided externally
     annotations = ""
     service_type = "ClusterIP"
-    publish_service = ""
+    publish_service = "- --publish-status-address=${var.vip_ingress}"
     host_network = "true"
   }
 }

@@ -17,7 +17,7 @@
 ###############################################################
 
 locals {
-  image_name                 = "coreos-1520.6.0"
+  image_name                 = "azure-latest"
   bastion_image_name         = "ubuntu-16.04"
   kubernetes_version         = "v1.9.3"
   dns_version                = "1.14.5"
@@ -29,7 +29,7 @@ locals {
   bootkube                   = "quay.io/coreos/bootkube"
   kubernetes_hyperkube       = "gcr.io/google_containers/hyperkube"
   kubernetes_hyperkube_patch = ""
-  nginx_version              = "0.9.0"
+  nginx_version              = "0.17.1"
 
   lego_version = "0.1.5"
   dex_version  = "v2.6.1"

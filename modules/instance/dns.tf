@@ -19,7 +19,7 @@ variable "dns" {
 
 module "hosted_zone_domain" {
   source = "./../variable"
-  value = "${lookup(var.dns,"hosted_zone_domain","k8s.sapcloud.io")}"
+  value = "${lookup(var.dns,"hosted_zone_domain","kubify.gardener.cloud")}"
 }
 module "base_domain" {
   source = "./../variable"

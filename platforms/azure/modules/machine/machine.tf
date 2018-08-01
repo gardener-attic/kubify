@@ -22,7 +22,8 @@ locals {
   flavor = "${lookup(var.vm_info,"flavor")}"
   image = "${lookup(var.vm_info,"image")}"
   subnet = "${lookup(var.vm_info,"subnet_name")}"
-  vnet = "${lookup(var.vm_info,"vnet", "")}"
+  vnet_name = "${lookup(var.vm_info,"vnet_name")}"
+  public_key = "${lookup(var.vm_info,"public_key")}"
   resource_group = "${lookup(var.vm_info,"resource_group")}"
   availability_set = "${lookup(var.vm_info,"availability_set")}"
 
@@ -63,15 +64,14 @@ data "template_file" "class" {
     location = "${module.azure.region}"
     resource_group = "${local.resource_group}"
     availability_set = "${local.availability_set}"
-    vnet = "${local.vnet}"
+    vnet = "${local.vnet_name}"
     tags = "${local.tags}"
-    public_key = ""
 
     publisher = "${local.publisher}"
     offer = "${local.offer}"
     sku = "${local.sku}"
     version = "${local.version}"
-
+    public_key = "${local.public_key}"
     admin_user = "${local.admin_user}"
     root_volume_size = "${local.root_volume_size}"
 
