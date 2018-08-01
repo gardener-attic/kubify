@@ -178,6 +178,8 @@ module "seed" {
 
   iaas_config = "${var.iaas_config}"
   worker_info = "${module.worker.vm_info}"
+
+  vip_ingress = "${module.vip_nginx.value}"
 }
 
 output "gen_dir" {
