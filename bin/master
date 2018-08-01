@@ -125,7 +125,8 @@ doPrepare()
   rm -f variant
   rm -rf terraform
   ln -s terraform/variants/current variant
-  cp --preserve -r k8s terraform
+  # OSX compat
+  cp -a -r k8s terraform 
   rm -f terraform/variants/current
   ln -s "$VARIANT" terraform/variants/current
 }

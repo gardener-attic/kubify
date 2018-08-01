@@ -43,6 +43,8 @@ module "nginx-ingress" {
   standard = "${local.standard}"
 
   selected = "${local.selected}"
+
+  vip_ingress = "${var.vip_ingress}"
 }
 
 module "monitoring" {

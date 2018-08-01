@@ -193,3 +193,5 @@ variable "iaas_config" {
   type = "map"
 }
 
+variable "vip_ingress" {
+}

@@ -29,7 +29,7 @@ locals {
   bootkube                   = "quay.io/coreos/bootkube"
   kubernetes_hyperkube       = "gcr.io/google_containers/hyperkube"
   kubernetes_hyperkube_patch = ""
-  nginx_version              = "0.9.0"
+  nginx_version              = "0.17.1"
 
   lego_version = "0.1.5"
   dex_version  = "v2.6.1"

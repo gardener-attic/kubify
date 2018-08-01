@@ -12,30 +12,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 module "lbaas_name" {
-  source = "../../../../modules/variable"
-  value = "${var.lbaas_name}"
+  source  = "../../../../modules/variable"
+  value   = "${var.lbaas_name}"
   default = "${var.node_type}"
-} 
+}
 
 module "lbaas" {
   source = "../lbaas"
 
-  name = "${var.prefix}-${module.lbaas_name.value}"
+  name                = "${var.prefix}-${module.lbaas_name.value}"
   resource_group_name = "${module.resource_group_name.value}"
-  region = "${module.azure.region}"
-  description = "${var.lbaas_description}"
-  ports = "${var.lbaas_ports}"
-  
+  region              = "${module.azure.region}"
+  description         = "${var.lbaas_description}"
+  ports               = "${var.lbaas_ports}"
+
   use_lbaas = "${var.provide_lbaas}"
 }
 
 output "lbaas_address" {
   # forcing to pick first element
   value = "${length(module.lbaas.vip_address) > 0 ? element(concat(module.lbaas.vip_address, list("")), 0) : ""}"
-}  
+}
+
 output "lbaas_address_type" {
   value = "${module.lbaas.vip_type}"
-}  
-
+}

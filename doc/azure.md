@@ -1,6 +1,6 @@
 ### Azure Deployment of Kubernetes
 
-The azure variant for kubernetes is deployed into a predefined azure tenant and substription.
+The azure variant for kubernetes is deployed into a predefined azure tenant and subscription.
 So far, it uses the AWS route53 service for providing DNS names.
 
 
