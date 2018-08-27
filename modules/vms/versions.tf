@@ -18,11 +18,11 @@ locals {
   image_versions = {
     "openstack" = {
       "ubuntu-16.04" = "ubuntu-16.04"
-      "coreos-1520.6.0" = "coreos-1520.6.0"
+      "coreos-1745.7.0" = "coreos-1745.7.0"
     }
     "aws" = {
       "ubuntu-16.04" = "ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server"
-      "coreos-1520.6.0" = "CoreOS-stable-1520.6.0-hvm"
+      "coreos-1745.7.0" = "CoreOS-stable-1745.7.0-hvm"
     }
     "azure" = {
       "ubuntu-16.04" = "Canonical/UbuntuServer/16.04-LTS/latest"
