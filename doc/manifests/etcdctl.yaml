@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: etcdctl
+spec:
+  containers:
+  - image: quay.io/coreos/etcd:v3.2
+    name: etcdctl
+    command:
+    - sleep
+    - "10000000"
+    volumeMounts:
+    - mountPath: /tls
+      name: etcd-tls
+  volumes:
+  - name: etcd-tls
+    secret:
+      secretName: etcd-client-tls
