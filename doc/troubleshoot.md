@@ -53,7 +53,7 @@ k8s/bin/ks exec -it etcdctl sh
 
 Run a `k8s/bin/ks get pods | grep kube-etcd` to figure out which active ETCD pods are currently running and adapt the `kube-etcdXXXX` number in the command below. The etcd-operator might have reacted pods with different numbers (due to an outage/recreation)
 ```
-export ETCDCTL_API=3 && /usr/local/bin/etcdctl --cert /tls/etcd-client.crt --key /tls/etcd-client.key --cacert /tls/etcd-client-ca.crt --endpoints https://kube-etcd-0000.kube-etcd.kube-system.svc:2379,https://kube-etcd-0001.kube-etcd.kube-system.svc:2379,https://kube-etcd-0002.kube-etcd.kube-system.svc:2379 endpoint tatus -w table
+export ETCDCTL_API=3 && /usr/local/bin/etcdctl --cert /tls/etcd-client.crt --key /tls/etcd-client.key --cacert /tls/etcd-client-ca.crt --endpoints https://kube-etcd-0000.kube-etcd.kube-system.svc:2379,https://kube-etcd-0001.kube-etcd.kube-system.svc:2379,https://kube-etcd-0002.kube-etcd.kube-system.svc:2379 endpoint status -w table
 ```
 This should output something like that
 ```
