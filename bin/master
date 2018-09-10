@@ -66,6 +66,13 @@ Error()
 ##############################################################
 
 
+validateTerraform()
+{
+  if ! which terraformx &>/dev/null; then
+    Error 'terraform not found in PATH'
+  fi
+}
+
 # prepare terraform project
 doPrepare()
 {
@@ -1005,6 +1012,8 @@ doEC()
   genECScript $* | doSSH master 0 tee script >/dev/null
   doSSH master 0 bash script
 }
+
+validateTerraform
 
 ##############################################################
 # command set
