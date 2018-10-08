@@ -35,7 +35,7 @@ locals {
   dex_version  = "v2.6.1"
 
   dashboard_image   = "gcr.io/google_containers/kubernetes-dashboard-amd64"
-  dashboard_version = "v1.8.3"
+  dashboard_version = "v1.10.0"
 
   garden_apiserver_image    = "eu.gcr.io/gardener-project/gardener/apiserver"
   garden_apiserver_version  = "0.1.0-0628e0bdd679351378c05503cf1de301a79a1b2a"
