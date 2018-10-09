@@ -113,6 +113,7 @@ locals {
     service_account_pub_b64 = "${base64encode(var.service_account_public_key_pem)}"
     service_account_key_b64 = "${base64encode(var.service_account_private_key_pem)}"
     controller_manager_ca_crt_b64 = "${module.apiserver.ca_cert_b64}"
+    controller_manager_ca_key_b64 = "${module.apiserver.ca_key_b64}"
     dns_version = "${module.versions.dns_version}"
     dns_service_ip = "${var.dns_service_ip}"
     flannel_version = "${module.versions.flannel_version}"
