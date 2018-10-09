@@ -54,6 +54,8 @@ spec:
         - --leader-elect=true
         - --root-ca-file=/etc/kubernetes/secrets/ca.crt
         - --service-account-private-key-file=/etc/kubernetes/secrets/service-account.key
+        - --cluster-signing-cert-file=/etc/kubernetes/secrets/ca.crt
+        - --cluster-signing-key-file=/etc/kubernetes/secrets/ca.key
         livenessProbe:
           httpGet:
             path: /healthz
