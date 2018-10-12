@@ -164,6 +164,15 @@ resource "null_resource" "etcd" {
   }
 }
 
+locals {
+  suffixes = [ "0000", "0001", "0002", "0003", "0004", "0005", "0006", "0007", "0008", "0009" ]
+  etcd_names = "${formatlist("%s-%s",var.etcd_name,slice(local.suffixes,0,var.master_count))}"
+}
+module "etcd_domains" {
+  source = "../listvar"
+  value = "${formatlist("%s.%s",local.etcd_names,module.etcd_base_domain.value)}"
+}
+
 output "cluster-info" {
   value = "${data.template_file.cluster-info.rendered}"
 }
@@ -200,10 +209,10 @@ output "etcd_base_domain" {
   value = "${module.etcd_base_domain.value}"
 }
 output "etcd_names" {
-  value = "${null_resource.etcd.*.triggers.name}"
+  value = "${local.etcd_names}"
 }
 output "etcd_domains" {
-  value = "${formatlist("%s.%s",null_resource.etcd.*.triggers.name,module.etcd_base_domain.value)}"
+  value = "${module.etcd_domains.value}"
 }
 
 module "api_service_ip" {

@@ -142,7 +142,7 @@ module "etcd" {
   service_ip = "${module.etcd_service_ip.value}"
   ca = "${module.ca.ca_cert_pem}"
   ca_key = "${module.ca.ca_key_pem}"
-  dns_names = [ "localhost", "*.${module.etcd_base_domain.value}" ]
+  dns_names = "${concat(list("localhost"), list("*.${module.etcd_base_domain.value}"), module.etcd_domains.value) }"
   ip_addresses = [ "${module.bootstrap_etcd_service_ip.value}", "127.0.0.1" ]
 }
 
