@@ -390,6 +390,9 @@ variable "recover_redeploy" {
 variable "bootkube" {
   default = 1
 }
+variable "omit_bootkube" {
+  default = 0
+}
 
 variable "master_state" {
   default = { }
@@ -483,6 +486,7 @@ module "instance" {
   selfhosted_etcd = "${var.selfhosted_etcd}"
   recover_redeploy = "${var.recover_redeploy}"
   bootkube = "${var.bootkube}"
+  omit_bootkube = "${var.omit_bootkube}"
   master_state = "${var.master_state}"
   worker_state = "${var.worker_state}"
   recovery_version = "${var.recovery_version}"

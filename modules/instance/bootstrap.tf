@@ -29,6 +29,10 @@ module "setup_etcd" {
   source = "./../flag"
   option= "${var.setup_etcd}"
 }
+module "omit_bootkube" {
+  source = "./../flag"
+  option= "${var.omit_bootkube}"
+}
 module "bootkube" {
   source = "./../flag"
   option= "${var.bootkube}"
@@ -170,7 +174,7 @@ resource "null_resource" "master_provision" {
 
 resource "null_resource" "master_setup" {
   depends_on = [ "null_resource.master_provision" ]
-  count = "${signum(module.bootkube.if_active + module.recover_cluster.if_active)}"
+  count = "${module.omit_bootkube.if_not_active * signum(module.bootkube.if_active + module.recover_cluster.if_active)}"
 
   triggers {
     provision = "${null_resource.master_provision.id}"

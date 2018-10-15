@@ -306,6 +306,9 @@ variable "recover_redeploy" {
 variable "bootkube" {
   default = 1
 }
+variable "omit_bootkube" {
+  default = 0
+}
 
 variable "master_state" {
   default = { }
