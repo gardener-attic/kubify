@@ -11,7 +11,7 @@ spec:
 ${recover_initcontainers}
   containers:
   - name: etcd
-    image: quay.io/coreos/etcd:${version}
+    image: ${image}:${version}
     imagePullPolicy: IfNotPresent
     command:
      - /bin/sh

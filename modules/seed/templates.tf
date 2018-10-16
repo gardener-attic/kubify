@@ -118,6 +118,7 @@ locals {
     flannel_version = "${module.versions.flannel_version}"
     cni_version = "${module.versions.cni_version}"
     etcd_version = "${module.versions.etcd_version}"
+    etcd_image = "${module.versions.etcd_image}"
     bootstrap_etcd_service_ip = "${var.bootstrap_etcd_service_ip}"
     etcd_service_ip = "${var.etcd_service_ip}"
     etcd_peer_ca_crt_b64 = "${module.etcd.peer_ca_cert_b64}"
@@ -297,6 +298,7 @@ data "template_file" "static_etcd" {
     service_name = "${var.etcd_service_name}"
     service_ip = "${var.etcd_service_ip}"
     version = "${module.versions.etcd_version}"
+    image = "${module.versions.etcd_image}"
     endpoints = "${local.etcd_servers_by_dns}"
     predecessor = "${local.etcd_predecessors[count.index]}"
     domain = "${var.etcd_domains[count.index]}"
@@ -327,6 +329,12 @@ output "etcdtls_path" {
 }
 output "etcd_manifests" {
   value = "${data.template_file.static_etcd.*.rendered}"
+}
+
+resource "local_file" "etcd_manifest" {
+  count = "${var.master_count * module.selfhosted_etcd.if_not_active}"
+  content = "${element(data.template_file.static_etcd.*.rendered, count.index)}"
+  filename = "${var.gen_dir}/files/etcd/static-${var.etcd_names[count.index]}.yaml"
 }
 
 resource "local_file" "kubelet_env" {

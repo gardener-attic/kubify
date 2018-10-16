@@ -44,6 +44,11 @@ variable "etcd_version" {
   default = ""
 }
 
+variable "etcd_image" {
+  default = ""
+}
+
+
 variable "etcd_operator_version" {
   default = ""
 }

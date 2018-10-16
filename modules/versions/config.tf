@@ -69,6 +69,11 @@ module "etcd_version" {
   optional = true
   values=[ "${var.etcd_version}","${lookup(var.versions,"etcd_version","")}", "${local.etcd_version}" ]
 }
+module "etcd_image" {
+  source="../defaults"
+  optional = true
+  values=[ "${var.etcd_image}","${lookup(var.versions,"etcd_image","")}", "${local.etcd_image}" ]
+}
 module "etcd_operator_version" {
   source="../defaults"
   optional = true
@@ -213,6 +218,7 @@ output "versions" {
       flannel_version = "${module.flannel_version.value}"
       cni_version = "${module.cni_version.value}"
       etcd_version = "${module.etcd_version.value}"
+      etcd_image = "${module.etcd_image.value}"
       etcd_operator_version = "${module.etcd_operator_version.value}"
       etcd_backup_version = "${module.etcd_backup_version.value}"
       etcd_backup_image = "${module.etcd_backup_image.value}"
@@ -265,6 +271,9 @@ output "cni_version" {
 }
 output "etcd_version" {
   value = "${module.etcd_version.value}"
+}
+output "etcd_image" {
+  value = "${module.etcd_image.value}"
 }
 output "etcd_operator_version" {
   value = "${module.etcd_operator_version.value}"

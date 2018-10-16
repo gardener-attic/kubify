@@ -107,6 +107,7 @@ resource "null_resource" "etcd_setup" {
 
   provisioner "remote-exec" {
     inline = [
+      "sudo mkdir -p /etc/kubernetes/manifests",
       "sudo cp kube-etcd.yaml /etc/kubernetes/manifests",
     ]
   }

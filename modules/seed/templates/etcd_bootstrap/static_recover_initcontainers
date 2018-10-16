@@ -1,6 +1,6 @@
   initContainers:
   - name: recovery
-    image: quay.io/coreos/etcd:${version}
+    image: ${image}:${version}
     command:
     - /bin/sh 
     - -ec
@@ -14,7 +14,8 @@
           --initial-cluster-token=${service_name} \
           --initial-advertise-peer-urls=https://${domain}:2380 \
           --skip-hash-check=true && \
-        mv /var/etcd-backupdir/${backup_file} /var/etcd-backupdir/${backup_file}.bak \
+          touch /var/etcd/cleanup && \
+          mv /var/etcd-backupdir/${backup_file} /var/etcd-backupdir/${backup_file}.bak \
       )
     env:
     - name: ETCDCTL_API
@@ -26,26 +27,32 @@
     - mountPath: /var/etcd
       name: etcd-data
   - name: cleanup
-    image: quay.io/coreos/etcd:${version}
+    image: ${image}:${version}
     command:
     - /bin/sh 
     - -exc
     - |
-      (/usr/local/bin/etcd \
-      --listen-client-urls=http://127.0.0.1:32379 \
-      --listen-peer-urls=http://127.0.0.1:32380 \
-      --advertise-client-urls=http://127.0.0.1:32379 \
-      --data-dir=/var/etcd/kube-system-${name} &) && sleep 30 && \
-      for entry in ${cleanup_keys}; do \
-      echo delete $entry; \
-      etcdctl --endpoints=http://127.0.0.1:32379 del $entry;\
-      done && \
-      for entry in ${cleanup_prefixes}; do \
-      etcdctl --endpoints=http://127.0.0.1:32379 del --prefix $entry; \
-      done
+      ! test -f /var/etcd/cleanup || ( \
+        ( /usr/local/bin/etcd \
+        --listen-client-urls=http://127.0.0.1:32379 \
+        --listen-peer-urls=http://127.0.0.1:32380 \
+        --advertise-client-urls=http://127.0.0.1:32379 \
+        --data-dir=/var/etcd/kube-system-${name} &) && sleep 30 && \
+        for entry in ${cleanup_keys}; do \
+        echo delete $entry; \
+        etcdctl --endpoints=http://127.0.0.1:32379 del $entry;\
+        done && \
+        for entry in ${cleanup_prefixes}; do \
+        etcdctl --endpoints=http://127.0.0.1:32379 del --prefix $entry; \
+        done && \
+        rm -f /var/etcd/cleanup \
+      )
     env:
     - name: ETCDCTL_API
       value: "3"
     volumeMounts:
     - mountPath: /var/etcd
       name: etcd-data
+    - mountPath: /var/etcd-backupdir
+      name: etcdbackup
+      readOnly: false

@@ -9,7 +9,7 @@ spec:
 ${etcd_initcontainers}
   containers:
   - name: etcd
-    image: quay.io/coreos/etcd:${etcd_version}
+    image: {etcd_image}:${etcd_version}
     command:
     - /usr/local/bin/etcd
     - --name=boot-etcd

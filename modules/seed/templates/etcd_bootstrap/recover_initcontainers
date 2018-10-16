@@ -1,6 +1,6 @@
   initContainers:
   - name: recovery
-    image: quay.io/coreos/etcd:${etcd_version}
+    image: ${etcd_image}:${etcd_version}
     command:
     - /bin/sh 
     - -ec
@@ -22,7 +22,7 @@
 ${etcd_mount}
 ${etcd_backup_mount}
   - name: cleanup
-    image: quay.io/coreos/etcd:${etcd_version}
+    image: ${etcd_image}:${etcd_version}
     command:
     - /bin/sh 
     - -ec

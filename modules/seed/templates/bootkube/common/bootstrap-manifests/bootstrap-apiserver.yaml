@@ -36,7 +36,7 @@ spec:
     - --tls-cert-file=/etc/kubernetes/secrets/apiserver.crt
     - --tls-private-key-file=/etc/kubernetes/secrets/apiserver.key
     - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
-    - --requestheader-allowed-names=system:kube-aggregator
+    - --requestheader-allowed-names=system:kube-aggregator,kubelet
     - --requestheader-extra-headers-prefix=X-Remote-Extra-
     - --requestheader-group-headers=X-Remote-Group
     - --requestheader-username-headers=X-Remote-User

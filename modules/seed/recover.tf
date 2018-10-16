@@ -74,6 +74,7 @@ data "template_file" "etcd_recover_initcontainers" {
   template = "${file("${path.module}/templates/etcd_bootstrap/recover_initcontainers")}"
   vars {
     etcd_version = "${module.versions.etcd_version}"
+    etcd_image = "${module.versions.etcd_image}"
     crd_key= "/registry/etcd.database.coreos.com/etcdclusters/kube-system/kube-etcd"
     member_pod_prefix = "/registry/pods/kube-system/kube-etcd-"
     member_depl_prefix = "/registry/deployments/kube-system/kube-etcd-"
@@ -141,7 +142,7 @@ data "template_file" "static_etcd_recover_initcontainers" {
     domain = "${var.etcd_domains[0]}"
     initial_cluster = "${local.etcd_members[0]}"
     version = "${module.versions.etcd_version}"
-
+    image = "${module.versions.etcd_image}"
     etcd_mount = "${local.etcd_mount}"
     etcd_backup_mount = "${local.etcd_backup_mount}"
     backup_file="${local.backup_file}"
