@@ -17,16 +17,16 @@
 ###############################################################
 
 locals {
-  image_name                 = "coreos-1520.6.0"
+  image_name                 = "coreos-1855.4.0"
   bastion_image_name         = "ubuntu-16.04"
-  kubernetes_version         = "v1.9.9"
+  kubernetes_version         = "v1.9.11"
   dns_version                = "1.14.5"
   flannel_version            = "v0.9.1"
   cni_version                = "0.3.0"
-  etcd_version               = "v3.3.9"
+  etcd_version               = "v3.3.10"
   etcd_image                 = "quay.io/coreos/etcd"
   etcd_operator_version      = "v0.6.1"
-  etcd_backup_version        = "0.2.2"
+  etcd_backup_version        = "0.3.0"
   etcd_backup_image          = "eu.gcr.io/gardener-project/gardener/etcdbrctl"
   self_bootkube_version      = "v0.8.2"
   self_bootkube_image        = "quay.io/coreos/bootkube"
