@@ -11,7 +11,7 @@ If `k8s/bin/{master X/worker X}` isn't working, make sure the following:
 
 # Fix Control plane by using the Bootstrap Controlplane
 
-In case the `kube-{apiserver,controller-manager,scheduler}` isn't working, you can use the bootstrap control plane on `master-0` to recover the Kubernetes control plane. To do that you need to copy the `bootstrap-sercrets` into the `/etc` folder 
+In case the `kube-{apiserver,controller-manager,scheduler}` isn't working, you can use the bootstrap control plane on `master-0` to recover the Kubernetes control plane. To do that you need to copy the `bootstrap-sercrets` into the `/etc` folder
 
 ```
 k8s/bin/master
@@ -33,7 +33,7 @@ Once the Bootstrap components have reconciled the broken Kubernetes control plan
 
 ```
 sudo rm /etc/kubernetes/manifests/bootstrap-apiserver.yaml
-sudo rm /etc/kubernetes/manifests/bootstrap-controller-manager.yaml 
+sudo rm /etc/kubernetes/manifests/bootstrap-controller-manager.yaml
 sudo rm /etc/kubernetes/manifests/bootstrap-scheduler.yaml
 ```
 The Boostrap secrets are also not needed anymore and can be removed.
@@ -46,7 +46,7 @@ sudo rm -rf /etc/kubernetes/bootstrap-secrets
 ## Startup ETCD client pod
 Spin up an Pod which has the ETCD certificates mounted
 ```
-k8s/bin/ks apply -f https://raw.githubusercontent.com/gardener/kubify/master/doc/manifests/etcdctl.yaml
+k8s/bin/ks apply -f https://raw.githubusercontent.com/gardener/kubify/master/docs/manifests/etcdctl.yaml
 k8s/bin/ks exec -it etcdctl sh
 ```
 ## Show current memory consumption
@@ -99,7 +99,7 @@ __IMPORTANT__: Remove/comment out the `recovery_cluster` and the `etcd_backup_fi
 
 ## Post Restore Check
 
-After the cluster is restored, you need to make sure that the worker nodes have successfully joined the cluster. A restart of the worker nodes might be necessary 
+After the cluster is restored, you need to make sure that the worker nodes have successfully joined the cluster. A restart of the worker nodes might be necessary
 
 ```
 k8s/bin/worker {0,1,2,...}
