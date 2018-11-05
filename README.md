@@ -18,7 +18,7 @@ Key features of Kubify are:
 
 ## To start using or developing Kubify locally
 
-See our documentation in the `/docs` repository or [find the main documentation here](https://kubify.readthedocs.io).
+See our documentation in the `/docs` repository or [find the main documentation here](https://github.com/gardener/kubify/blob/master/docs/README.md).
 
 ## Feedback and Support
 

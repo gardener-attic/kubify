@@ -2,3 +2,4 @@
 gen/
 tmp/
 *.sw[opq]
+.vscode/
