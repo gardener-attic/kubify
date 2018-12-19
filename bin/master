@@ -126,7 +126,7 @@ doPrepare()
   rm -rf terraform
   ln -s terraform/variants/current variant
   # OSX compat
-  cp -a -r k8s terraform 
+  cp -a -r k8s terraform
   rm -f terraform/variants/current
   ln -s "$VARIANT" terraform/variants/current
 }
@@ -843,19 +843,20 @@ doSSH()
         fi;;
   esac
   requireCluster
-  if [ $# -eq 0 ]; then
-    no=0
-  else
+  no=0
+  if [ $# -gt 0 ]; then
     if [ "$1" == list ]; then
       cd "$ROOT"
       terraform output ${t}_ips | sed -e 's/,$//'
       exit 0
     fi
-    if [ "$1" -lt 0 ]; then
-      Error "index must not be negative"
+    if [[ $1 =~ ^-?[0-9]+$ ]]; then
+      if [ "$1" -lt 0 ]; then
+        Error "index must not be negative"
+      fi
+      no="$1"
+      shift
     fi
-    no="$1"
-    shift
   fi
   if [ -n "$cmd" ]; then
     if [ $# -eq 0 ]; then
@@ -868,6 +869,10 @@ doSSH()
   PEM="gen/nodes_privatekey.pem"
   assureKey
   chmod og-rwx "$PEM"
+
+  if [ "$*" == "recovercontrolplane" -a $no -eq 0 ]; then
+    set /opt/bootkube/bin/recover-controlplane.sh
+  fi
 
   FIP="$(getIP $t $no)" || IP="$(getIP ${t}_ips $no)" || true
   if [ -z "$FIP" ]; then
