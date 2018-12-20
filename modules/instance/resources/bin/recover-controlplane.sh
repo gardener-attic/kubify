@@ -29,6 +29,7 @@ checkpod() {
 }
 
 check () {
+    missing=
     checkpod kube-apiserver
     checkpod -d kube-controller-manager
     checkpod -d kube-scheduler
@@ -57,8 +58,11 @@ if [ -n "$missing" ]; then
     echo "waiting for controlplane"
     while [ -n "$missing" ]; do
         sleep 10
-        missing=
         check
+        if [ -z $missing ]; then
+            sleep 10
+            check
+        fi
     done
     delete
 fi
