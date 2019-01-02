@@ -27,6 +27,7 @@ locals {
     "azure" = {
       "ubuntu-16.04" = "Canonical/UbuntuServer/16.04-LTS/latest"
       "azure-latest" = "CoreOS/CoreOS/Beta/latest"
+      "coreos-1745.7.0" = "CoreOS/CoreOS/Stable/1745.7.0"
     }
   }
 
