@@ -10,7 +10,8 @@ Kubify is a [Teraform](https://www.terraform.io/) based provisioning project for
 
 Key features of Kubify are:
 
-* Multi master node setup
+* Kubernetes v1.10.12
+* Etcd v3.3.10 multi master node setup
 * Etcd backup and restore
 * Supports rolling updates
 

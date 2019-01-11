@@ -19,7 +19,7 @@
 locals {
   image_name                 = "coreos-1855.4.0"
   bastion_image_name         = "ubuntu-16.04"
-  kubernetes_version         = "v1.9.11"
+  kubernetes_version         = "v1.10.12"
   dns_version                = "1.14.5"
   flannel_version            = "v0.9.1"
   cni_version                = "0.3.0"
