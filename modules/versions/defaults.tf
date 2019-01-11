@@ -26,7 +26,7 @@ locals {
   etcd_version               = "v3.3.10"
   etcd_image                 = "quay.io/coreos/etcd"
   etcd_operator_version      = "v0.6.1"
-  etcd_backup_version        = "0.3.0"
+  etcd_backup_version        = "0.4.1"
   etcd_backup_image          = "eu.gcr.io/gardener-project/gardener/etcdbrctl"
   self_bootkube_version      = "v0.8.2"
   self_bootkube_image        = "quay.io/coreos/bootkube"
@@ -40,7 +40,7 @@ locals {
   dex_version  = "v2.6.1"
 
   dashboard_image   = "gcr.io/google_containers/kubernetes-dashboard-amd64"
-  dashboard_version = "v1.10.0"
+  dashboard_version = "v1.10.1"
 
   garden_apiserver_image    = "eu.gcr.io/gardener-project/gardener/apiserver"
   garden_apiserver_version  = "0.1.0-0628e0bdd679351378c05503cf1de301a79a1b2a"
