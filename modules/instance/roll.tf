@@ -38,9 +38,9 @@ output "worker_roll_info" {
 resource "local_file" "rollinfo" {
   content     = <<EOF
   {
-    "master" = "${jsonencode(module.master.info)}"
-    "worker" = "${jsonencode(module.worker.info)}"
-    "recovery" = "${module.recovery_version.value}"
+    "master": ${jsonencode(module.master.info)}
+    "worker": ${jsonencode(module.worker.info)}
+    "recovery": "${module.recovery_version.value}"
   }
 EOF
   filename = "${path.cwd}/rollinfo"

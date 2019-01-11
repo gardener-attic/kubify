@@ -37,7 +37,7 @@ check () {
 
 deploy() {
     echo "deploying temporary control plane"
-    mkdir -p /etc/kubernetes/bootstrap-secrets
+    sudo mkdir -p /etc/kubernetes/bootstrap-secrets
     sudo cp -r /opt/bootkube/assets/tls/* /etc/kubernetes/bootstrap-secrets/
     sudo cp /opt/bootkube/assets/bootstrap-manifests/bootstrap-apiserver.yaml /etc/kubernetes/manifests/
     sudo cp /opt/bootkube/assets/bootstrap-manifests/bootstrap-controller-manager.yaml /etc/kubernetes/manifests/
