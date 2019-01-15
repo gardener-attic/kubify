@@ -6,7 +6,7 @@ kind: Namespace
 metadata:
   name: nginx-ingress
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: echoheaders
@@ -79,7 +79,7 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   annotations:
-     kubernetes.io/ingress.class: "nginx" 
+     kubernetes.io/ingress.class: "nginx"
   name: echomap
   namespace: nginx-ingress
 spec:
