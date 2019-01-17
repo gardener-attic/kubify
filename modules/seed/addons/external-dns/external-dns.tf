@@ -54,6 +54,7 @@ locals {
   provider_map = {
     aws = "aws"
     route53 = "aws"
+    designate = "openstack"
   }
 
   defaults = {

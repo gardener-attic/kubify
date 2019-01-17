@@ -70,7 +70,7 @@ module "active" {
 module "dns" {
   source = "../value_check"
   value = "${lookup(var.config,"dns_type")}"
-  values = [ "route53" ]
+  values = [ "route53", "designate" ]
 }
 
 module "route53_dns" {
@@ -95,3 +95,24 @@ module "route53" {
   config = "${var.config}"
 }
 
+module "os_dns" {
+  source = "../flag"
+  option = "${module.dns.value == "designate"}"
+}
+
+module "designate" {
+  source = "./designate"
+
+  active = "${module.active.if_active * module.os_dns.if_active}"
+
+  entry_count  = "${var.entry_count}"
+  name_count  = "${var.name_count}"
+  target = "${var.target}"
+  targets= "${var.targets}"
+  type   = "${var.type}"
+  name   = "${var.name}"
+  names  = "${var.names}"
+  ttl    = "${var.ttl}"
+
+  config = "${var.config}"
+}
