@@ -63,7 +63,7 @@ resource "openstack_dns_recordset_v2" "record" {
   provider = "openstack"
   count    = "${var.active * var.name_count * (1 - signum(var.entry_count))}" 
   zone_id  = "${module.dns_hostedzone.value}"
-  name     = "${element(local.names,count.index)}"
+  name     = "${element(local.names,count.index)}."
   type     = "${var.type}"
   ttl      = "${var.ttl}"
   records  = ["${var.target}"]
@@ -72,7 +72,7 @@ resource "openstack_dns_recordset_v2" "records" {
   provider = "openstack"
   count    = "${var.active * var.entry_count }"
   zone_id  = "${module.dns_hostedzone.value}"
-  name     = "${var.names[count.index]}"
+  name     = "${var.names[count.index]}."
   type     = "${var.type}"
   ttl      = "${var.ttl}"
   records  = ["${element(var.targets,count.index)}"]
