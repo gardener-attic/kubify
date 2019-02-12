@@ -8,7 +8,7 @@ lookup() {
     ext=
     if [ "$1" == -d ]; then
         shift
-        ext="-[a-z0-9]{10}"
+        ext="-[a-z0-9]{9}"
     fi
     kubectl -n kube-system get pods | (egrep "$1$ext-[a-z0-9]{5} " || true) | (grep Running || true)
 }
