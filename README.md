@@ -2,7 +2,7 @@
 
 ![Kubify Logo](docs/kubify@2x.png)
 
-Kubify is a [Teraform](https://www.terraform.io/) based provisioning project for setting up production ready [Kubernetes](https://kubernetes.io/) clusters on public and private Cloud infrastructures. Kubify currently supports:
+Kubify is a [Terraform](https://www.terraform.io/) based provisioning project for setting up production ready [Kubernetes](https://kubernetes.io/) clusters on public and private Cloud infrastructures. Kubify currently supports:
 
 * OpenStack
 * AWS
@@ -10,7 +10,8 @@ Kubify is a [Teraform](https://www.terraform.io/) based provisioning project for
 
 Key features of Kubify are:
 
-* Multi master node setup
+* Kubernetes v1.10.12
+* Etcd v3.3.10 multi master node setup
 * Etcd backup and restore
 * Supports rolling updates
 

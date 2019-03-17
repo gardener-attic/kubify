@@ -1,4 +1,4 @@
-apiVersion: apps/v1beta2
+apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: kube-apiserver
@@ -30,7 +30,7 @@ spec:
         - apiserver
         ${oidc_dropin}
         - --admission-control=NamespaceLifecycle,LimitRanger,ServiceAccount,PersistentVolumeLabel,DefaultStorageClass,DefaultTolerationSeconds,MutatingAdmissionWebhook,ValidatingAdmissionWebhook,ResourceQuota
-        - --advertise-address=$(POD_IP)
+        - --advertise-address=$(HOST_IP)
         - --allow-privileged=true
         - --anonymous-auth=false
         - --apiserver-count=${master_count}
@@ -64,10 +64,10 @@ spec:
         - --proxy-client-cert-file=/etc/kubernetes/secrets/aggregator.crt
         - --proxy-client-key-file=/etc/kubernetes/secrets/aggregator.key
         env:
-        - name: POD_IP
+        - name: HOST_IP
           valueFrom:
             fieldRef:
-              fieldPath: status.podIP
+              fieldPath: status.hostIP
         volumeMounts:
         - mountPath: /etc/ssl/certs
           name: ssl-certs-host

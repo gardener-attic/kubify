@@ -58,7 +58,6 @@ ${units}  - name: bootstrap.service
         --insecure-options=image"
       ExecStart=/usr/lib/coreos/kubelet-wrapper \
         --kubeconfig=/etc/kubernetes/kubelet.conf \
-        --require-kubeconfig=true \
         --pod-manifest-path=/etc/kubernetes/manifests \
         --allow-privileged=true \
         --network-plugin=cni \

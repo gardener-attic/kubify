@@ -38,8 +38,6 @@ locals {
   offer = "${element(split("${local.separator}",local.image),1)}"
   sku = "${element(split("${local.separator}",local.image),2)}"
   version = "${element(split("${local.separator}",local.image),3)}"
-
-  public_key = ""
 }
 
 data "template_file" "secret" {

@@ -114,12 +114,13 @@ resource "null_resource" "etcd_setup" {
 }
 
 resource "null_resource" "helper_provision" {
-  count = "${signum(module.bootkube.if_active + module.recover_cluster.if_active + module.provision.if_active + module.provision_helper.if_active ) + ( module.master_config.count -1 ) * module.provision_helper.if_active}"
+  count = "${module.master_config.count}"
   triggers {
     recover = "${module.recovery_version.value}"
     sha = "${module.seed.bootkube_sha}"
     bootkube = "${module.bootkube_image.value}"
     master = "${element(module.master.ids,count.index)}"
+    archive_sha = "${data.archive_file.helper_scripts.output_sha}"
   }
 
   connection {
@@ -148,7 +149,6 @@ resource "null_resource" "helper_provision" {
 
 resource "null_resource" "master_provision" {
   depends_on = [ "null_resource.helper_provision" ]
-  count = "${signum(module.bootkube.if_active + module.recover_cluster.if_active + module.provision.if_active)}"
   triggers {
     recover = "${module.recovery_version.value}"
     sha = "${module.seed.bootkube_sha}"
@@ -175,7 +175,6 @@ resource "null_resource" "master_provision" {
 
 resource "null_resource" "master_setup" {
   depends_on = [ "null_resource.master_provision" ]
-  count = "${module.omit_bootkube.if_not_active * signum(module.bootkube.if_active + module.recover_cluster.if_active)}"
 
   triggers {
     provision = "${null_resource.master_provision.id}"
@@ -198,6 +197,32 @@ resource "null_resource" "master_setup" {
       "rm -rf bootkube && unzip bootkube.zip -d bootkube",
       "sudo rm -rf ${module.cluster.assets_inst_dir}",
       "sudo mv bootkube ${module.cluster.assets_inst_dir}",
+    ]
+  }
+}
+
+resource "null_resource" "master_controlplane_recover" {
+  depends_on = [ "null_resource.master_setup" ]
+  count = "${module.omit_bootkube.if_not_active * module.bootkube.if_not_active * module.recover_cluster.if_not_active}"
+
+  triggers {
+    host = "${module.master.ips[0]}"
+  }
+
+  connection {
+    host = "${module.master.ips[0]}"
+    type     = "ssh"
+    user     = "core"
+    private_key = "${module.iaas.private_key}"
+
+    bastion_host = "${module.bastion_host.value}"
+    bastion_user = "${module.bastion_user.value}"
+    bastion_private_key = "${module.iaas.private_key}"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "${module.cluster.bootkube_inst_dir}/bin/recover-controlplane.sh",
     ]
   }
 }

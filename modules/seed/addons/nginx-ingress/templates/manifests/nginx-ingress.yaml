@@ -212,7 +212,7 @@ data:
   enable-vts-status: "false"
   server-name-hash-bucket-size: "256"
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   labels:
@@ -220,6 +220,10 @@ metadata:
   name: nginx-ingress-controller
   namespace: ${namespace}
 spec:
+  selector:
+    matchLabels:
+      app: nginx-ingress
+      component: controller
   updateStrategy:
     type: RollingUpdate
     rollingUpdate:
@@ -279,7 +283,7 @@ spec:
               scheme: HTTP
           resources:
             {}
-            
+
       hostNetwork: ${host_network}
       dnsPolicy: ClusterFirst
       restartPolicy: Always
@@ -287,7 +291,7 @@ spec:
       terminationGracePeriodSeconds: 60
 
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
@@ -319,5 +323,5 @@ spec:
               protocol: TCP
           resources:
             {}
-            
+
       terminationGracePeriodSeconds: 60

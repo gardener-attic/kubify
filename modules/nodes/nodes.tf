@@ -195,11 +195,11 @@ module "zip" {
 module "node_labels" {
   source = "../variable"
   value = "${length(var.node_labels)==0 ? "" : "        --node-labels=${join(",",var.node_labels)} \\\n"}"
-}  
+}
 module "node_taints" {
   source = "../variable"
   value = "${length(var.node_taints)==0 ? "" : "        --register-with-taints=${join(",",var.node_taints)} \\\n"}"
-}  
+}
 
 #
 # volume
@@ -210,7 +210,7 @@ variable "argsep" {
 
 data "template_file" "volume_service" {
   template = "${file("${path.module}/templates/volume.service")}"
-  
+
   vars {
     device = "${var.device}"
     path = "${join(var.argsep, list(var.etcd_mount_path, var.kube_mount_path))}"
@@ -221,6 +221,17 @@ module "volume_service" {
   value = "${module.storage.value ? data.template_file.volume_service.rendered : ""}"
 }
 
+locals {
+  dropin = <<EOF
+[Unit]
+After=volume.service
+EOF
+}
+
+module "ssh_drop_in" {
+  source = "../variable"
+  value = "${module.storage.value ? local.dropin : ""}"
+}
 
 module "etcd_mount" {
   source = "mount_point"
@@ -243,7 +254,7 @@ module "kube_mount" {
 #
 data "template_file" "bootkube" {
   template = "${file("${path.module}/templates/bootkube.service")}"
-  
+
   vars {
     bootkube_done_dir = "${var.kube_mount_path}"
     bootkube_image = "${var.bootkube_image}"
@@ -305,9 +316,17 @@ module "info_file" {
   omit_empty = true
 }
 
+module "ssh_dropin_file" {
+  source = "path_entry"
+  path =  "/etc/systemd/system/sshd@.service.d/bootstrap.conf"
+  permissions =  "${lookup(var.file,"permissions","0644")}"
+  content =  "${module.ssh_drop_in.value}"
+  omit_empty = true
+}
+
 module "paths" {
   source = "../variable"
-  value = "${module.storage.value ? module.setup_volume.entry : ""}${module.cert_file.entry}${module.info_file.entry}"
+  value = "${module.storage.value ? module.setup_volume.entry : ""}${module.cert_file.entry}${module.info_file.entry}${module.ssh_dropin_file.entry}"
 }
 
 module "bootstrap_steps" {
@@ -336,7 +355,7 @@ data "template_file" "cloud_init" {
     kubelet_conf_b64 = "${base64encode(var.kubeconfig)}"
     setup_kubeenv_script_b64 = "${base64encode(file("${path.module}/resources/setup_kubeenv"))}"
     generation = "${local.generation}"
-  
+
     #
     # flavored properties
     kubelet_args = "${module.node_labels.value}${module.node_taints.value}"
@@ -383,7 +402,7 @@ module "vms" {
   source = "../../variants/current/modules/vms"
 
   vm_version        = "${var.vm_version}"
-  iaas_config       = "${var.iaas_config}" 
+  iaas_config       = "${var.iaas_config}"
   state             = "${var.state}"
   update_mode       = "${var.update_mode}"
 
