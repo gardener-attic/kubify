@@ -22,6 +22,7 @@ resource "local_file" "image"{
 
 data "aws_ami" "image" {
   most_recent      = true
+  owners = ["self", "amazon", "aws-marketplace"]
 
   filter {
     name   = "name"
