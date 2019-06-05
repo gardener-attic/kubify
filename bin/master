@@ -234,14 +234,14 @@ doApply()
   else
     terraform init "$MODULE"
   fi
-  echo terraform apply $config "$@" $MODULE
-  terraform apply $config "$@" $MODULE
+  echo terraform apply -parallelism=0 $config "$@" $MODULE
+  terraform apply -parallelism=0 $config "$@" $MODULE
 }
 
 _doApply()
 {
   cd "$ROOT"
-  terraform apply "$@" $MODULE
+  terraform apply -parallelism=0 "$@" $MODULE
 }
 
 _listResources()
@@ -453,7 +453,7 @@ doUpdate()
   local verb=apply
   if [ $# == 0 ]; then
      cd "$ROOT"
-    _doDeploy gen/bootkube/manifests gen/addons
+    _doDeploy gen/bootkube/*/manifests gen/addons
   else
     _doDeploy "$@"
   fi
