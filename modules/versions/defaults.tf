@@ -26,7 +26,7 @@ locals {
   etcd_version               = "v3.3.10"
   etcd_image                 = "quay.io/coreos/etcd"
   etcd_operator_version      = "v0.6.1"
-  etcd_backup_version        = "0.4.1"
+  etcd_backup_version        = "0.6.3"
   etcd_backup_image          = "eu.gcr.io/gardener-project/gardener/etcdbrctl"
   self_bootkube_version      = "v0.8.2"
   self_bootkube_image        = "quay.io/coreos/bootkube"
