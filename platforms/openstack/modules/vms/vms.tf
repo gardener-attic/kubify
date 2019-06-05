@@ -114,10 +114,6 @@ resource "openstack_compute_instance_v2" "nostorage" {
   availability_zone = "${module.os.availability_zone}"
   force_delete = true
 
-  scheduler_hints {
-    group = "${lookup(var.iaas_info, "server_group_id")}"
-  }
-
   metadata = "${merge(local.tags, map("Name", "${var.prefix}-${var.node_type}-${count.index}"))}"
 
   block_device {
