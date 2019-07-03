@@ -18,8 +18,8 @@ module "update_kubelet" {
 }
 
 resource "null_resource" "update_kubelet" {
-  count = "${module.update_kubelet.flag * ( var.master_count + var.worker_count )}"
-   
+  count = "${module.update_kubelet.flag * ( module.master_config.count + module.worker_config.count )}"
+
   triggers {
     content = "${md5(module.seed.kubelet_env)}"
     node = "${element(concat(module.master.ids, module.worker.ids), count.index)}"
@@ -47,4 +47,12 @@ resource "null_resource" "update_kubelet" {
       "sudo mv kubelet.env /var/kubernetes/kubelet.env",
     ]
   }
+}
+
+output "workercount" {
+  value = "${module.worker_config.count}"
+}
+
+output "mastercount" {
+  value = "${module.master_config.count}"
 }
