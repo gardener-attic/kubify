@@ -299,6 +299,10 @@ metadata:
   name: nginx-default-backend
   namespace: ${namespace}
 spec:
+  selector:
+    matchLabels:
+      app: nginx-ingress
+      component: nginx-default-backend
   replicas: 1
   template:
     metadata:

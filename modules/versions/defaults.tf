@@ -26,7 +26,7 @@ locals {
   etcd_version               = "v3.3.10"
   etcd_image                 = "quay.io/coreos/etcd"
   etcd_operator_version      = "v0.6.1"
-  etcd_backup_version        = "0.6.3"
+  etcd_backup_version        = "0.6.4"
   etcd_backup_image          = "eu.gcr.io/gardener-project/gardener/etcdbrctl"
   self_bootkube_version      = "v0.8.2"
   self_bootkube_image        = "quay.io/coreos/bootkube"
@@ -34,7 +34,7 @@ locals {
   bootkube_image             = "quay.io/coreos/bootkube"
   kubernetes_hyperkube       = "gcr.io/google_containers/hyperkube"
   kubernetes_hyperkube_patch = ""
-  nginx_version              = "0.17.1"
+  nginx_version              = "0.24.1"
 
   lego_version = "0.1.5"
   dex_version  = "v2.6.1"
